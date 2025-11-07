@@ -35,6 +35,7 @@ class ProfileScreen extends StatelessWidget {
                     SliverToBoxAdapter(child: _buildStatsRow(state)),
                     SliverToBoxAdapter(child: _buildActionButtons(context)),
                     SliverToBoxAdapter(child: _buildBioSection(state)),
+                    SliverToBoxAdapter(child: _buildQuickAccessSection(context)),
                     SliverPersistentHeader(
                       delegate: _StickyTabBarDelegate(
                         TabBar(
@@ -99,31 +100,15 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       pinned: true,
-      title: Row(
-        children: [
-          Text(
-            state.user.name,
-            style: const TextStyle(
-              color: Color(0xFF1A1A1A),
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: Color(0xFF1A1A1A),
-            size: 20,
-          ),
-        ],
+      title: Text(
+        state.user.name,
+        style: const TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.add_box_outlined, color: Color(0xFF1A1A1A)),
-          onPressed: () {
-            // TODO: Create post/event
-          },
-        ),
         IconButton(
           icon: const Icon(Icons.menu, color: Color(0xFF1A1A1A)),
           onPressed: () {
@@ -179,13 +164,14 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildStatsRow(UserLoaded state) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatColumn('${state.eventsHosted}', 'Postingan'),
           _buildStatColumn('${state.connections}', 'Pengikut'),
-          _buildStatColumn('${state.eventsAttended}', 'Diikutin'),
+          _buildStatColumn('${state.eventsHosted}', 'Event'),
+          _buildStatColumn('${state.postsCount}', 'Postingan'),
+          _buildStatColumn('${state.totalInvitedAttendees}', 'Diajak'),
         ],
       ),
     );
@@ -218,75 +204,33 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const EditProfileScreen(),
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A1A1A),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: BorderSide(color: Colors.grey[300]!, width: 1),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EditProfileScreen(),
               ),
-              child: const Text(
-                'Edit Profil',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            );
+          },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1A1A1A),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: Colors.grey[300]!, width: 1),
+          ),
+          child: const Text(
+            'Edit Profil',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                // TODO: Share profile
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A1A1A),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: BorderSide(color: Colors.grey[300]!, width: 1),
-              ),
-              child: const Text(
-                'Share Profil',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: () {
-              // TODO: Suggested people
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF1A1A1A),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(color: Colors.grey[300]!, width: 1),
-              minimumSize: const Size(0, 0),
-            ),
-            child: const Icon(Icons.person_add_outlined, size: 18),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -348,6 +292,168 @@ class ProfileScreen extends StatelessWidget {
           ],
           const SizedBox(height: 8),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessSection(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAF8F5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey[200]!,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.dashboard_outlined,
+                size: 18,
+                color: Color(0xFF84994F),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Akses Cepat',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[800],
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickAccessCard(
+                  context: context,
+                  icon: Icons.confirmation_number_outlined,
+                  label: 'Tiket Gue',
+                  color: const Color(0xFF84994F),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyTicketsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickAccessCard(
+                  context: context,
+                  icon: Icons.receipt_long_outlined,
+                  label: 'Transaksi',
+                  color: Colors.orange[700]!,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TransactionHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickAccessCard(
+                  context: context,
+                  icon: Icons.bookmark_outline,
+                  label: 'Tersimpan',
+                  color: Colors.blue[700]!,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Fitur ini coming soon yaa!')),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickAccessCard(
+                  context: context,
+                  icon: Icons.qr_code_scanner,
+                  label: 'QR Code',
+                  color: Colors.purple[700]!,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessCard({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Colors.grey[200]!,
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -901,56 +1007,6 @@ class ProfileScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => const SettingsScreen(),
                   ),
-                );
-              },
-            ),
-            _buildMenuSheetItem(
-              context: context,
-              icon: Icons.confirmation_number_outlined,
-              title: 'Tiket Gue',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyTicketsScreen(),
-                  ),
-                );
-              },
-            ),
-            _buildMenuSheetItem(
-              context: context,
-              icon: Icons.receipt_long_outlined,
-              title: 'Riwayat Transaksi',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const TransactionHistoryScreen(),
-                  ),
-                );
-              },
-            ),
-            _buildMenuSheetItem(
-              context: context,
-              icon: Icons.bookmark_outline,
-              title: 'Tersimpan',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fitur ini coming soon yaa!')),
-                );
-              },
-            ),
-            _buildMenuSheetItem(
-              context: context,
-              icon: Icons.qr_code_scanner,
-              title: 'QR Code',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
                 );
               },
             ),
