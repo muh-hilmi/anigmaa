@@ -163,12 +163,23 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
           if (state.commentsByPostId.containsKey(widget.post.id)) {
             final comments = state.commentsByPostId[widget.post.id]!;
             if (comments.isNotEmpty) {
-              _previewComments = comments.take(3).map((comment) {
+              final newPreviewComments = comments.take(3).map((comment) {
                 return {
                   'author': comment.author.name,
                   'content': comment.content,
                 };
               }).toList();
+
+              // Only update if changed to avoid unnecessary rebuilds
+              if (_previewComments.length != newPreviewComments.length) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _previewComments = newPreviewComments;
+                    });
+                  }
+                });
+              }
             }
           }
         }
