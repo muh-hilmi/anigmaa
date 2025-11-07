@@ -40,11 +40,37 @@ class ProfileScreen extends StatelessWidget {
                         TabBar(
                           labelColor: const Color(0xFF1A1A1A),
                           unselectedLabelColor: Colors.grey[400],
-                          indicatorColor: const Color(0xFF1A1A1A),
-                          indicatorWeight: 1.5,
+                          indicatorColor: const Color(0xFF84994F),
+                          indicatorWeight: 2.5,
+                          labelStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          unselectedLabelStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                           tabs: const [
-                            Tab(icon: Icon(Icons.grid_on_rounded)),
-                            Tab(icon: Icon(Icons.event_rounded)),
+                            Tab(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.article_outlined, size: 18),
+                                  SizedBox(width: 6),
+                                  Text('Postingan'),
+                                ],
+                              ),
+                            ),
+                            Tab(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.event_rounded, size: 18),
+                                  SizedBox(width: 6),
+                                  Text('Event'),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -328,52 +354,489 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildPostsGrid() {
     // TODO: Replace with actual posts data
-    return GridView.builder(
-      padding: const EdgeInsets.all(1),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 1,
-        crossAxisSpacing: 1,
-      ),
-      itemCount: 9,
-      itemBuilder: (context, index) {
-        return Container(
-          color: Colors.grey[300],
-          child: Center(
-            child: Icon(
-              Icons.photo_library_outlined,
-              color: Colors.grey[500],
-              size: 40,
+    final mockPosts = _generateMockPosts();
+
+    if (mockPosts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_note_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada postingan nih',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
-          ),
-        );
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: mockPosts.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        return _buildPostCard(mockPosts[index]);
       },
     );
   }
 
-  Widget _buildEventsGrid() {
-    // TODO: Replace with actual events data
-    return GridView.builder(
-      padding: const EdgeInsets.all(1),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 1,
-        crossAxisSpacing: 1,
-      ),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return Container(
-          color: Colors.grey[300],
-          child: Center(
-            child: Icon(
-              Icons.event_outlined,
-              color: Colors.grey[500],
-              size: 40,
+  Widget _buildPostCard(Map<String, dynamic> post) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Post text content
+          if (post['text'] != null && post['text'].isNotEmpty) ...[
+            Text(
+              post['text'],
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.5,
+                color: Color(0xFF1a1a1a),
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Post image (if any)
+          if (post['image'] != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                post['image'],
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Event attachment (always present)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF8F5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF84994F).withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Event icon
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.event_rounded,
+                    color: Color(0xFF84994F),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Event details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post['eventTitle'] ?? 'Event Title',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1a1a1a),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 12,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            post['eventDate'] ?? 'Soon',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.people_outline,
+                            size: 12,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${post['attendees'] ?? 0} ikutan',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Arrow icon
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey[400],
+                ),
+              ],
             ),
           ),
-        );
+
+          // Engagement stats
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildEngagementStat(Icons.star_rounded, post['likes'] ?? 0),
+              const SizedBox(width: 16),
+              _buildEngagementStat(Icons.chat_bubble_outline_rounded, post['comments'] ?? 0),
+              const SizedBox(width: 16),
+              _buildEngagementStat(Icons.share_outlined, post['shares'] ?? 0),
+              const Spacer(),
+              Text(
+                post['time'] ?? '1h',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEngagementStat(IconData icon, int count) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 4),
+        Text(
+          '$count',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Map<String, dynamic>> _generateMockPosts() {
+    return [
+      {
+        'text': 'Yuk ikutan workshop photography bareng kita! Bakal seru banget nih belajar teknik foto jalanan dari para profesional. Limited seats!',
+        'image': 'https://picsum.photos/600/400?random=1',
+        'eventTitle': 'Street Photography Workshop',
+        'eventDate': '15 Jan 2025',
+        'attendees': 45,
+        'likes': 128,
+        'comments': 23,
+        'shares': 12,
+        'time': '2h',
+      },
+      {
+        'text': 'Besok ada meetup Flutter developer nih! Siapa aja yang mau ikutan? Free entrance dan ada snack juga loh~',
+        'eventTitle': 'Flutter Developer Meetup',
+        'eventDate': '20 Jan 2025',
+        'attendees': 67,
+        'likes': 89,
+        'comments': 34,
+        'shares': 8,
+        'time': '5h',
+      },
+      {
+        'text': 'Gue baru aja join event food festival kemarin dan it was AMAZING! Makanannya enak-enak semua. Next time lo pada harus ikutan!',
+        'image': 'https://picsum.photos/600/400?random=2',
+        'eventTitle': 'Jakarta Food Festival 2025',
+        'eventDate': '28 Jan 2025',
+        'attendees': 234,
+        'likes': 245,
+        'comments': 67,
+        'shares': 45,
+        'time': '1d',
+      },
+    ];
+  }
+
+  Widget _buildEventsGrid() {
+    // TODO: Replace with actual events data
+    final mockEvents = _generateMockEvents();
+
+    if (mockEvents.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_busy_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada event nih',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      itemCount: mockEvents.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return _buildEventCard(mockEvents[index]);
       },
     );
+  }
+
+  Widget _buildEventCard(Map<String, dynamic> event) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF84994F).withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Event image
+          if (event['image'] != null)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                event['image'],
+                width: double.infinity,
+                height: 160,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 160,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF8F5),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: Icon(
+                      Icons.event_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          // Event details
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Event category badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    event['category'] ?? 'Event',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF84994F),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Event title
+                Text(
+                  event['title'] ?? 'Event Title',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1a1a1a),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+
+                // Event date
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 14,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      event['date'] ?? 'Soon',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Event location
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        event['location'] ?? 'Location',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Attendees
+                Row(
+                  children: [
+                    Icon(
+                      Icons.people_outline,
+                      size: 14,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${event['attendees'] ?? 0} orang ikutan',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const Spacer(),
+                    // Price or Free badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: event['isFree'] == true
+                            ? const Color(0xFF84994F).withValues(alpha: 0.1)
+                            : Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        event['isFree'] == true ? 'GRATIS' : 'Rp ${event['price']}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: event['isFree'] == true
+                              ? const Color(0xFF84994F)
+                              : Colors.orange[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _generateMockEvents() {
+    return [
+      {
+        'title': 'Street Photography Workshop',
+        'category': 'Workshop',
+        'date': '15 Jan 2025, 14:00',
+        'location': 'Kota Tua Jakarta',
+        'attendees': 45,
+        'image': 'https://picsum.photos/600/400?random=101',
+        'isFree': false,
+        'price': '75K',
+      },
+      {
+        'title': 'Flutter Developer Meetup',
+        'category': 'Meetup',
+        'date': '20 Jan 2025, 18:00',
+        'location': 'Tech Hub, Sudirman',
+        'attendees': 67,
+        'image': 'https://picsum.photos/600/400?random=102',
+        'isFree': true,
+      },
+      {
+        'title': 'Jakarta Food Festival 2025',
+        'category': 'Festival',
+        'date': '28 Jan 2025, 10:00',
+        'location': 'GBK Senayan',
+        'attendees': 234,
+        'image': 'https://picsum.photos/600/400?random=103',
+        'isFree': false,
+        'price': '50K',
+      },
+      {
+        'title': 'Yoga in the Park',
+        'category': 'Health',
+        'date': '5 Feb 2025, 06:00',
+        'location': 'Taman Menteng',
+        'attendees': 28,
+        'image': 'https://picsum.photos/600/400?random=104',
+        'isFree': true,
+      },
+    ];
   }
 
   Widget _buildErrorState(BuildContext context) {
