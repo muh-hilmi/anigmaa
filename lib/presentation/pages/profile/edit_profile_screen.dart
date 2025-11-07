@@ -23,29 +23,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _websiteController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  List<String> _selectedInterests = [];
   String? _selectedAvatarUrl;
   File? _selectedImageFile;
   bool _isLoading = false;
-
-  final List<Map<String, dynamic>> _availableInterests = [
-    {'name': 'Technology', 'icon': Icons.computer},
-    {'name': 'Sports', 'icon': Icons.sports_soccer},
-    {'name': 'Music', 'icon': Icons.music_note},
-    {'name': 'Art', 'icon': Icons.palette},
-    {'name': 'Food', 'icon': Icons.restaurant},
-    {'name': 'Travel', 'icon': Icons.flight},
-    {'name': 'Photography', 'icon': Icons.camera_alt},
-    {'name': 'Reading', 'icon': Icons.book},
-    {'name': 'Gaming', 'icon': Icons.sports_esports},
-    {'name': 'Fitness', 'icon': Icons.fitness_center},
-    {'name': 'Cooking', 'icon': Icons.restaurant_menu},
-    {'name': 'Dancing', 'icon': Icons.music_video},
-    {'name': 'Movies', 'icon': Icons.movie},
-    {'name': 'Nature', 'icon': Icons.nature},
-    {'name': 'Business', 'icon': Icons.business},
-    {'name': 'Volunteering', 'icon': Icons.volunteer_activism},
-  ];
 
   @override
   void initState() {
@@ -53,7 +33,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (widget.user != null) {
       _nameController.text = widget.user!.name;
       _bioController.text = widget.user!.bio ?? '';
-      _selectedInterests = List.from(widget.user!.interests);
       _selectedAvatarUrl = widget.user!.avatar;
     }
   }
@@ -76,8 +55,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _buildPersonalInfo(),
                   const SizedBox(height: 16),
                   _buildSocialLinks(),
-                  const SizedBox(height: 16),
-                  _buildInterests(),
                   const SizedBox(height: 24),
                   _buildSaveButton(),
                   const SizedBox(height: 40),
@@ -422,156 +399,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildInterests() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.favorite_outline,
-                  color: Color(0xFF84994F),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Minat & Hobi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Pilih minimal 3 biar kita bisa rekomendasiin event yang cocok buat lo',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _availableInterests.map((interest) {
-              final isSelected = _selectedInterests.contains(interest['name']);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedInterests.remove(interest['name']);
-                    } else {
-                      _selectedInterests.add(interest['name']);
-                    }
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: isSelected
-                        ? const LinearGradient(
-                            colors: [Color(0xFF84994F), Color(0xFF6B7D3F)],
-                          )
-                        : null,
-                    color: isSelected ? null : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFF84994F) : Colors.grey.shade300,
-                      width: isSelected ? 0 : 1,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF84994F).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        interest['icon'],
-                        size: 18,
-                        color: isSelected ? Colors.white : Colors.grey[700],
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        interest['name'],
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey[700],
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          if (_selectedInterests.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.check_circle,
-                      color: Color(0xFF84994F),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${_selectedInterests.length} minat udah kepilih',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF84994F),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSaveButton() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -844,26 +671,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedInterests.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Pilih minimal satu minat dulu dong!'),
-              ],
-            ),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-        return;
-      }
-
       setState(() {
         _isLoading = true;
       });
@@ -899,7 +706,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'name': _nameController.text,
           'bio': _bioController.text,
           'location': _locationController.text,
-          'interests': _selectedInterests,
+          'website': _websiteController.text,
           'avatar': _selectedImageFile?.path ?? _selectedAvatarUrl,
         });
       }
