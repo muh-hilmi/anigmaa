@@ -35,7 +35,6 @@ class ProfileScreen extends StatelessWidget {
                     SliverToBoxAdapter(child: _buildStatsRow(state)),
                     SliverToBoxAdapter(child: _buildActionButtons(context)),
                     SliverToBoxAdapter(child: _buildBioSection(state)),
-                    SliverToBoxAdapter(child: _buildQuickAccessSection(context)),
                     SliverPersistentHeader(
                       delegate: _StickyTabBarDelegate(
                         TabBar(
@@ -91,6 +90,14 @@ class ProfileScreen extends StatelessWidget {
             return _buildErrorState(context);
           },
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showQuickAccessBottomSheet(context);
+          },
+          backgroundColor: const Color(0xFF84994F),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       ),
     );
   }
@@ -296,164 +303,149 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickAccessSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
+  void _showQuickAccessBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.dashboard_outlined,
-                size: 18,
-                color: Color(0xFF84994F),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Akses Cepat',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
-                  letterSpacing: 0.5,
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.confirmation_number_outlined,
-                  label: 'Tiket Gue',
-                  color: const Color(0xFF84994F),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyTicketsScreen(),
+              const SizedBox(height: 16),
+
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.dashboard_outlined,
+                      size: 20,
+                      color: Color(0xFF84994F),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Akses Cepat',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[800],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Transaksi',
-                  color: Colors.orange[700]!,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TransactionHistoryScreen(),
-                      ),
-                    );
-                  },
-                ),
+              const SizedBox(height: 20),
+
+              // Quick access items
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.confirmation_number_outlined,
+                label: 'Tiket Gue',
+                color: const Color(0xFF84994F),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyTicketsScreen(),
+                    ),
+                  );
+                },
               ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.receipt_long_outlined,
+                label: 'Transaksi',
+                color: Colors.orange[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TransactionHistoryScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.bookmark_outline,
+                label: 'Tersimpan',
+                color: Colors.blue[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur ini coming soon yaa!')),
+                  );
+                },
+              ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.qr_code_scanner,
+                label: 'QR Code',
+                color: Colors.purple[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.bookmark_outline,
-                  label: 'Tersimpan',
-                  color: Colors.blue[700]!,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur ini coming soon yaa!')),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.qr_code_scanner,
-                  label: 'QR Code',
-                  color: Colors.purple[700]!,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildQuickAccessCard({
+  Widget _buildQuickAccessItem({
     required BuildContext context,
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return ListTile(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.grey[200]!,
-            width: 1,
-          ),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        child: Icon(
+          icon,
+          color: color,
+          size: 24,
         ),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[800],
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 16,
+        color: Colors.grey[400],
       ),
     );
   }
