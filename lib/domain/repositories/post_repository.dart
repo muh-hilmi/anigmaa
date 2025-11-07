@@ -1,0 +1,40 @@
+import 'package:dartz/dartz.dart';
+import '../../core/errors/failures.dart';
+import '../entities/post.dart';
+import '../entities/comment.dart';
+
+abstract class PostRepository {
+  // Posts
+  Future<Either<Failure, List<Post>>> getPosts({int limit = 20, int offset = 0});
+  Future<Either<Failure, Post>> getPostById(String postId);
+  Future<Either<Failure, Post>> createPost(Post post);
+  Future<Either<Failure, Post>> updatePost(Post post);
+  Future<Either<Failure, void>> deletePost(String postId);
+
+  // Likes
+  Future<Either<Failure, Post>> likePost(String postId);
+  Future<Either<Failure, Post>> unlikePost(String postId);
+
+  // Reposts
+  Future<Either<Failure, Post>> repostPost(String postId, {String? quoteContent});
+  Future<Either<Failure, void>> undoRepost(String postId);
+
+  // Bookmarks
+  Future<Either<Failure, void>> bookmarkPost(String postId);
+  Future<Either<Failure, void>> unbookmarkPost(String postId);
+  Future<Either<Failure, List<Post>>> getBookmarkedPosts();
+
+  // Comments
+  Future<Either<Failure, List<Comment>>> getComments(String postId, {int page = 1, int limit = 20});
+  Future<Either<Failure, Comment>> createComment(Comment comment);
+  Future<Either<Failure, Comment>> likeComment(String postId, String commentId);
+  Future<Either<Failure, Comment>> unlikeComment(String postId, String commentId);
+  Future<Either<Failure, void>> deleteComment(String commentId);
+
+  // Feed
+  Future<Either<Failure, List<Post>>> getFeedPosts({int limit = 20, String? cursor});
+  Future<Either<Failure, List<Post>>> getUserPosts(String userId);
+
+  // Share
+  Future<Either<Failure, void>> sharePost(String postId);
+}
