@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../feed/modern_feed_screen.dart';
 import '../discover/discover_screen.dart';
 import '../discover/swipeable_events_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 
@@ -85,31 +86,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFFAF8F5),
-                    ),
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: Colors.grey[700],
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFFAF8F5),
-                    ),
-                    child: Icon(
-                      Icons.chat_bubble_outline,
-                      color: Colors.grey[700],
-                      size: 20,
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                    icon: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFFAF8F5),
+                      ),
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.grey[700],
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
