@@ -33,9 +33,7 @@ class ProfileScreen extends StatelessWidget {
                     _buildAppBar(context, state),
                     SliverToBoxAdapter(child: _buildProfileHeader(context, state)),
                     SliverToBoxAdapter(child: _buildStatsRow(state)),
-                    SliverToBoxAdapter(child: _buildActionButtons(context)),
                     SliverToBoxAdapter(child: _buildBioSection(state)),
-                    SliverToBoxAdapter(child: _buildQuickAccessSection(context)),
                     SliverPersistentHeader(
                       delegate: _StickyTabBarDelegate(
                         TabBar(
@@ -91,6 +89,14 @@ class ProfileScreen extends StatelessWidget {
             return _buildErrorState(context);
           },
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showQuickAccessBottomSheet(context);
+          },
+          backgroundColor: const Color(0xFF84994F),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       ),
     );
   }
@@ -155,8 +161,65 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // Spacer to push content
-          const Spacer(),
+          // Username and action buttons
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '@${user.email.split('@')[0]}', // Using email prefix as username
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfileScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: const Text('Edit'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1A1A1A),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: BorderSide(color: Colors.grey[300]!, width: 1),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () {
+                        _showShareProfileDialog(context, user);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1A1A1A),
+                        padding: const EdgeInsets.all(8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        side: BorderSide(color: Colors.grey[300]!, width: 1),
+                        minimumSize: const Size(40, 40),
+                      ),
+                      child: const Icon(Icons.share, size: 18),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -201,39 +264,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EditProfileScreen(),
-              ),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF1A1A1A),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            side: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
-          child: const Text(
-            'Edit Profil',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Removed old Edit Profil button - now integrated in header
 
   Widget _buildBioSection(UserLoaded state) {
     final user = state.user;
@@ -296,164 +327,149 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickAccessSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
+  void _showQuickAccessBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.dashboard_outlined,
-                size: 18,
-                color: Color(0xFF84994F),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Akses Cepat',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
-                  letterSpacing: 0.5,
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.confirmation_number_outlined,
-                  label: 'Tiket Gue',
-                  color: const Color(0xFF84994F),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyTicketsScreen(),
+              const SizedBox(height: 16),
+
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.dashboard_outlined,
+                      size: 20,
+                      color: Color(0xFF84994F),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Akses Cepat',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[800],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Transaksi',
-                  color: Colors.orange[700]!,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TransactionHistoryScreen(),
-                      ),
-                    );
-                  },
-                ),
+              const SizedBox(height: 20),
+
+              // Quick access items
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.confirmation_number_outlined,
+                label: 'Tiket Gue',
+                color: const Color(0xFF84994F),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyTicketsScreen(),
+                    ),
+                  );
+                },
               ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.receipt_long_outlined,
+                label: 'Transaksi',
+                color: Colors.orange[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TransactionHistoryScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.bookmark_outline,
+                label: 'Tersimpan',
+                color: Colors.blue[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur ini coming soon yaa!')),
+                  );
+                },
+              ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.qr_code_scanner,
+                label: 'QR Code',
+                color: Colors.purple[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.bookmark_outline,
-                  label: 'Tersimpan',
-                  color: Colors.blue[700]!,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur ini coming soon yaa!')),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAccessCard(
-                  context: context,
-                  icon: Icons.qr_code_scanner,
-                  label: 'QR Code',
-                  color: Colors.purple[700]!,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildQuickAccessCard({
+  Widget _buildQuickAccessItem({
     required BuildContext context,
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return ListTile(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.grey[200]!,
-            width: 1,
-          ),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        child: Icon(
+          icon,
+          color: color,
+          size: 24,
         ),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[800],
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 16,
+        color: Colors.grey[400],
       ),
     );
   }
@@ -1050,6 +1066,170 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+
+  void _showShareProfileDialog(BuildContext context, user) {
+    final username = '@${user.email.split('@')[0]}';
+    final profileUrl = 'https://anigmaa.app/profile/$username';
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Bagikan Profil',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAF8F5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey[200]!,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFF84994F),
+                          width: 2,
+                        ),
+                        image: user.avatar != null
+                            ? DecorationImage(
+                                image: NetworkImage(user.avatar!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: user.avatar == null
+                          ? Icon(Icons.person, size: 24, color: Colors.grey[400])
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            username,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF84994F).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.link,
+                    color: Color(0xFF84994F),
+                    size: 24,
+                  ),
+                ),
+                title: const Text(
+                  'Salin Link Profil',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link profil disalin: $profileUrl'),
+                      backgroundColor: const Color(0xFF84994F),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.share,
+                    color: Colors.blue,
+                    size: 24,
+                  ),
+                ),
+                title: const Text(
+                  'Bagikan ke...',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fitur share coming soon!'),
+                      backgroundColor: Color(0xFF84994F),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

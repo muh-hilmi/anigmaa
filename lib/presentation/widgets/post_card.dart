@@ -139,39 +139,52 @@ class PostCard extends StatelessWidget {
 
     return Row(
       children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundImage: displayPost.author.avatar != null
-              ? NetworkImage(displayPost.author.avatar!)
-              : null,
-          child: displayPost.author.avatar == null
-              ? Text(
-                  displayPost.author.name[0].toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                )
-              : null,
+        GestureDetector(
+          onTap: () {
+            _navigateToProfile(context, displayPost.author.id);
+          },
+          child: CircleAvatar(
+            radius: 20,
+            backgroundImage: displayPost.author.avatar != null
+                ? NetworkImage(displayPost.author.avatar!)
+                : null,
+            child: displayPost.author.avatar == null
+                ? Text(
+                    displayPost.author.name[0].toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  )
+                : null,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              GestureDetector(
+                onTap: () {
+                  _navigateToProfile(context, displayPost.author.id);
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      displayPost.author.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    if (displayPost.author.isVerified) ...[
+                      const SizedBox(width: 4),
+                      const Icon(Icons.verified, size: 16, color: Colors.blue),
+                    ],
+                  ],
+                ),
+              ),
               Row(
                 children: [
                   Text(
-                    displayPost.author.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-                  if (displayPost.author.isVerified) ...[
-                    const SizedBox(width: 4),
-                    const Icon(Icons.verified, size: 16, color: Colors.blue),
-                  ],
-                  const SizedBox(width: 8),
-                  Text(
-                    '· ${timeago.format(displayPost.createdAt, locale: 'en_short')}',
+                    timeago.format(displayPost.createdAt, locale: 'en_short'),
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey.shade600,
@@ -653,6 +666,17 @@ class PostCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _navigateToProfile(BuildContext context, String userId) {
+    // TODO: Navigate to user profile screen
+    // For now, show a message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navigasi ke profil user $userId (coming soon)'),
+        backgroundColor: const Color(0xFF84994F),
       ),
     );
   }
