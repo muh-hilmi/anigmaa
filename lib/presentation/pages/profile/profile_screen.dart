@@ -100,31 +100,15 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       pinned: true,
-      title: Row(
-        children: [
-          Text(
-            state.user.name,
-            style: const TextStyle(
-              color: Color(0xFF1A1A1A),
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: Color(0xFF1A1A1A),
-            size: 20,
-          ),
-        ],
+      title: Text(
+        state.user.name,
+        style: const TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.add_box_outlined, color: Color(0xFF1A1A1A)),
-          onPressed: () {
-            // TODO: Create post/event
-          },
-        ),
         IconButton(
           icon: const Icon(Icons.menu, color: Color(0xFF1A1A1A)),
           onPressed: () {
@@ -220,75 +204,33 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const EditProfileScreen(),
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A1A1A),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: BorderSide(color: Colors.grey[300]!, width: 1),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EditProfileScreen(),
               ),
-              child: const Text(
-                'Edit Profil',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            );
+          },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1A1A1A),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: Colors.grey[300]!, width: 1),
+          ),
+          child: const Text(
+            'Edit Profil',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                // TODO: Share profile
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A1A1A),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: BorderSide(color: Colors.grey[300]!, width: 1),
-              ),
-              child: const Text(
-                'Share Profil',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: () {
-              // TODO: Suggested people
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF1A1A1A),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(color: Colors.grey[300]!, width: 1),
-              minimumSize: const Size(0, 0),
-            ),
-            child: const Icon(Icons.person_add_outlined, size: 18),
-          ),
-        ],
+        ),
       ),
     );
   }
