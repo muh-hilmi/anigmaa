@@ -12,6 +12,7 @@ import '../../bloc/tickets/tickets_state.dart';
 import '../../../injection_container.dart' as di;
 import '../tickets/my_tickets_screen.dart';
 import '../tickets/host_checkin_screen.dart';
+import 'event_qna_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -774,14 +775,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   void _showAllQnA() {
-    // TODO: Navigate to full Q&A screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Bentar ya, lagi buka Q&A lengkapnya...'),
-        backgroundColor: const Color(0xFF84994F),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventQnAScreen(
+          eventId: widget.event.id,
+          eventTitle: widget.event.title,
         ),
       ),
     );

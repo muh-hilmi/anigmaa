@@ -379,7 +379,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                   Text(
                                     widget.event.isFree
                                       ? 'GRATIS'
-                                      : 'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                                      : 'Rp ${(widget.event.price ?? 0).toStringAsFixed(0)}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
