@@ -179,13 +179,14 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildStatsRow(UserLoaded state) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatColumn('${state.eventsHosted}', 'Postingan'),
           _buildStatColumn('${state.connections}', 'Pengikut'),
-          _buildStatColumn('${state.eventsAttended}', 'Diikutin'),
+          _buildStatColumn('${state.eventsHosted}', 'Event'),
+          _buildStatColumn('${state.postsCount}', 'Postingan'),
+          _buildStatColumn('${state.totalInvitedAttendees}', 'Diajak'),
         ],
       ),
     );

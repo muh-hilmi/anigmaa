@@ -17,28 +17,36 @@ class UserLoaded extends UserState {
   final int eventsHosted;
   final int eventsAttended;
   final int connections;
+  final int postsCount;
+  final int totalInvitedAttendees;
 
   const UserLoaded({
     required this.user,
     required this.eventsHosted,
     required this.eventsAttended,
     required this.connections,
+    this.postsCount = 0,
+    this.totalInvitedAttendees = 0,
   });
 
   @override
-  List<Object?> get props => [user, eventsHosted, eventsAttended, connections];
+  List<Object?> get props => [user, eventsHosted, eventsAttended, connections, postsCount, totalInvitedAttendees];
 
   UserLoaded copyWith({
     User? user,
     int? eventsHosted,
     int? eventsAttended,
     int? connections,
+    int? postsCount,
+    int? totalInvitedAttendees,
   }) {
     return UserLoaded(
       user: user ?? this.user,
       eventsHosted: eventsHosted ?? this.eventsHosted,
       eventsAttended: eventsAttended ?? this.eventsAttended,
       connections: connections ?? this.connections,
+      postsCount: postsCount ?? this.postsCount,
+      totalInvitedAttendees: totalInvitedAttendees ?? this.totalInvitedAttendees,
     );
   }
 }

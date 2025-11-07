@@ -57,6 +57,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         eventsHosted: user.stats.eventsCreated,
         eventsAttended: user.stats.eventsAttended,
         connections: user.stats.followersCount,
+        postsCount: 24, // TODO: Get from actual posts data
+        totalInvitedAttendees: 342, // TODO: Calculate from events attendees
       ));
     } catch (e) {
       emit(UserError('Failed to load user profile: $e'));
