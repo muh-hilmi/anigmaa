@@ -21,6 +21,11 @@ class Event {
   final List<String> pendingRequests;
   final String? requirements;
 
+  // Community fields
+  final String? communityId; // ID of community if event created by community
+  final bool isCommunityEvent; // True if event is from a community
+  final bool communityMemberOnly; // True if only community members can join
+
   // Ticketing fields
   final bool ticketingEnabled; // Enable/disable ticket sales
   final int ticketsSold;
@@ -44,6 +49,9 @@ class Event {
     this.privacy = EventPrivacy.public,
     this.pendingRequests = const [],
     this.requirements,
+    this.communityId,
+    this.isCommunityEvent = false,
+    this.communityMemberOnly = false,
     this.ticketingEnabled = false,
     this.ticketsSold = 0,
     this.waitlistIds = const [],
@@ -94,6 +102,9 @@ class Event {
     EventPrivacy? privacy,
     List<String>? pendingRequests,
     String? requirements,
+    String? communityId,
+    bool? isCommunityEvent,
+    bool? communityMemberOnly,
     bool? ticketingEnabled,
     int? ticketsSold,
     List<String>? waitlistIds,
@@ -116,6 +127,9 @@ class Event {
       privacy: privacy ?? this.privacy,
       pendingRequests: pendingRequests ?? this.pendingRequests,
       requirements: requirements ?? this.requirements,
+      communityId: communityId ?? this.communityId,
+      isCommunityEvent: isCommunityEvent ?? this.isCommunityEvent,
+      communityMemberOnly: communityMemberOnly ?? this.communityMemberOnly,
       ticketingEnabled: ticketingEnabled ?? this.ticketingEnabled,
       ticketsSold: ticketsSold ?? this.ticketsSold,
       waitlistIds: waitlistIds ?? this.waitlistIds,
