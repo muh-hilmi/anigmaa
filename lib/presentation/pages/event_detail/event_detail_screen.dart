@@ -12,6 +12,7 @@ import '../../bloc/tickets/tickets_state.dart';
 import '../../../injection_container.dart' as di;
 import '../tickets/my_tickets_screen.dart';
 import '../tickets/host_checkin_screen.dart';
+import '../social/user_profile_screen.dart';
 import 'event_qna_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
@@ -464,33 +465,45 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _buildHostCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF84994F).withValues(alpha: 0.2),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserProfileScreen(
+              userId: widget.event.host.id,
+              userName: widget.event.host.name,
             ),
-            child: Center(
-              child: Text(
-                widget.event.host.name.substring(0, 1).toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF84994F),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFAF8F5),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF84994F).withValues(alpha: 0.2),
+              ),
+              child: Center(
+                child: Text(
+                  widget.event.host.name.substring(0, 1).toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF84994F),
+                  ),
                 ),
               ),
             ),
-          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -528,6 +541,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

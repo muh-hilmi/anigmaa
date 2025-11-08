@@ -6,6 +6,7 @@ import '../../domain/entities/event_category.dart';
 import '../bloc/posts/posts_bloc.dart';
 import '../bloc/posts/posts_event.dart';
 import '../pages/post_detail/post_detail_screen.dart';
+import '../pages/social/user_profile_screen.dart';
 import 'event_mini_card.dart';
 import 'find_matches_modal.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -486,17 +487,30 @@ class PostCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundImage: quotedPost.author.avatar != null
-                    ? NetworkImage(quotedPost.author.avatar!)
-                    : null,
-                child: quotedPost.author.avatar == null
-                    ? Text(
-                        quotedPost.author.name[0].toUpperCase(),
-                        style: const TextStyle(fontSize: 10),
-                      )
-                    : null,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                        userId: quotedPost.author.id,
+                        userName: quotedPost.author.name,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 12,
+                  backgroundImage: quotedPost.author.avatar != null
+                      ? NetworkImage(quotedPost.author.avatar!)
+                      : null,
+                  child: quotedPost.author.avatar == null
+                      ? Text(
+                          quotedPost.author.name[0].toUpperCase(),
+                          style: const TextStyle(fontSize: 10),
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -683,12 +697,21 @@ class PostCard extends StatelessWidget {
   }
 
   void _navigateToProfile(BuildContext context, String userId) {
-    // TODO: Navigate to user profile screen
-    // For now, show a message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navigasi ke profil user $userId (coming soon)'),
-        backgroundColor: const Color(0xFF84994F),
+    // Cari nama user dari post
+    String userName = post.author.name;
+
+    // Jika post adalah repost, ambil nama dari original author
+    if (post.type == PostType.repost && post.originalPost != null) {
+      userName = post.originalPost!.author.name;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(
+          userId: userId,
+          userName: userName,
+        ),
       ),
     );
   }

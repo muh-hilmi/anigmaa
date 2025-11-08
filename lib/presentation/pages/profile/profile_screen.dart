@@ -94,7 +94,7 @@ class ProfileScreen extends StatelessWidget {
             _showQuickAccessBottomSheet(context);
           },
           backgroundColor: const Color(0xFF84994F),
-          child: const Icon(Icons.add, color: Colors.white),
+          child: const Icon(Icons.menu_rounded, color: Colors.white),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       ),
