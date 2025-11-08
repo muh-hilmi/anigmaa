@@ -56,6 +56,8 @@ class Event {
   bool get isStartingSoon => startTime.difference(DateTime.now()).inHours < 2;
   bool get isPrivate => privacy == EventPrivacy.private;
   bool get isPublic => privacy == EventPrivacy.public;
+  bool get hasEnded => DateTime.now().isAfter(endTime) || status == EventStatus.ended;
+  bool get canJoin => !hasEnded && !isFull && status != EventStatus.cancelled;
 
   // Ticketing getters
   bool get hasTicketsAvailable => ticketingEnabled && !isSoldOut;

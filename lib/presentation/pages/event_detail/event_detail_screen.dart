@@ -1372,14 +1372,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ],
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: (widget.event.isFull || isLoading)
+                    onPressed: (widget.event.isFull || widget.event.hasEnded || isLoading)
                       ? null
                       : () => _handleBuyTicket(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.event.isFull
+                      backgroundColor: (widget.event.isFull || widget.event.hasEnded)
                         ? Colors.grey[300]
                         : const Color(0xFF84994F),
-                      foregroundColor: widget.event.isFull
+                      foregroundColor: (widget.event.isFull || widget.event.hasEnded)
                         ? Colors.grey[600]
                         : Colors.white,
                       elevation: 0,
@@ -1398,11 +1398,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           ),
                         )
                       : Text(
-                          widget.event.isFull
-                            ? 'Penuh Bang 😅'
-                            : widget.event.isFree
-                              ? 'Ambil Tiket Gratis'
-                              : 'Beli Tiket',
+                          widget.event.hasEnded
+                            ? 'Event Udah Selesai'
+                            : widget.event.isFull
+                              ? 'Penuh Bang 😅'
+                              : widget.event.isFree
+                                ? 'Ambil Tiket Gratis'
+                                : 'Beli Tiket',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,

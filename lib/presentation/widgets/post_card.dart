@@ -62,6 +62,18 @@ class PostCard extends StatelessWidget {
                 EventMiniCard(
                   event: post.attachedEvent!,
                   onJoin: () {
+                    // Check if event has ended
+                    if (post.attachedEvent!.hasEnded) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Event ini udah selesai, gabisa join lagi nih!'),
+                          duration: Duration(seconds: 2),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
                     // TODO: Handle join event
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

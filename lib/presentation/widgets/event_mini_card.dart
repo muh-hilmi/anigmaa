@@ -282,6 +282,9 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
   }
 
   Widget _buildActionButtons() {
+    final canJoin = widget.event.canJoin;
+    final hasEnded = widget.event.hasEnded;
+
     return Row(
       children: [
         // Join/RSVP button
@@ -290,7 +293,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
           child: ScaleTransition(
             scale: _scaleAnimation,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: (!canJoin || hasEnded) ? null : () {
                 _joinAnimController.forward().then((_) {
                   _joinAnimController.reverse();
                 });
@@ -311,9 +314,13 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.isJoined ? Colors.grey.shade300 : Colors.purple.shade600,
-                foregroundColor: widget.isJoined ? Colors.black87 : Colors.white,
-                elevation: widget.isJoined ? 0 : 2,
+                backgroundColor: hasEnded
+                    ? Colors.grey.shade300
+                    : (widget.isJoined ? Colors.grey.shade300 : Colors.purple.shade600),
+                foregroundColor: hasEnded
+                    ? Colors.grey.shade600
+                    : (widget.isJoined ? Colors.black87 : Colors.white),
+                elevation: (widget.isJoined || hasEnded) ? 0 : 2,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -323,12 +330,16 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    widget.isJoined ? Icons.check_circle : Icons.add_circle_outline,
+                    hasEnded
+                        ? Icons.event_busy
+                        : (widget.isJoined ? Icons.check_circle : Icons.add_circle_outline),
                     size: 18,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    widget.isJoined ? 'Joined' : (widget.event.isFree ? 'Join · Free' : 'Get Ticket'),
+                    hasEnded
+                        ? 'Event Ended'
+                        : (widget.isJoined ? 'Joined' : (widget.event.isFree ? 'Join · Free' : 'Get Ticket')),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -344,10 +355,13 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
         // Find Matches button
         Expanded(
           child: OutlinedButton(
-            onPressed: widget.onFindMatches,
+            onPressed: hasEnded ? null : widget.onFindMatches,
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.purple.shade700,
-              side: BorderSide(color: Colors.purple.shade300, width: 1.5),
+              foregroundColor: hasEnded ? Colors.grey.shade400 : Colors.purple.shade700,
+              side: BorderSide(
+                color: hasEnded ? Colors.grey.shade300 : Colors.purple.shade300,
+                width: 1.5,
+              ),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -414,6 +428,11 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
 
     const daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Check if event has ended
+    if (widget.event.hasEnded) {
+      return 'Ended · ${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]}';
+    }
 
     if (diff.inDays == 0) {
       return 'Today · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';

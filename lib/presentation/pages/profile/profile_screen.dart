@@ -167,7 +167,7 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '@${user.email.split('@')[0]}', // Using email prefix as username
+                  '@${user.email!.split('@')[0]}', // Using email prefix as username
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
