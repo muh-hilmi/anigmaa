@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../domain/entities/community.dart';
+import '../../../domain/entities/community_category.dart';
 import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/event.dart';
