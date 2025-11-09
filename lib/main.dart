@@ -279,8 +279,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           ),
         ),
       ),
-      floatingActionButton: (_currentIndex == 0 && _homeTabIndex == 1)
-        ? null // Hide buttons when on Events tab in Home
+      floatingActionButton: (_currentIndex == 0 && _homeTabIndex == 1) ||
+                                _currentIndex == 2 ||
+                                _currentIndex == 3
+        ? null // Hide FAB on: Home Events tab, Communities, and Profile
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
