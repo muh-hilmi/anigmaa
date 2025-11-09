@@ -136,8 +136,8 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
             ],
           ),
         ),
-      ),
-    );
+      );
+    
   }
 
   Widget _buildMetadataRow() {
