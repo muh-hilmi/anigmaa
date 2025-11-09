@@ -12,6 +12,7 @@ import 'core/api/dio_client.dart';
 import 'domain/repositories/event_repository.dart';
 import 'domain/repositories/post_repository.dart';
 import 'domain/repositories/ticket_repository.dart';
+import 'domain/repositories/community_repository.dart';
 import 'domain/usecases/get_events.dart';
 import 'domain/usecases/get_events_by_category.dart';
 import 'domain/usecases/create_event.dart';
@@ -27,6 +28,11 @@ import 'domain/usecases/unlike_comment.dart';
 import 'domain/usecases/purchase_ticket.dart';
 import 'domain/usecases/get_user_tickets.dart';
 import 'domain/usecases/check_in_ticket.dart';
+import 'domain/usecases/get_communities.dart';
+import 'domain/usecases/get_joined_communities.dart';
+import 'domain/usecases/join_community.dart';
+import 'domain/usecases/leave_community.dart';
+import 'domain/usecases/create_community.dart';
 
 // Data
 import 'data/datasources/event_local_datasource.dart';
@@ -35,9 +41,11 @@ import 'data/datasources/post_remote_datasource.dart';
 import 'data/datasources/ticket_remote_datasource.dart';
 import 'data/datasources/ticket_local_datasource.dart';
 import 'data/datasources/auth_remote_datasource.dart';
+import 'data/datasources/community_local_datasource.dart';
 import 'data/repositories/event_repository_impl.dart';
 import 'data/repositories/post_repository_impl.dart';
 import 'data/repositories/ticket_repository_impl.dart';
+import 'data/repositories/community_repository_impl.dart';
 import 'data/services/auth_api_service.dart';
 import 'data/services/analytics_service.dart';
 
@@ -49,6 +57,7 @@ import 'presentation/bloc/events/events_bloc.dart';
 import 'presentation/bloc/user/user_bloc.dart';
 import 'presentation/bloc/posts/posts_bloc.dart';
 import 'presentation/bloc/tickets/tickets_bloc.dart';
+import 'presentation/bloc/communities/communities_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -129,6 +138,18 @@ Future<void> init() async {
     ),
   );
 
+  // Features - Communities
+  // Bloc
+  sl.registerFactory(
+    () => CommunitiesBloc(
+      getCommunities: sl(),
+      getJoinedCommunities: sl(),
+      joinCommunity: sl(),
+      leaveCommunity: sl(),
+      createCommunity: sl(),
+    ),
+  );
+
   // Use cases - Events
   sl.registerLazySingleton(() => GetEvents(sl()));
   sl.registerLazySingleton(() => GetEventsByCategory(sl()));
@@ -150,6 +171,13 @@ Future<void> init() async {
   sl.registerLazySingleton(() => PurchaseTicket(sl()));
   sl.registerLazySingleton(() => GetUserTickets(sl()));
   sl.registerLazySingleton(() => CheckInTicket(sl()));
+
+  // Use cases - Communities
+  sl.registerLazySingleton(() => GetCommunities(sl()));
+  sl.registerLazySingleton(() => GetJoinedCommunities(sl()));
+  sl.registerLazySingleton(() => JoinCommunity(sl()));
+  sl.registerLazySingleton(() => LeaveCommunity(sl()));
+  sl.registerLazySingleton(() => CreateCommunity(sl()));
 
   // Data sources - Remote
   sl.registerLazySingleton<EventRemoteDataSource>(
@@ -176,7 +204,11 @@ Future<void> init() async {
   sl.registerLazySingleton<TicketLocalDataSource>(
     () => TicketLocalDataSource(sharedPreferences: sl()),
   );
-  
+
+  sl.registerLazySingleton<CommunityLocalDataSource>(
+    () => CommunityLocalDataSourceImpl(),
+  );
+
   // Repository - Events (Real repository with API)
   sl.registerLazySingleton<EventRepository>(
     () => EventRepositoryImpl(
@@ -198,6 +230,13 @@ Future<void> init() async {
       remoteDataSource: sl(),
       localDataSource: sl(),
       paymentService: sl(),
+    ),
+  );
+
+  // Repository - Communities
+  sl.registerLazySingleton<CommunityRepository>(
+    () => CommunityRepositoryImpl(
+      localDataSource: sl(),
     ),
   );
 }
