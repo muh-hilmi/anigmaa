@@ -14,7 +14,7 @@ import 'presentation/bloc/posts/posts_bloc.dart';
 import 'domain/entities/event.dart';
 import 'presentation/pages/explore/explore_screen.dart';
 import 'presentation/pages/profile/profile_screen.dart';
-import 'presentation/pages/community/community_screen.dart';
+import 'presentation/pages/community/new_community_screen.dart';
 import 'presentation/pages/calendar/calendar_screen.dart';
 import 'presentation/pages/splash/splash_screen.dart';
 import 'presentation/pages/auth/onboarding_screen.dart';
@@ -165,7 +165,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         currentScreen = const ExploreScreen(); // Explore
         break;
       case 2:
-        currentScreen = const CommunityScreen();
+        currentScreen = const NewCommunityScreen();
         break;
       case 3:
         currentScreen = const ProfileScreen();
