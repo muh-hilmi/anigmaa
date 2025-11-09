@@ -21,10 +21,10 @@ class ModernEventMiniCard extends StatelessWidget {
 
     return Container(
         decoration: BoxDecoration(
-          color: isEnded ? const Color(0xFFF3F0FF) : const Color(0xFFFAF8F5), // Soft lavender for ended
+          color: isEnded ? const Color(0xFFFAF8F5) : const Color(0xFFE8EDDA), // Beige for ended, Green-tint for active
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isEnded ? const Color(0xFFD4C5FF) : const Color(0xFFE8E4DD), // Soft purple border
+            color: isEnded ? const Color(0xFFE8E4DD) : const Color(0xFF84994F), // Gray for ended, Green for active
             width: 1.5,
           ),
         ),
@@ -39,10 +39,10 @@ class ModernEventMiniCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   event.title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isEnded ? const Color(0xFF6B46C1) : const Color(0xFF000000), // Purple for ended
+                    color: Color(0xFF000000),
                     letterSpacing: -0.4,
                   ),
                   maxLines: 2,
@@ -89,17 +89,17 @@ class ModernEventMiniCard extends StatelessWidget {
                     Icon(
                       Icons.people_rounded,
                       size: 16,
-                      color: isEnded ? const Color(0xFF9F7AEA) : Colors.grey[700], // Purple icon for ended
+                      color: Colors.grey[700],
                     ),
                     const SizedBox(width: 6),
                     Text(
                       isEnded
                           ? '${event.currentAttendees} attended'
                           : '${event.currentAttendees} joined',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isEnded ? const Color(0xFF6B46C1) : const Color(0xFF000000), // Purple text for ended
+                        color: Color(0xFF000000),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -175,7 +175,7 @@ class ModernEventMiniCard extends StatelessWidget {
         Icon(
           icon,
           size: 16,
-          color: isEnded ? const Color(0xFF9F7AEA) : Colors.grey[700], // Soft purple for ended
+          color: Colors.grey[700],
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -184,7 +184,7 @@ class ModernEventMiniCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: isEnded ? const Color(0xFF6B46C1) : Colors.grey[700], // Purple text for ended
+              color: Colors.grey[700],
               letterSpacing: -0.1,
             ),
             maxLines: 1,
@@ -199,17 +199,8 @@ class ModernEventMiniCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF9F7AEA), Color(0xFF6B46C1)], // Purple gradient
-        ),
+        color: Colors.grey[600],
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF9F7AEA).withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,

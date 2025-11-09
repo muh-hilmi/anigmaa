@@ -62,17 +62,17 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               end: Alignment.bottomRight,
               colors: isEnded
                   ? [
-                      const Color(0xFFF3F0FF), // Soft lavender
-                      const Color(0xFFE9E4FF),
-                    ]
-                  : [
                       Colors.purple.shade50,
                       Colors.blue.shade50,
+                    ]
+                  : [
+                      const Color(0xFFE8EDDA), // Green-tint for active
+                      const Color(0xFFD8E7C0),
                     ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isEnded ? const Color(0xFFD4C5FF) : Colors.purple.shade200, // Purple border
+              color: isEnded ? Colors.purple.shade200 : const Color(0xFF84994F), // Green border for active
               width: 1.5,
             ),
           ),
@@ -323,10 +323,10 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: hasEnded
-                    ? const Color(0xFF9F7AEA) // Soft purple for ended
-                    : (widget.isJoined ? Colors.grey.shade300 : Colors.purple.shade600),
+                    ? Colors.grey.shade300
+                    : (widget.isJoined ? Colors.grey.shade300 : const Color(0xFF84994F)), // Green for active
                 foregroundColor: hasEnded
-                    ? Colors.white
+                    ? Colors.grey.shade600
                     : (widget.isJoined ? Colors.black87 : Colors.white),
                 elevation: (widget.isJoined || hasEnded) ? 0 : 2,
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -365,9 +365,9 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
           child: OutlinedButton(
             onPressed: hasEnded ? null : widget.onFindMatches,
             style: OutlinedButton.styleFrom(
-              foregroundColor: hasEnded ? const Color(0xFF9F7AEA) : Colors.purple.shade700, // Purple for ended
+              foregroundColor: hasEnded ? Colors.grey.shade400 : const Color(0xFF84994F), // Green for active
               side: BorderSide(
-                color: hasEnded ? const Color(0xFFD4C5FF) : Colors.purple.shade300, // Purple border for ended
+                color: hasEnded ? Colors.grey.shade300 : const Color(0xFF84994F), // Green border for active
                 width: 1.5,
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),
