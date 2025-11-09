@@ -19,14 +19,12 @@ class ModernEventMiniCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEnded = event.status == EventStatus.ended || event.hasEnded;
 
-    return Opacity(
-      opacity: isEnded ? 0.6 : 1.0,
-      child: Container(
+    return Container(
         decoration: BoxDecoration(
-          color: isEnded ? const Color(0xFFE8E4DD) : const Color(0xFFFAF8F5),
+          color: isEnded ? const Color(0xFFF3F0FF) : const Color(0xFFFAF8F5), // Soft lavender for ended
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isEnded ? Colors.grey.shade400 : const Color(0xFFE8E4DD),
+            color: isEnded ? const Color(0xFFD4C5FF) : const Color(0xFFE8E4DD), // Soft purple border
             width: 1.5,
           ),
         ),
@@ -44,7 +42,7 @@ class ModernEventMiniCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isEnded ? Colors.grey[600] : const Color(0xFF000000),
+                    color: isEnded ? const Color(0xFF6B46C1) : const Color(0xFF000000), // Purple for ended
                     letterSpacing: -0.4,
                   ),
                   maxLines: 2,
@@ -91,7 +89,7 @@ class ModernEventMiniCard extends StatelessWidget {
                     Icon(
                       Icons.people_rounded,
                       size: 16,
-                      color: isEnded ? Colors.grey[600] : Colors.grey[700],
+                      color: isEnded ? const Color(0xFF9F7AEA) : Colors.grey[700], // Purple icon for ended
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -101,7 +99,7 @@ class ModernEventMiniCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isEnded ? Colors.grey[600] : const Color(0xFF000000),
+                        color: isEnded ? const Color(0xFF6B46C1) : const Color(0xFF000000), // Purple text for ended
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -177,7 +175,7 @@ class ModernEventMiniCard extends StatelessWidget {
         Icon(
           icon,
           size: 16,
-          color: isEnded ? Colors.grey[500] : Colors.grey[700],
+          color: isEnded ? const Color(0xFF9F7AEA) : Colors.grey[700], // Soft purple for ended
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -186,7 +184,7 @@ class ModernEventMiniCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: isEnded ? Colors.grey[600] : Colors.grey[700],
+              color: isEnded ? const Color(0xFF6B46C1) : Colors.grey[700], // Purple text for ended
               letterSpacing: -0.1,
             ),
             maxLines: 1,
@@ -201,17 +199,40 @@ class ModernEventMiniCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.grey[700],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'ENDED',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          letterSpacing: 0.5,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9F7AEA), Color(0xFF6B46C1)], // Purple gradient
         ),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9F7AEA).withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '✓',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(width: 4),
+          Text(
+            'SELESAI',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

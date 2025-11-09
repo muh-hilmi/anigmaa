@@ -46,9 +46,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
   Widget build(BuildContext context) {
     final bool isEnded = widget.event.hasEnded;
 
-    return Opacity(
-      opacity: isEnded ? 0.6 : 1.0,
-      child: InkWell(
+    return InkWell(
         onTap: () {
           Navigator.push(
             context,
@@ -64,8 +62,8 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               end: Alignment.bottomRight,
               colors: isEnded
                   ? [
-                      Colors.grey.shade200,
-                      Colors.grey.shade300,
+                      const Color(0xFFF3F0FF), // Soft lavender
+                      const Color(0xFFE9E4FF),
                     ]
                   : [
                       Colors.purple.shade50,
@@ -74,7 +72,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isEnded ? Colors.grey.shade400 : Colors.purple.shade200,
+              color: isEnded ? const Color(0xFFD4C5FF) : Colors.purple.shade200, // Purple border
               width: 1.5,
             ),
           ),
@@ -325,10 +323,10 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: hasEnded
-                    ? Colors.grey.shade300
+                    ? const Color(0xFF9F7AEA) // Soft purple for ended
                     : (widget.isJoined ? Colors.grey.shade300 : Colors.purple.shade600),
                 foregroundColor: hasEnded
-                    ? Colors.grey.shade600
+                    ? Colors.white
                     : (widget.isJoined ? Colors.black87 : Colors.white),
                 elevation: (widget.isJoined || hasEnded) ? 0 : 2,
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -367,9 +365,9 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
           child: OutlinedButton(
             onPressed: hasEnded ? null : widget.onFindMatches,
             style: OutlinedButton.styleFrom(
-              foregroundColor: hasEnded ? Colors.grey.shade400 : Colors.purple.shade700,
+              foregroundColor: hasEnded ? const Color(0xFF9F7AEA) : Colors.purple.shade700, // Purple for ended
               side: BorderSide(
-                color: hasEnded ? Colors.grey.shade300 : Colors.purple.shade300,
+                color: hasEnded ? const Color(0xFFD4C5FF) : Colors.purple.shade300, // Purple border for ended
                 width: 1.5,
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),
