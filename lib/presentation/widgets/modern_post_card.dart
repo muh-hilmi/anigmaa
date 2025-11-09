@@ -7,6 +7,7 @@ import '../bloc/posts/posts_event.dart';
 import '../bloc/posts/posts_state.dart';
 import '../pages/post_detail/post_detail_screen.dart';
 import '../pages/event_detail/event_detail_screen.dart';
+import '../pages/social/user_profile_screen.dart';
 import 'modern_event_mini_card.dart';
 import 'find_matches_modal.dart';
 
@@ -281,15 +282,28 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
     return Row(
       children: [
         // Avatar
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: const Color(0xFFFAF8F5),
-          child: Text(
-            widget.post.author.name[0].toUpperCase(),
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF84994F),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserProfileScreen(
+                  userId: widget.post.author.id,
+                  userName: widget.post.author.name,
+                ),
+              ),
+            );
+          },
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: const Color(0xFFFAF8F5),
+            child: Text(
+              widget.post.author.name[0].toUpperCase(),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF84994F),
+              ),
             ),
           ),
         ),
@@ -905,15 +919,29 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: const Color(0xFFFAF8F5),
-                            child: Text(
-                              widget.post.author.name[0].toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF84994F),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context); // Close dialog first
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserProfileScreen(
+                                    userId: widget.post.author.id,
+                                    userName: widget.post.author.name,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: const Color(0xFFFAF8F5),
+                              child: Text(
+                                widget.post.author.name[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF84994F),
+                                ),
                               ),
                             ),
                           ),

@@ -17,17 +17,19 @@ class ModernEventMiniCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEnded = event.status == EventStatus.ended;
+    final bool isEnded = event.status == EventStatus.ended || event.hasEnded;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE8E4DD),
-          width: 1.5,
+    return Opacity(
+      opacity: isEnded ? 0.6 : 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isEnded ? const Color(0xFFE8E4DD) : const Color(0xFFFAF8F5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isEnded ? Colors.grey.shade400 : const Color(0xFFE8E4DD),
+            width: 1.5,
+          ),
         ),
-      ),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,6 +166,7 @@ class ModernEventMiniCard extends StatelessWidget {
           // ),
         ],
       ),
+      ),
     );
   }
 
@@ -259,15 +262,14 @@ class ModernEventMiniCard extends StatelessWidget {
   // }
 
   Widget _buildPriceBadge() {
-    final isFree = event.price == null || event.price == 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isFree ? const Color(0xFF000000) : const Color(0xFF84994F),
+        color: event.isFree ? const Color(0xFF000000) : const Color(0xFF84994F),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        isFree ? 'Free' : 'Rp ${_formatPrice(event.price!)}',
+        event.isFree ? 'Gratis' : 'Rp ${_formatPrice(event.price ?? 0)}',
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
@@ -279,9 +281,37 @@ class ModernEventMiniCard extends StatelessWidget {
   }
 
   String _formatEventDateTime() {
-    final date = DateFormat('MMM d, yyyy').format(event.startTime);
-    final time = DateFormat('h:mm a').format(event.startTime);
-    return '$date · $time';
+    final now = DateTime.now();
+    final diff = event.startTime.difference(now);
+
+    const daysShort = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    // Check if event has ended
+    if (event.hasEnded) {
+      return 'Sudah selesai · ${daysShort[event.startTime.weekday - 1]}, ${event.startTime.day} ${monthsShort[event.startTime.month - 1]}';
+    }
+
+    // Format waktu relatif yang mudah dipahami
+    if (diff.inMinutes < 60 && diff.inMinutes >= 0) {
+      if (diff.inMinutes < 1) {
+        return 'Dimulai sekarang! 🔥';
+      } else if (diff.inMinutes <= 30) {
+        return '${diff.inMinutes} menit lagi! ⚡';
+      } else {
+        return '${diff.inMinutes} menit lagi';
+      }
+    } else if (diff.inHours < 24 && diff.inHours >= 0) {
+      return '${diff.inHours} jam lagi! 🔥';
+    } else if (diff.inDays == 0) {
+      return 'Hari ini · ${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')}';
+    } else if (diff.inDays == 1) {
+      return 'Besok · ${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')}';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} hari lagi! · ${daysShort[event.startTime.weekday - 1]}, ${event.startTime.day} ${monthsShort[event.startTime.month - 1]}';
+    } else {
+      return '${daysShort[event.startTime.weekday - 1]}, ${event.startTime.day} ${monthsShort[event.startTime.month - 1]} · ${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')}';
+    }
   }
 
   String _formatPrice(double price) {

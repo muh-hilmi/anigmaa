@@ -10,6 +10,7 @@ import '../../bloc/posts/posts_state.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../widgets/modern_post_card.dart';
+import '../social/user_profile_screen.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post post;
@@ -285,15 +286,28 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           // Author header
           Row(
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: const Color(0xFFFAF8F5),
-                child: Text(
-                  comment.author.name[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF84994F),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                        userId: comment.author.id,
+                        userName: comment.author.name,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: const Color(0xFFFAF8F5),
+                  child: Text(
+                    comment.author.name[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF84994F),
+                    ),
                   ),
                 ),
               ),

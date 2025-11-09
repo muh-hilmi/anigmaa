@@ -44,31 +44,40 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EventDetailScreen(event: widget.event),
+    final bool isEnded = widget.event.hasEnded;
+
+    return Opacity(
+      opacity: isEnded ? 0.6 : 1.0,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventDetailScreen(event: widget.event),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isEnded
+                  ? [
+                      Colors.grey.shade200,
+                      Colors.grey.shade300,
+                    ]
+                  : [
+                      Colors.purple.shade50,
+                      Colors.blue.shade50,
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isEnded ? Colors.grey.shade400 : Colors.purple.shade200,
+              width: 1.5,
+            ),
           ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade50,
-              Colors.blue.shade50,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.purple.shade200,
-            width: 1.5,
-          ),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -219,7 +228,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
             ),
             const SizedBox(width: 6),
             Text(
-              widget.event.isFree ? 'Free' : 'Rp ${widget.event.price!.toStringAsFixed(0)}',
+              widget.event.isFree ? 'Gratis' : 'Rp ${_formatPrice(widget.event.price ?? 0)}',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -426,22 +435,42 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
     final now = DateTime.now();
     final diff = date.difference(now);
 
-    const daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const daysShort = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
     // Check if event has ended
     if (widget.event.hasEnded) {
-      return 'Ended · ${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]}';
+      return 'Sudah selesai · ${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]}';
     }
 
-    if (diff.inDays == 0) {
-      return 'Today · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    // Format waktu relatif yang mudah dipahami
+    if (diff.inMinutes < 60 && diff.inMinutes >= 0) {
+      if (diff.inMinutes < 1) {
+        return 'Dimulai sekarang! 🔥';
+      } else if (diff.inMinutes <= 30) {
+        return '${diff.inMinutes} menit lagi! ⚡';
+      } else {
+        return '${diff.inMinutes} menit lagi';
+      }
+    } else if (diff.inHours < 24 && diff.inHours >= 0) {
+      return '${diff.inHours} jam lagi! 🔥';
+    } else if (diff.inDays == 0) {
+      return 'Hari ini · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } else if (diff.inDays == 1) {
-      return 'Tomorrow · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+      return 'Besok · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } else if (diff.inDays < 7) {
-      return '${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]} · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+      return '${diff.inDays} hari lagi! · ${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]}';
     } else {
-      return '${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]} · ${date.hour}:${date.minute.toString().padLeft(2, '0')} — ${(date.add(const Duration(hours: 2))).hour}:${(date.add(const Duration(hours: 2))).minute.toString().padLeft(2, '0')}';
+      return '${daysShort[date.weekday - 1]}, ${date.day} ${monthsShort[date.month - 1]} · ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     }
+  }
+
+  String _formatPrice(double price) {
+    if (price >= 1000000) {
+      return '${(price / 1000000).toStringAsFixed(1)}M';
+    } else if (price >= 1000) {
+      return '${(price / 1000).toStringAsFixed(0)}K';
+    }
+    return price.toStringAsFixed(0);
   }
 }

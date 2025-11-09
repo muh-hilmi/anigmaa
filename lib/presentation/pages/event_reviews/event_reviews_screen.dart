@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/review.dart';
+import '../social/user_profile_screen.dart';
 
 class EventReviewsScreen extends StatefulWidget {
   final Event event;
@@ -349,9 +350,22 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(review.userAvatar),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                        userId: review.userId,
+                        userName: review.userName,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(review.userAvatar),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
