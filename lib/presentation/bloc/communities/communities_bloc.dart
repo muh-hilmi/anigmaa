@@ -2,18 +2,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../domain/usecases/get_communities.dart';
 import '../../../domain/usecases/get_joined_communities.dart';
-import '../../../domain/usecases/join_community.dart' as usecases;
-import '../../../domain/usecases/leave_community.dart' as usecases;
-import '../../../domain/usecases/create_community.dart' as usecases;
+import '../../../domain/usecases/join_community.dart' as join_usecase;
+import '../../../domain/usecases/leave_community.dart' as leave_usecase;
+import '../../../domain/usecases/create_community.dart' as create_usecase;
 import 'communities_event.dart';
 import 'communities_state.dart';
 
 class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
   final GetCommunities getCommunities;
   final GetJoinedCommunities getJoinedCommunities;
-  final usecases.JoinCommunity joinCommunity;
-  final usecases.LeaveCommunity leaveCommunity;
-  final usecases.CreateCommunity createCommunity;
+  final join_usecase.JoinCommunity joinCommunity;
+  final leave_usecase.LeaveCommunity leaveCommunity;
+  final create_usecase.CreateCommunity createCommunity;
 
   CommunitiesBloc({
     required this.getCommunities,
@@ -185,7 +185,7 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
     final String userId = 'current_user_id';
 
     final result = await joinCommunity(
-      usecases.JoinCommunityParams(
+      join_usecase.JoinCommunityParams(
         communityId: event.communityId,
         userId: userId,
       ),
@@ -215,7 +215,7 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
     final String userId = 'current_user_id';
 
     final result = await leaveCommunity(
-      usecases.LeaveCommunityParams(
+      leave_usecase.LeaveCommunityParams(
         communityId: event.communityId,
         userId: userId,
       ),
@@ -241,7 +241,7 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
     Emitter<CommunitiesState> emit,
   ) async {
     final result = await createCommunity(
-      usecases.CreateCommunityParams(community: event.community),
+      create_usecase.CreateCommunityParams(community: event.community),
     );
 
     result.fold(
