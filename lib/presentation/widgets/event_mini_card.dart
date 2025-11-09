@@ -78,64 +78,65 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               width: 1.5,
             ),
           ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Event image preview (optional)
-            if (widget.event.imageUrls.isNotEmpty)
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                child: Image.network(
-                  widget.event.imageUrls.first,
-                  width: double.infinity,
-                  height: 140,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 140,
-                      color: Colors.purple.shade100,
-                      child: const Icon(Icons.event, size: 48),
-                    );
-                  },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Event image preview (optional)
+              if (widget.event.imageUrls.isNotEmpty)
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: Image.network(
+                    widget.event.imageUrls.first,
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 140,
+                        color: Colors.purple.shade100,
+                        child: const Icon(Icons.event, size: 48),
+                      );
+                    },
+                  ),
+                ),
+
+              // Event info
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Event title
+                    Text(
+                      widget.event.title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Event metadata row
+                    _buildMetadataRow(),
+
+                    const SizedBox(height: 12),
+
+                    // Joined avatars preview
+                    _buildJoinedPreview(),
+
+                    const SizedBox(height: 16),
+
+                    // Action buttons
+                    _buildActionButtons(),
+                  ],
                 ),
               ),
-
-            // Event info
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Event title
-                  Text(
-                    widget.event.title,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Event metadata row
-                  _buildMetadataRow(),
-
-                  const SizedBox(height: 12),
-
-                  // Joined avatars preview
-                  _buildJoinedPreview(),
-
-                  const SizedBox(height: 16),
-
-                  // Action buttons
-                  _buildActionButtons(),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

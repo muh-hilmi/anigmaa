@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../domain/entities/community.dart';
+import '../../../domain/entities/community_category.dart';
 import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/event.dart';
@@ -92,9 +93,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         category: EventCategory.meetup,
         startTime: DateTime.now().add(const Duration(days: 1, hours: 9)),
         endTime: DateTime.now().add(const Duration(days: 1, hours: 12)),
-        location: const EventLocation(
+        location: EventLocation(
           name: 'Cafe X',
-          address: '${widget.community.location}',
+          address: widget.community.location,
           latitude: -6.2088,
           longitude: 106.8456,
         ),
