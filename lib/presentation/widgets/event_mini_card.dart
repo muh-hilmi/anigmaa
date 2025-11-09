@@ -46,9 +46,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
   Widget build(BuildContext context) {
     final bool isEnded = widget.event.hasEnded;
 
-    return Opacity(
-      opacity: isEnded ? 0.6 : 1.0,
-      child: InkWell(
+    return InkWell(
         onTap: () {
           Navigator.push(
             context,
@@ -64,17 +62,17 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               end: Alignment.bottomRight,
               colors: isEnded
                   ? [
-                      Colors.grey.shade200,
-                      Colors.grey.shade300,
-                    ]
-                  : [
                       Colors.purple.shade50,
                       Colors.blue.shade50,
+                    ]
+                  : [
+                      const Color(0xFFE8EDDA), // Green-tint for active
+                      const Color(0xFFD8E7C0),
                     ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isEnded ? Colors.grey.shade400 : Colors.purple.shade200,
+              color: isEnded ? Colors.purple.shade200 : const Color(0xFF84994F), // Green border for active
               width: 1.5,
             ),
           ),
@@ -326,7 +324,7 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
               style: ElevatedButton.styleFrom(
                 backgroundColor: hasEnded
                     ? Colors.grey.shade300
-                    : (widget.isJoined ? Colors.grey.shade300 : Colors.purple.shade600),
+                    : (widget.isJoined ? Colors.grey.shade300 : const Color(0xFF84994F)), // Green for active
                 foregroundColor: hasEnded
                     ? Colors.grey.shade600
                     : (widget.isJoined ? Colors.black87 : Colors.white),
@@ -367,9 +365,9 @@ class _EventMiniCardState extends State<EventMiniCard> with SingleTickerProvider
           child: OutlinedButton(
             onPressed: hasEnded ? null : widget.onFindMatches,
             style: OutlinedButton.styleFrom(
-              foregroundColor: hasEnded ? Colors.grey.shade400 : Colors.purple.shade700,
+              foregroundColor: hasEnded ? Colors.grey.shade400 : const Color(0xFF84994F), // Green for active
               side: BorderSide(
-                color: hasEnded ? Colors.grey.shade300 : Colors.purple.shade300,
+                color: hasEnded ? Colors.grey.shade300 : const Color(0xFF84994F), // Green border for active
                 width: 1.5,
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),

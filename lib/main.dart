@@ -14,7 +14,6 @@ import 'presentation/bloc/posts/posts_bloc.dart';
 import 'presentation/bloc/communities/communities_bloc.dart';
 import 'presentation/bloc/communities/communities_event.dart';
 import 'domain/entities/event.dart';
-import 'presentation/pages/explore/explore_screen.dart';
 import 'presentation/pages/profile/profile_screen.dart';
 import 'presentation/pages/community/new_community_screen.dart';
 import 'presentation/pages/calendar/calendar_screen.dart';
@@ -167,7 +166,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         currentScreen = HomeScreen(onTabChanged: _onHomeTabChanged); // Home with Feed/Events tabs
         break;
       case 1:
-        currentScreen = const ExploreScreen(); // Explore
+        currentScreen = DiscoverScreen(key: _discoverKey); // Redesigned Discover Page
         break;
       case 2:
         currentScreen = const NewCommunityScreen();
@@ -280,8 +279,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           ),
         ),
       ),
-      floatingActionButton: (_currentIndex == 0 && _homeTabIndex == 1)
-        ? null // Hide buttons when on Events tab in Home
+      floatingActionButton: (_currentIndex == 0 && _homeTabIndex == 1) ||
+                                _currentIndex == 2 ||
+                                _currentIndex == 3
+        ? null // Hide FAB on: Home Events tab, Communities, and Profile
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
