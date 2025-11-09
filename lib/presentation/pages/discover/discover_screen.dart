@@ -204,7 +204,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const MapScreen()),
+              MaterialPageRoute(builder: (context) => MapScreen(events: _allEvents)),
             );
           },
           icon: Container(

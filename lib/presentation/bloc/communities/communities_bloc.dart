@@ -2,8 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../domain/usecases/get_communities.dart';
 import '../../../domain/usecases/get_joined_communities.dart';
-import '../../../domain/usecases/join_community.dart';
-import '../../../domain/usecases/leave_community.dart';
+import '../../../domain/usecases/join_community.dart' as usecases;
+import '../../../domain/usecases/leave_community.dart' as usecases;
 import '../../../domain/usecases/create_community.dart';
 import 'communities_event.dart';
 import 'communities_state.dart';
@@ -11,8 +11,8 @@ import 'communities_state.dart';
 class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
   final GetCommunities getCommunities;
   final GetJoinedCommunities getJoinedCommunities;
-  final JoinCommunity joinCommunity;
-  final LeaveCommunity leaveCommunity;
+  final usecases.JoinCommunity joinCommunity;
+  final usecases.LeaveCommunity leaveCommunity;
   final CreateCommunity createCommunity;
 
   CommunitiesBloc({
@@ -185,7 +185,7 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
     final String userId = 'current_user_id';
 
     final result = await joinCommunity(
-      JoinCommunityParams(
+      usecases.JoinCommunityParams(
         communityId: event.communityId,
         userId: userId,
       ),
@@ -215,7 +215,7 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
     final String userId = 'current_user_id';
 
     final result = await leaveCommunity(
-      LeaveCommunityParams(
+      usecases.LeaveCommunityParams(
         communityId: event.communityId,
         userId: userId,
       ),
