@@ -164,7 +164,6 @@ class ModernEventMiniCard extends StatelessWidget {
           // ),
         ],
       ),
-      ),
     );
   }
 
