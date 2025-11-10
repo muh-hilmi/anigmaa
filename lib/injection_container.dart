@@ -33,6 +33,9 @@ import 'domain/usecases/get_joined_communities.dart';
 import 'domain/usecases/join_community.dart';
 import 'domain/usecases/leave_community.dart';
 import 'domain/usecases/create_community.dart';
+import 'domain/usecases/get_event_qna.dart';
+import 'domain/usecases/ask_question.dart';
+import 'domain/usecases/upvote_question.dart';
 
 // Data
 import 'data/datasources/event_local_datasource.dart';
@@ -42,10 +45,13 @@ import 'data/datasources/ticket_remote_datasource.dart';
 import 'data/datasources/ticket_local_datasource.dart';
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/community_local_datasource.dart';
+import 'data/datasources/qna_remote_datasource.dart';
 import 'data/repositories/event_repository_impl.dart';
 import 'data/repositories/post_repository_impl.dart';
 import 'data/repositories/ticket_repository_impl.dart';
 import 'data/repositories/community_repository_impl.dart';
+import 'data/repositories/qna_repository_impl.dart';
+import 'domain/repositories/qna_repository.dart';
 import 'data/services/auth_api_service.dart';
 import 'data/services/analytics_service.dart';
 
@@ -58,6 +64,7 @@ import 'presentation/bloc/user/user_bloc.dart';
 import 'presentation/bloc/posts/posts_bloc.dart';
 import 'presentation/bloc/tickets/tickets_bloc.dart';
 import 'presentation/bloc/communities/communities_bloc.dart';
+import 'presentation/bloc/qna/qna_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -150,6 +157,17 @@ Future<void> init() async {
     ),
   );
 
+  // Features - QnA
+  // Bloc
+  sl.registerFactory(
+    () => QnABloc(
+      getEventQnA: sl(),
+      askQuestion: sl(),
+      upvoteQuestion: sl(),
+      removeUpvote: sl(),
+    ),
+  );
+
   // Use cases - Events
   sl.registerLazySingleton(() => GetEvents(sl()));
   sl.registerLazySingleton(() => GetEventsByCategory(sl()));
@@ -179,6 +197,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LeaveCommunity(sl()));
   sl.registerLazySingleton(() => CreateCommunity(sl()));
 
+  // Use cases - QnA
+  sl.registerLazySingleton(() => GetEventQnA(sl()));
+  sl.registerLazySingleton(() => AskQuestion(sl()));
+  sl.registerLazySingleton(() => UpvoteQuestion(sl()));
+  sl.registerLazySingleton(() => RemoveUpvote(sl()));
+
   // Data sources - Remote
   sl.registerLazySingleton<EventRemoteDataSource>(
     () => EventRemoteDataSourceImpl(dioClient: sl()),
@@ -194,6 +218,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<QnARemoteDataSource>(
+    () => QnARemoteDataSourceImpl(dioClient: sl()),
   );
 
   // Data sources - Local
@@ -237,6 +265,13 @@ Future<void> init() async {
   sl.registerLazySingleton<CommunityRepository>(
     () => CommunityRepositoryImpl(
       localDataSource: sl(),
+    ),
+  );
+
+  // Repository - QnA
+  sl.registerLazySingleton<QnARepository>(
+    () => QnARepositoryImpl(
+      remoteDataSource: sl(),
     ),
   );
 }

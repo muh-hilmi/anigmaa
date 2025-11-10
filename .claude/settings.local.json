@@ -16,7 +16,8 @@
       "Bash(adb shell pm clear:*)",
       "Bash(\"C:\\Users\\mailh\\AppData\\Local\\Android\\sdk\\platform-tools\\adb.exe\" shell pm clear com.example.anigmaa)",
       "Bash(nc localhost 49780)",
-      "Bash(nc localhost 52851)"
+      "Bash(nc localhost 52851)",
+      "Bash(go build:*)"
     ],
     "deny": [],
     "ask": []

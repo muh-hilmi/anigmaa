@@ -622,321 +622,321 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     );
   }
 
-  Widget _buildReviewStepOld() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Cek dulu sebelum publish',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 24),
+  // Widget _buildReviewStepOld() {
+  //   return SingleChildScrollView(
+  //     padding: const EdgeInsets.all(16),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text(
+  //           'Cek dulu sebelum publish',
+  //           style: TextStyle(
+  //             fontSize: 20,
+  //             fontWeight: FontWeight.w700,
+  //             color: Colors.black87,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 24),
 
-          // Event Preview Card
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image placeholder
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    height: 140,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      gradient: _selectedImage == null ? LinearGradient(
-                        colors: [
-                          AppColors.getCategoryColor(_selectedCategory).withValues(alpha: 0.3),
-                          AppColors.getCategoryColor(_selectedCategory).withValues(alpha: 0.6),
-                        ],
-                      ) : null,
-                      image: _selectedImage != null ? DecorationImage(
-                        image: FileImage(_selectedImage!),
-                        fit: BoxFit.cover,
-                      ) : null,
-                    ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.getCategoryColor(_selectedCategory),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            EventCategoryUtils.getCategoryName(_selectedCategory),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (!_isFree)
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'Rp ${_price.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (_selectedImage == null)
-                        const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate_outlined,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Tap buat tambah cover image',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (_selectedImage != null)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () => setState(() => _selectedImage = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _titleController.text.isNotEmpty
-                          ? _titleController.text
-                          : 'Judul Acara',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Punya Lo',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _descriptionController.text.isNotEmpty
-                          ? _descriptionController.text
-                          : 'Deskripsi acara bakal nongol di sini...',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: _descriptionController.text.isNotEmpty
-                            ? Colors.grey[700]
-                            : Colors.grey[500],
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDateTime(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on_outlined,
-                                  size: 14,
-                                  color: Colors.grey[500],
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    _locationController.text.isNotEmpty
-                                      ? _locationController.text
-                                      : 'Lokasi Acara',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: _locationController.text.isNotEmpty
-                                        ? Colors.grey[600]
-                                        : Colors.grey[500],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              minimumSize: const Size(0, 0),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.directions,
-                                  size: 14,
-                                  color: Colors.blue[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Maps 🗺️',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.blue[600],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                ),
-                ),
+  //         // Event Preview Card
+  //         Container(
+  //           decoration: BoxDecoration(
+  //             color: Colors.white,
+  //             borderRadius: BorderRadius.circular(12),
+  //             boxShadow: [
+  //               BoxShadow(
+  //                 color: Colors.black.withValues(alpha: 0.05),
+  //                 blurRadius: 10,
+  //                 offset: const Offset(0, 2),
+  //               ),
+  //             ],
+  //           ),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               // Image placeholder
+  //               GestureDetector(
+  //                 onTap: _pickImage,
+  //                 child: Container(
+  //                   height: 140,
+  //                   decoration: BoxDecoration(
+  //                     borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+  //                     gradient: _selectedImage == null ? LinearGradient(
+  //                       colors: [
+  //                         AppColors.getCategoryColor(_selectedCategory).withValues(alpha: 0.3),
+  //                         AppColors.getCategoryColor(_selectedCategory).withValues(alpha: 0.6),
+  //                       ],
+  //                     ) : null,
+  //                     image: _selectedImage != null ? DecorationImage(
+  //                       image: FileImage(_selectedImage!),
+  //                       fit: BoxFit.cover,
+  //                     ) : null,
+  //                   ),
+  //                 child: Stack(
+  //                   children: [
+  //                     Positioned(
+  //                       top: 12,
+  //                       left: 12,
+  //                       child: Container(
+  //                         padding: const EdgeInsets.symmetric(
+  //                           horizontal: 8,
+  //                           vertical: 4,
+  //                         ),
+  //                         decoration: BoxDecoration(
+  //                           color: AppColors.getCategoryColor(_selectedCategory),
+  //                           borderRadius: BorderRadius.circular(6),
+  //                         ),
+  //                         child: Text(
+  //                           EventCategoryUtils.getCategoryName(_selectedCategory),
+  //                           style: const TextStyle(
+  //                             color: Colors.white,
+  //                             fontSize: 11,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                     if (!_isFree)
+  //                       Positioned(
+  //                         top: 12,
+  //                         right: 12,
+  //                         child: Container(
+  //                           padding: const EdgeInsets.symmetric(
+  //                             horizontal: 8,
+  //                             vertical: 4,
+  //                           ),
+  //                           decoration: BoxDecoration(
+  //                             color: Colors.black.withValues(alpha: 0.7),
+  //                             borderRadius: BorderRadius.circular(6),
+  //                           ),
+  //                           child: Text(
+  //                             'Rp ${_price.toStringAsFixed(0)}',
+  //                             style: const TextStyle(
+  //                               color: Colors.white,
+  //                               fontSize: 11,
+  //                               fontWeight: FontWeight.w600,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     if (_selectedImage == null)
+  //                       const Center(
+  //                         child: Column(
+  //                           mainAxisAlignment: MainAxisAlignment.center,
+  //                           children: [
+  //                             Icon(
+  //                               Icons.add_photo_alternate_outlined,
+  //                               color: Colors.white,
+  //                               size: 40,
+  //                             ),
+  //                             SizedBox(height: 8),
+  //                             Text(
+  //                               'Tap buat tambah cover image',
+  //                               style: TextStyle(
+  //                                 color: Colors.white,
+  //                                 fontSize: 14,
+  //                                 fontWeight: FontWeight.w500,
+  //                               ),
+  //                             ),
+  //                           ],
+  //                         ),
+  //                       ),
+  //                     if (_selectedImage != null)
+  //                       Positioned(
+  //                         top: 8,
+  //                         right: 8,
+  //                         child: GestureDetector(
+  //                           onTap: () => setState(() => _selectedImage = null),
+  //                           child: Container(
+  //                             padding: const EdgeInsets.all(4),
+  //                             decoration: BoxDecoration(
+  //                               color: Colors.black.withValues(alpha: 0.7),
+  //                               borderRadius: BorderRadius.circular(12),
+  //                             ),
+  //                             child: const Icon(
+  //                               Icons.close,
+  //                               color: Colors.white,
+  //                               size: 16,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                   ],
+  //                 ),),
+  //               ),
+  //               Padding(
+  //                 padding: const EdgeInsets.all(16),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Text(
+  //                       _titleController.text.isNotEmpty
+  //                         ? _titleController.text
+  //                         : 'Judul Acara',
+  //                       style: const TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.w700,
+  //                         color: Colors.black87,
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 4),
+  //                     Text(
+  //                       'Punya Lo',
+  //                       style: TextStyle(
+  //                         fontSize: 12,
+  //                         color: Colors.grey[600],
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 12),
+  //                     Text(
+  //                       _descriptionController.text.isNotEmpty
+  //                         ? _descriptionController.text
+  //                         : 'Deskripsi acara bakal nongol di sini...',
+  //                       style: TextStyle(
+  //                         fontSize: 13,
+  //                         color: _descriptionController.text.isNotEmpty
+  //                           ? Colors.grey[700]
+  //                           : Colors.grey[500],
+  //                         height: 1.4,
+  //                       ),
+  //                       maxLines: 2,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                     const SizedBox(height: 12),
+  //                     Row(
+  //                       children: [
+  //                         Icon(
+  //                           Icons.access_time,
+  //                           size: 14,
+  //                           color: Colors.grey[500],
+  //                         ),
+  //                         const SizedBox(width: 4),
+  //                         Text(
+  //                           _formatDateTime(),
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                             color: Colors.grey[600],
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     const SizedBox(height: 4),
+  //                     Row(
+  //                       children: [
+  //                         Expanded(
+  //                           child: Row(
+  //                             children: [
+  //                               Icon(
+  //                                 Icons.location_on_outlined,
+  //                                 size: 14,
+  //                                 color: Colors.grey[500],
+  //                               ),
+  //                               const SizedBox(width: 4),
+  //                               Expanded(
+  //                                 child: Text(
+  //                                   _locationController.text.isNotEmpty
+  //                                     ? _locationController.text
+  //                                     : 'Lokasi Acara',
+  //                                   style: TextStyle(
+  //                                     fontSize: 12,
+  //                                     color: _locationController.text.isNotEmpty
+  //                                       ? Colors.grey[600]
+  //                                       : Colors.grey[500],
+  //                                     fontWeight: FontWeight.w500,
+  //                                   ),
+  //                                   maxLines: 1,
+  //                                   overflow: TextOverflow.ellipsis,
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         TextButton(
+  //                           onPressed: () {},
+  //                           style: TextButton.styleFrom(
+  //                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  //                             minimumSize: const Size(0, 0),
+  //                           ),
+  //                           child: Row(
+  //                             mainAxisSize: MainAxisSize.min,
+  //                             children: [
+  //                               Icon(
+  //                                 Icons.directions,
+  //                                 size: 14,
+  //                                 color: Colors.blue[600],
+  //                               ),
+  //                               const SizedBox(width: 4),
+  //                               Text(
+  //                                 'Maps 🗺️',
+  //                                 style: TextStyle(
+  //                                   fontSize: 11,
+  //                                   color: Colors.blue[600],
+  //                                   fontWeight: FontWeight.w600,
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ],
+  //               ),
+  //               ),
                 
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+  //             ],
+  //           ),
+  //         ),
+  //         const SizedBox(height: 24),
 
-          // Terms notice
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue[600],
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Siap publish acara lo?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue[800],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Acara lo bakal kelihatan sama semua orang di area lo. Pastiin semua detail udah bener ya',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.blue[700],
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+  //         // Terms notice
+  //         Container(
+  //           padding: const EdgeInsets.all(16),
+  //           decoration: BoxDecoration(
+  //             color: Colors.blue[50],
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   Icon(
+  //                     Icons.info_outline,
+  //                     color: Colors.blue[600],
+  //                     size: 20,
+  //                   ),
+  //                   const SizedBox(width: 8),
+  //                   Text(
+  //                     'Siap publish acara lo?',
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       fontWeight: FontWeight.w600,
+  //                       color: Colors.blue[800],
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               const SizedBox(height: 8),
+  //               Text(
+  //                 'Acara lo bakal kelihatan sama semua orang di area lo. Pastiin semua detail udah bener ya',
+  //                 style: TextStyle(
+  //                   fontSize: 12,
+  //                   color: Colors.blue[700],
+  //                   height: 1.4,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         const SizedBox(height: 24),
 
-          // Similar Events Section
-          _buildSimilarEventsSection(),
-        ],
-      ),
-    );
-  }
+  //         // Similar Events Section
+  //         _buildSimilarEventsSection(),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildSimilarEventsSection() {
     final similarEvents = _getSimilarEvents();
@@ -1484,113 +1484,113 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     );
   }
 
-  Widget _buildPricingSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Harga'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isFree = true;
-                    _price = 0;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _isFree ? const Color(0xFF84994F) : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _isFree ? const Color(0xFF84994F) : Colors.grey[300]!,
-                      width: _isFree ? 2 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    'Gratis',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _isFree ? Colors.white : const Color(0xFF000000),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isFree = false;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: !_isFree ? const Color(0xFF84994F) : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: !_isFree ? const Color(0xFF84994F) : Colors.grey[300]!,
-                      width: !_isFree ? 2 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    'Berbayar',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: !_isFree ? Colors.white : const Color(0xFF000000),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (!_isFree) ...[
-          const SizedBox(height: 12),
-          TextField(
-            controller: _priceController,
-            onChanged: (value) {
-              _validatePrice(value);
-              setState(() {
-                _price = double.tryParse(value) ?? 0;
-              });
-            },
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              hintText: 'Masukkin harga (Rp)',
-              prefixText: 'Rp ',
-              errorText: _priceError,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: _priceError != null ? Colors.red : Colors.grey[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: _priceError != null ? Colors.red : Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: _priceError != null ? Colors.red : const Color(0xFF84994F)),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
+  // Widget _buildPricingSection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       _buildSectionTitle('Harga'),
+  //       const SizedBox(height: 8),
+  //       Row(
+  //         children: [
+  //           Expanded(
+  //             child: GestureDetector(
+  //               onTap: () {
+  //                 setState(() {
+  //                   _isFree = true;
+  //                   _price = 0;
+  //                 });
+  //               },
+  //               child: Container(
+  //                 padding: const EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: _isFree ? const Color(0xFF84994F) : Colors.white,
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(
+  //                     color: _isFree ? const Color(0xFF84994F) : Colors.grey[300]!,
+  //                     width: _isFree ? 2 : 1,
+  //                   ),
+  //                 ),
+  //                 child: Text(
+  //                   'Gratis',
+  //                   style: TextStyle(
+  //                     fontSize: 14,
+  //                     fontWeight: FontWeight.w700,
+  //                     color: _isFree ? Colors.white : const Color(0xFF000000),
+  //                   ),
+  //                   textAlign: TextAlign.center,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           const SizedBox(width: 12),
+  //           Expanded(
+  //             child: GestureDetector(
+  //               onTap: () {
+  //                 setState(() {
+  //                   _isFree = false;
+  //                 });
+  //               },
+  //               child: Container(
+  //                 padding: const EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: !_isFree ? const Color(0xFF84994F) : Colors.white,
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(
+  //                     color: !_isFree ? const Color(0xFF84994F) : Colors.grey[300]!,
+  //                     width: !_isFree ? 2 : 1,
+  //                   ),
+  //                 ),
+  //                 child: Text(
+  //                   'Berbayar',
+  //                   style: TextStyle(
+  //                     fontSize: 14,
+  //                     fontWeight: FontWeight.w700,
+  //                     color: !_isFree ? Colors.white : const Color(0xFF000000),
+  //                   ),
+  //                   textAlign: TextAlign.center,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       if (!_isFree) ...[
+  //         const SizedBox(height: 12),
+  //         TextField(
+  //           controller: _priceController,
+  //           onChanged: (value) {
+  //             _validatePrice(value);
+  //             setState(() {
+  //               _price = double.tryParse(value) ?? 0;
+  //             });
+  //           },
+  //           keyboardType: TextInputType.number,
+  //           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+  //           decoration: InputDecoration(
+  //             hintText: 'Masukkin harga (Rp)',
+  //             prefixText: 'Rp ',
+  //             errorText: _priceError,
+  //             border: OutlineInputBorder(
+  //               borderRadius: BorderRadius.circular(12),
+  //               borderSide: BorderSide(color: _priceError != null ? Colors.red : Colors.grey[300]!),
+  //             ),
+  //             enabledBorder: OutlineInputBorder(
+  //               borderRadius: BorderRadius.circular(12),
+  //               borderSide: BorderSide(color: _priceError != null ? Colors.red : Colors.grey[300]!),
+  //             ),
+  //             focusedBorder: OutlineInputBorder(
+  //               borderRadius: BorderRadius.circular(12),
+  //               borderSide: BorderSide(color: _priceError != null ? Colors.red : const Color(0xFF84994F)),
+  //             ),
+  //             filled: true,
+  //             fillColor: Colors.white,
+  //             contentPadding: const EdgeInsets.all(16),
+  //           ),
+  //         ),
+  //       ],
+  //     ],
+  //   );
+  // }
 
   Widget _buildBottomActions() {
     return Container(
@@ -1918,27 +1918,27 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     }
   }
 
-  Widget _buildHashtagSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Tambah vibes pake hashtag ✨'),
-        const SizedBox(height: 4),
-        Text(
-          'Pilih dari list atau bikin hashtag lo sendiri 🤟',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildHashtagGrid(),
-        const SizedBox(height: 16),
-        _buildHashtagInput(),
-      ],
-    );
-  }
+  // Widget _buildHashtagSection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       _buildSectionTitle('Tambah vibes pake hashtag ✨'),
+  //       const SizedBox(height: 4),
+  //       Text(
+  //         'Pilih dari list atau bikin hashtag lo sendiri 🤟',
+  //         style: TextStyle(
+  //           fontSize: 12,
+  //           color: Colors.grey[600],
+  //           fontWeight: FontWeight.w400,
+  //         ),
+  //       ),
+  //       const SizedBox(height: 16),
+  //       _buildHashtagGrid(),
+  //       const SizedBox(height: 16),
+  //       _buildHashtagInput(),
+  //     ],
+  //   );
+  // }
 
   Widget _buildHashtagGrid() {
     // Combine default and custom hashtags

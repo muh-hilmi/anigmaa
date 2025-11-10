@@ -73,6 +73,7 @@ class EventModel extends Event {
       description: json['description'] as String,
       category: EventCategory.values.firstWhere(
         (e) => e.toString().split('.').last == json['category'],
+        orElse: () => EventCategory.meetup,
       ),
       startTime: DateTime.parse(startTime as String),
       endTime: DateTime.parse(endTime as String),

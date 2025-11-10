@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
-import '../../../domain/entities/event_category.dart';
+// import '../../../domain/entities/event_category.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
@@ -9,7 +9,7 @@ import '../../bloc/events/events_event.dart';
 import '../../bloc/events/events_state.dart';
 import '../event_detail/event_detail_screen.dart';
 import '../create_event/create_event_screen.dart';
-import '../calendar/calendar_screen.dart';
+// import '../calendar/calendar_screen.dart';
 import '../map/map_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {

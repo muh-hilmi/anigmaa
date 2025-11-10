@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../domain/entities/qna.dart';
+import '../../bloc/qna/qna_bloc.dart';
+import '../../bloc/qna/qna_event.dart';
+import '../../bloc/qna/qna_state.dart';
 
 class EventQnAScreen extends StatefulWidget {
   final String eventId;
@@ -17,103 +22,32 @@ class EventQnAScreen extends StatefulWidget {
 class _EventQnAScreenState extends State<EventQnAScreen> {
   String _selectedFilter = 'all';
   final TextEditingController _searchController = TextEditingController();
-
-  // TODO: Replace with real data from BLoC/Repository
-  final List<QnAItem> _mockQnA = [];
+  final TextEditingController _questionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializeMockData();
+    // Load Q&A when screen is opened
+    context.read<QnABloc>().add(LoadEventQnA(widget.eventId));
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _questionController.dispose();
     super.dispose();
   }
 
-  void _initializeMockData() {
-    _mockQnA.addAll([
-      QnAItem(
-        id: 'q1',
-        question: 'Ada parkir ga di venue-nya?',
-        answer: 'Ada! Parkir gratis di basement. Langsung aja turun pas masuk gedung.',
-        askedBy: 'Budi',
-        answeredBy: 'Event Organizer',
-        askedAt: DateTime.now().subtract(const Duration(days: 2)),
-        answeredAt: DateTime.now().subtract(const Duration(days: 2, hours: 2)),
-        upvotes: 15,
-        isUpvoted: false,
-      ),
-      QnAItem(
-        id: 'q2',
-        question: 'Boleh bawa temen yang ga daftar?',
-        answer: 'Maaf ya, semua peserta harus daftar dulu karena kuota terbatas. Ajak temen lo buat daftar online!',
-        askedBy: 'Sarah',
-        answeredBy: 'Event Organizer',
-        askedAt: DateTime.now().subtract(const Duration(days: 1)),
-        answeredAt: DateTime.now().subtract(const Duration(days: 1, hours: 1)),
-        upvotes: 8,
-        isUpvoted: true,
-      ),
-      QnAItem(
-        id: 'q3',
-        question: 'Harus bawa apa nih ke eventnya?',
-        answer: 'Bawa ID card, tiket (bisa di HP), sama semangat buat networking! Makanan & minuman disediain kok.',
-        askedBy: 'Andi',
-        answeredBy: 'Event Organizer',
-        askedAt: DateTime.now().subtract(const Duration(hours: 12)),
-        answeredAt: DateTime.now().subtract(const Duration(hours: 10)),
-        upvotes: 12,
-        isUpvoted: false,
-      ),
-      QnAItem(
-        id: 'q4',
-        question: 'Dress code nya casual atau formal?',
-        answer: 'Smart casual aja! Ga perlu terlalu formal, yang penting rapi dan nyaman.',
-        askedBy: 'Dina',
-        answeredBy: 'Event Organizer',
-        askedAt: DateTime.now().subtract(const Duration(hours: 5)),
-        answeredAt: DateTime.now().subtract(const Duration(hours: 4)),
-        upvotes: 5,
-        isUpvoted: false,
-      ),
-      QnAItem(
-        id: 'q5',
-        question: 'Ada certificate nya ga?',
-        answer: 'Ada! Certificate of attendance bakal dikirim via email H+3 setelah event selesai.',
-        askedBy: 'Eko',
-        answeredBy: 'Event Organizer',
-        askedAt: DateTime.now().subtract(const Duration(hours: 3)),
-        answeredAt: DateTime.now().subtract(const Duration(hours: 2)),
-        upvotes: 20,
-        isUpvoted: true,
-      ),
-      QnAItem(
-        id: 'q6',
-        question: 'Bisa refund ga kalau ga jadi dateng?',
-        answer: null, // Unanswered question
-        askedBy: 'Fitri',
-        answeredBy: null,
-        askedAt: DateTime.now().subtract(const Duration(hours: 1)),
-        answeredAt: null,
-        upvotes: 3,
-        isUpvoted: false,
-      ),
-    ]);
-  }
-
-  List<QnAItem> get _filteredQnA {
-    var filtered = _mockQnA;
+  List<QnA> _filterQuestions(List<QnA> questions) {
+    var filtered = questions;
 
     // Filter by status
     switch (_selectedFilter) {
       case 'answered':
-        filtered = filtered.where((q) => q.answer != null).toList();
+        filtered = filtered.where((q) => q.isAnswered).toList();
         break;
       case 'unanswered':
-        filtered = filtered.where((q) => q.answer == null).toList();
+        filtered = filtered.where((q) => !q.isAnswered).toList();
         break;
       case 'popular':
         filtered = List.from(filtered)..sort((a, b) => b.upvotes.compareTo(a.upvotes));
@@ -122,9 +56,10 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
 
     // Filter by search
     if (_searchController.text.isNotEmpty) {
+      final searchLower = _searchController.text.toLowerCase();
       filtered = filtered.where((q) =>
-        q.question.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-        (q.answer?.toLowerCase().contains(_searchController.text.toLowerCase()) ?? false)
+        q.question.toLowerCase().contains(searchLower) ||
+        (q.answer?.toLowerCase().contains(searchLower) ?? false)
       ).toList();
     }
 
@@ -204,15 +139,69 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
           const SizedBox(height: 12),
           // Q&A List
           Expanded(
-            child: _filteredQnA.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
+            child: BlocBuilder<QnABloc, QnAState>(
+              builder: (context, state) {
+                if (state is QnALoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF84994F),
+                    ),
+                  );
+                }
+
+                if (state is QnAError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          state.message,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<QnABloc>().add(LoadEventQnA(widget.eventId));
+                          },
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (state is! QnALoaded) {
+                  return const SizedBox.shrink();
+                }
+
+                final filteredQnA = _filterQuestions(state.questions);
+
+                if (filteredQnA.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<QnABloc>().add(RefreshEventQnA(widget.eventId));
+                    await Future.delayed(const Duration(seconds: 1));
+                  },
+                  child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredQnA.length,
+                    itemCount: filteredQnA.length,
                     itemBuilder: (context, index) {
-                      return _buildQnACard(_filteredQnA[index]);
+                      return _buildQnACard(filteredQnA[index]);
                     },
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -275,7 +264,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
     );
   }
 
-  Widget _buildQnACard(QnAItem qna) {
+  Widget _buildQnACard(QnA qna) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -325,7 +314,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Ditanya oleh ${qna.askedBy} · ${_formatTime(qna.askedAt)}',
+                      'Ditanya oleh ${qna.askedBy.name} · ${_formatTime(qna.askedAt)}',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -363,7 +352,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        qna.answeredBy!,
+                        qna.answeredBy!.name,
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -428,26 +417,23 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
             children: [
               InkWell(
                 onTap: () {
-                  setState(() {
-                    if (qna.isUpvoted) {
-                      qna.upvotes--;
-                      qna.isUpvoted = false;
-                    } else {
-                      qna.upvotes++;
-                      qna.isUpvoted = true;
-                    }
-                  });
+                  context.read<QnABloc>().add(
+                    UpvoteQuestionToggled(
+                      qna.id,
+                      qna.isUpvotedByCurrentUser,
+                    ),
+                  );
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: qna.isUpvoted
+                    color: qna.isUpvotedByCurrentUser
                         ? const Color(0xFF84994F).withOpacity(0.1)
                         : Colors.grey[100],
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: qna.isUpvoted
+                      color: qna.isUpvotedByCurrentUser
                           ? const Color(0xFF84994F)
                           : Colors.grey[300]!,
                       width: 1,
@@ -457,9 +443,9 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        qna.isUpvoted ? Icons.thumb_up : Icons.thumb_up_outlined,
+                        qna.isUpvotedByCurrentUser ? Icons.thumb_up : Icons.thumb_up_outlined,
                         size: 14,
-                        color: qna.isUpvoted ? const Color(0xFF84994F) : Colors.grey[600],
+                        color: qna.isUpvotedByCurrentUser ? const Color(0xFF84994F) : Colors.grey[600],
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -467,7 +453,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: qna.isUpvoted ? const Color(0xFF84994F) : Colors.grey[700],
+                          color: qna.isUpvotedByCurrentUser ? const Color(0xFF84994F) : Colors.grey[700],
                         ),
                       ),
                     ],
@@ -578,6 +564,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                   const SizedBox(height: 20),
                   // Question input
                   TextField(
+                    controller: _questionController,
                     autofocus: true,
                     maxLines: 4,
                     decoration: InputDecoration(
@@ -601,7 +588,28 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
+                        final question = _questionController.text.trim();
+                        if (question.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Pertanyaan ga boleh kosong!'),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        context.read<QnABloc>().add(
+                          AskQuestionRequested(widget.eventId, question),
+                        );
+
+                        _questionController.clear();
                         Navigator.pop(context);
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: const Row(
@@ -661,29 +669,4 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
       return 'Baru saja';
     }
   }
-}
-
-// Model
-class QnAItem {
-  final String id;
-  final String question;
-  String? answer;
-  final String askedBy;
-  String? answeredBy;
-  final DateTime askedAt;
-  DateTime? answeredAt;
-  int upvotes;
-  bool isUpvoted;
-
-  QnAItem({
-    required this.id,
-    required this.question,
-    this.answer,
-    required this.askedBy,
-    this.answeredBy,
-    required this.askedAt,
-    this.answeredAt,
-    required this.upvotes,
-    required this.isUpvoted,
-  });
 }

@@ -209,14 +209,60 @@ class PostRepositoryImpl implements PostRepository {
 
   @override
   Future<Either<Failure, Comment>> likeComment(String postId, String commentId) async {
-    // TODO: Implement when backend API is ready
-    return Left(ServerFailure('Like comment not implemented yet'));
+    try {
+      print('[PostRepository] Liking comment $commentId on post $postId...');
+      await remoteDataSource.likeComment(postId, commentId);
+      print('[PostRepository] Like comment successful');
+
+      // Create a placeholder comment - the bloc will handle optimistic update
+      return Right(Comment(
+        id: commentId,
+        postId: postId,
+        author: User(
+          id: '', email: '', name: '',
+          createdAt: DateTime.now(),
+          settings: const UserSettings(),
+          stats: const UserStats(),
+          privacy: const UserPrivacy(),
+        ),
+        content: '',
+        createdAt: DateTime.now(),
+        isLikedByCurrentUser: true,
+      ));
+    } catch (e, stackTrace) {
+      print('[PostRepository] Error liking comment: $e');
+      print('[PostRepository] Stack trace: $stackTrace');
+      return Left(ServerFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, Comment>> unlikeComment(String postId, String commentId) async {
-    // TODO: Implement when backend API is ready
-    return Left(ServerFailure('Unlike comment not implemented yet'));
+    try {
+      print('[PostRepository] Unliking comment $commentId on post $postId...');
+      await remoteDataSource.unlikeComment(postId, commentId);
+      print('[PostRepository] Unlike comment successful');
+
+      // Create a placeholder comment - the bloc will handle optimistic update
+      return Right(Comment(
+        id: commentId,
+        postId: postId,
+        author: User(
+          id: '', email: '', name: '',
+          createdAt: DateTime.now(),
+          settings: const UserSettings(),
+          stats: const UserStats(),
+          privacy: const UserPrivacy(),
+        ),
+        content: '',
+        createdAt: DateTime.now(),
+        isLikedByCurrentUser: false,
+      ));
+    } catch (e, stackTrace) {
+      print('[PostRepository] Error unliking comment: $e');
+      print('[PostRepository] Stack trace: $stackTrace');
+      return Left(ServerFailure(e.toString()));
+    }
   }
 
   @override

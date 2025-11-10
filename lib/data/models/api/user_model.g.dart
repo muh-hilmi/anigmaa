@@ -60,17 +60,17 @@ Map<String, dynamic> _$UserStatsModelToJson(UserStatsModel instance) =>
       'events_attended': instance.eventsAttended,
     };
 
-UpdateProfileRequest _$UpdateProfileRequestFromJson(
-        Map<String, dynamic> json) =>
-    UpdateProfileRequest(
-      fullName: json['full_name'] as String?,
-      bio: json['bio'] as String?,
-      profileImage: json['profile_image'] as String?,
-      coverImage: json['cover_image'] as String?,
-      dateOfBirth: json['date_of_birth'] as String?,
-      gender: json['gender'] as String?,
-      location: json['location'] as String?,
-    );
+// UpdateProfileRequest _$UpdateProfileRequestFromJson(
+//         Map<String, dynamic> json) =>
+//     UpdateProfileRequest(
+//       fullName: json['full_name'] as String?,
+//       bio: json['bio'] as String?,
+//       profileImage: json['profile_image'] as String?,
+//       coverImage: json['cover_image'] as String?,
+//       dateOfBirth: json['date_of_birth'] as String?,
+//       gender: json['gender'] as String?,
+//       location: json['location'] as String?,
+//     );
 
 Map<String, dynamic> _$UpdateProfileRequestToJson(
         UpdateProfileRequest instance) =>
@@ -84,15 +84,15 @@ Map<String, dynamic> _$UpdateProfileRequestToJson(
       'location': instance.location,
     };
 
-UpdateSettingsRequest _$UpdateSettingsRequestFromJson(
-        Map<String, dynamic> json) =>
-    UpdateSettingsRequest(
-      notificationEnabled: json['notification_enabled'] as bool?,
-      emailNotification: json['email_notification'] as bool?,
-      pushNotification: json['push_notification'] as bool?,
-      language: json['language'] as String?,
-      theme: json['theme'] as String?,
-    );
+// UpdateSettingsRequest _$UpdateSettingsRequestFromJson(
+//         Map<String, dynamic> json) =>
+//     UpdateSettingsRequest(
+//       notificationEnabled: json['notification_enabled'] as bool?,
+//       emailNotification: json['email_notification'] as bool?,
+//       pushNotification: json['push_notification'] as bool?,
+//       language: json['language'] as String?,
+//       theme: json['theme'] as String?,
+//     );
 
 Map<String, dynamic> _$UpdateSettingsRequestToJson(
         UpdateSettingsRequest instance) =>
