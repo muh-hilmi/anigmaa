@@ -121,57 +121,6 @@ class EventModel extends Event {
     };
   }
 
-  // UI specific methods (these will be moved to utils later)
-  // String get categoryName {
-  //   switch (category) {
-  //     case EventCategory.meetup:
-  //       return '#meetup';
-  //     case EventCategory.sports:
-  //       return '#sports';
-  //     case EventCategory.workshop:
-  //       return '#workshop';
-  //     case EventCategory.networking:
-  //       return '#networking';
-  //     case EventCategory.food:
-  //       return '#foodie';
-  //     case EventCategory.creative:
-  //       return '#creative';
-  //     case EventCategory.outdoor:
-  //       return '#outdoor';
-  //     case EventCategory.fitness:
-  //       return '#fitness';
-  //     case EventCategory.learning:
-  //       return '#learning';
-  //     case EventCategory.social:
-  //       return '#social';
-  //   }
-  // }
-
-  // Color get categoryColor {
-  //   switch (category) {
-  //     case EventCategory.meetup:
-  //       return const Color(0xFF6366F1);
-  //     case EventCategory.sports:
-  //       return const Color(0xFF10B981);
-  //     case EventCategory.workshop:
-  //       return const Color(0xFFF59E0B);
-  //     case EventCategory.networking:
-  //       return const Color(0xFF8B5CF6);
-  //     case EventCategory.food:
-  //       return const Color(0xFFEF4444);
-  //     case EventCategory.creative:
-  //       return const Color(0xFFEC4899);
-  //     case EventCategory.outdoor:
-  //       return const Color(0xFF06B6D4);
-  //     case EventCategory.fitness:
-  //       return const Color(0xFF84CC16);
-  //     case EventCategory.learning:
-  //       return const Color(0xFF3B82F6);
-  //     case EventCategory.social:
-  //       return const Color(0xFFF97316);
-  //   }
-  // }
-
   factory EventModel.fromEntity(Event event) {
     return EventModel(
       id: event.id,
