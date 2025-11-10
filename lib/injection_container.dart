@@ -55,9 +55,6 @@ import 'domain/repositories/qna_repository.dart';
 import 'data/services/auth_api_service.dart';
 import 'data/services/analytics_service.dart';
 
-// Dummy Data (for development)
-// import 'dummy_data/dummy_event_repository.dart';
-
 // Presentation
 import 'presentation/bloc/events/events_bloc.dart';
 import 'presentation/bloc/user/user_bloc.dart';

@@ -56,11 +56,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
       result.fold(
         (failure) {
-          print('[PostsBloc] Failed to load posts: ${failure.toString()}');
           emit(PostsError('Failed to load posts: ${failure.toString()}'));
         },
         (posts) {
-          print('[PostsBloc] Successfully loaded ${posts.length} posts');
           emit(PostsLoaded(
             posts: posts,
             hasMore: posts.length >= postsPerPage,
@@ -69,8 +67,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         },
       );
     } catch (e, stackTrace) {
-      print('[PostsBloc] Exception loading posts: $e');
-      print('[PostsBloc] Stack trace: $stackTrace');
       emit(PostsError('Exception loading posts: $e'));
     }
   }
@@ -97,7 +93,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
     // Don't load more if already loading or no more posts
     if (currentState.isLoadingMore || !currentState.hasMore) {
-      print('[PostsBloc] Skipping load more: isLoading=${currentState.isLoadingMore}, hasMore=${currentState.hasMore}');
       return;
     }
 
@@ -105,7 +100,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     emit(currentState.copyWith(isLoadingMore: true));
 
     try {
-      print('[PostsBloc] Loading more posts from offset ${currentState.currentOffset}');
       final result = await getPosts(GetPostsParams(
         limit: postsPerPage,
         offset: currentState.currentOffset,
@@ -113,12 +107,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
       result.fold(
         (failure) {
-          print('[PostsBloc] Failed to load more posts: ${failure.toString()}');
           // Revert loading state on error
           emit(currentState.copyWith(isLoadingMore: false));
         },
         (newPosts) {
-          print('[PostsBloc] Loaded ${newPosts.length} more posts');
           final updatedPosts = [...currentState.posts, ...newPosts];
           emit(currentState.copyWith(
             posts: updatedPosts,
@@ -129,8 +121,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         },
       );
     } catch (e, stackTrace) {
-      print('[PostsBloc] Exception loading more posts: $e');
-      print('[PostsBloc] Stack trace: $stackTrace');
       // Revert loading state on error
       emit(currentState.copyWith(isLoadingMore: false));
     }
@@ -142,7 +132,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // Don't emit error - just log it. Keep posts visible!
-        print('[PostsBloc] Failed to create post: $failure');
       },
       (newPost) {
         if (state is PostsLoaded) {
@@ -182,7 +171,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // If API fails, revert the optimistic update
-        print('[PostsBloc] Failed to update like, reverting: $failure');
         final revertedPosts = updatedPosts.map((post) {
           if (post.id == event.postId) {
             return post.copyWith(
@@ -197,7 +185,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         emit(currentState.copyWith(posts: revertedPosts));
       },
       (updatedPost) {
-        print('[PostsBloc] Like update successful');
         // API success - keep the optimistic update
       },
     );
@@ -213,7 +200,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // Don't emit error - just log it. Keep posts visible!
-        print('[PostsBloc] Failed to repost: $failure');
       },
       (repostedPost) {
         // Refresh posts to get updated repost
@@ -231,7 +217,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // Don't emit error - just log it. Keep posts visible!
-        print('[PostsBloc] Failed to load comments for post ${event.postId}: $failure');
         // Optionally emit state with empty comments for this post
         final updatedComments = Map<String, List<Comment>>.from(currentState.commentsByPostId);
         updatedComments[event.postId] = [];
@@ -253,7 +238,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // Don't emit error - just log it. Keep posts visible!
-        print('[PostsBloc] Failed to create comment: $failure');
       },
       (newComment) {
         // Refresh posts to get updated comment count
@@ -274,7 +258,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) {
         // Don't emit error - just log it. Keep posts visible!
-        print('[PostsBloc] Failed to update comment like: $failure');
       },
       (updatedComment) {
         final currentState = state as PostsLoaded;

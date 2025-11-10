@@ -83,11 +83,7 @@ class ModernPostCard extends StatefulWidget {
     required this.post,
     this.showCommentPreview = true,
     this.showActionBar = true,
-  }) {
-    if (post.attachedEvent != null) {
-      print('[ModernPostCard] Created with attached event: ${post.attachedEvent!.title}');
-    }
-  }
+  });
 
   @override
   State<ModernPostCard> createState() => _ModernPostCardState();
@@ -212,7 +208,6 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
           if (widget.post.attachedEvent != null) ...[
             Builder(
               builder: (context) {
-                print('[ModernPostCard] Rendering attached event: ${widget.post.attachedEvent!.title}');
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _buildEventAttachment(context),
@@ -258,8 +253,6 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
 
         return cardContent;
         } catch (e, stackTrace) {
-          print('[ModernPostCard] Error building card: $e');
-          print('[ModernPostCard] Stack trace: $stackTrace');
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(

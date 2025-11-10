@@ -1232,77 +1232,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     );
   }
 
-  // Widget _buildCategorySelector() {
-  //   final categoryData = {
-  //     EventCategory.meetup: {'emoji': '☕', 'label': 'Ngumpul santai'},
-  //     EventCategory.sports: {'emoji': '⚽', 'label': 'Olahraga bareng'},
-  //     EventCategory.workshop: {'emoji': '📚', 'label': 'Belajar rame-rame'},
-  //     EventCategory.networking: {'emoji': '🔗', 'label': 'Cari koneksi'},
-  //     EventCategory.food: {'emoji': '🍜', 'label': 'Kulineran'},
-  //     EventCategory.creative: {'emoji': '🎨', 'label': 'Berkreasi'},
-  //     EventCategory.outdoor: {'emoji': '🏞️', 'label': 'Outdoor vibes'},
-  //     EventCategory.fitness: {'emoji': '💪', 'label': 'Stay fit'},
-  //     EventCategory.learning: {'emoji': '🧠', 'label': 'Skill up'},
-  //     EventCategory.social: {'emoji': '🎉', 'label': 'Socialize'},
-  //   };
-
-  //   return Wrap(
-  //     spacing: 8,
-  //     runSpacing: 12,
-  //     children: categoryData.entries.map((entry) {
-  //       final category = entry.key;
-  //       final data = entry.value;
-  //       final isSelected = category == _selectedCategory;
-
-  //       return GestureDetector(
-  //         onTap: () {
-  //           setState(() {
-  //             _selectedCategory = category;
-  //           });
-  //           HapticFeedback.lightImpact();
-  //         },
-  //         child: AnimatedContainer(
-  //           duration: const Duration(milliseconds: 200),
-  //           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  //           decoration: BoxDecoration(
-  //             color: isSelected ? const Color(0xFF6366F1) : Colors.grey[50],
-  //             borderRadius: BorderRadius.circular(20),
-  //             border: Border.all(
-  //               color: isSelected ? const Color(0xFF6366F1) : Colors.grey[200]!,
-  //               width: 1,
-  //             ),
-  //             boxShadow: isSelected ? [
-  //               BoxShadow(
-  //                 color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-  //                 blurRadius: 8,
-  //                 offset: const Offset(0, 2),
-  //               ),
-  //             ] : null,
-  //           ),
-  //           child: Row(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Text(
-  //                 data['emoji']!,
-  //                 style: const TextStyle(fontSize: 16),
-  //               ),
-  //               const SizedBox(width: 6),
-  //               Text(
-  //                 data['label']!,
-  //                 style: TextStyle(
-  //                   fontSize: 13,
-  //                   fontWeight: FontWeight.w600,
-  //                   color: isSelected ? Colors.white : Colors.grey[700],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     }).toList(),
-  //   );
-  // }
-
   Widget _buildPrivacySelector() {
     return Row(
       children: [
@@ -1789,20 +1718,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     final time = _selectedTime.format(context);
     return '$date at $time';
   }
-
-  // // Step title and subtitle methods
-  // String _getStepTitle() {
-  //   switch (_currentStep) {
-  //     case 0:
-  //       return 'Info Dasar';
-  //     case 1:
-  //       return 'Detail Acara';
-  //     case 2:
-  //       return 'Ready to Publish!';
-  //     default:
-  //       return 'Create Event';
-  //   }
-  // }
 
   String _getStepSubtitle() {
     switch (_currentStep) {

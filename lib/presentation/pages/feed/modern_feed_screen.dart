@@ -55,10 +55,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
       backgroundColor: Colors.white,
       body: BlocBuilder<PostsBloc, PostsState>(
                 builder: (context, state) {
-                  print('[ModernFeedScreen] Current state: ${state.runtimeType}');
-
                   if (state is PostsLoading) {
-                    print('[ModernFeedScreen] Showing loading...');
                     return const Center(
                       child: CircularProgressIndicator(
                         color: Color(0xFF8B5CF6),
@@ -68,19 +65,15 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
                   }
 
                   if (state is PostsError) {
-                    print('[ModernFeedScreen] Showing error: ${state.message}');
                     return _buildErrorState(state.message);
                   }
 
                   if (state is PostsLoaded) {
-                    print('[ModernFeedScreen] Loaded ${state.posts.length} posts');
-
                     // Get current user ID to filter out their posts
                     final userState = context.read<UserBloc>().state;
                     String? currentUserId;
                     if (userState is UserLoaded && userState.user != null) {
                       currentUserId = userState.user!.id;
-                      print('[ModernFeedScreen] Current user ID: $currentUserId');
                     }
 
                     // Filter out current user's posts (feed should only show others' posts)
@@ -88,14 +81,9 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
                         ? state.posts.where((post) => post.author.id != currentUserId).toList()
                         : state.posts;
 
-                    print('[ModernFeedScreen] Filtered to ${feedPosts.length} posts (excluded current user)');
-
                     if (feedPosts.isEmpty) {
-                      print('[ModernFeedScreen] Feed empty after filtering, showing empty state');
                       return _buildEmptyState();
                     }
-
-                    print('[ModernFeedScreen] Building ListView with ${feedPosts.length} posts');
                     return RefreshIndicator(
                       onRefresh: () async {
                         context.read<PostsBloc>().add(RefreshPosts());
@@ -112,14 +100,12 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
                             return _buildLoadingIndicator(state.isLoadingMore);
                           }
 
-                          print('[ModernFeedScreen] Building post card $index');
                           return ModernPostCard(post: feedPosts[index]);
                         },
                       ),
                     );
                   }
 
-                  print('[ModernFeedScreen] Unknown state, showing empty state');
                   return _buildEmptyState();
                 },
               ),
