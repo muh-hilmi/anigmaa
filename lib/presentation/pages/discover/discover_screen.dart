@@ -78,8 +78,41 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         listener: (context, state) {
           if (state is EventsError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red[600],
+                duration: const Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+              ),
             );
+          }
+
+          // Show snackbar for success/error messages from EventsLoaded state
+          if (state is EventsLoaded) {
+            if (state.successMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.successMessage!),
+                  backgroundColor: Colors.green[600],
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // Clear the message after showing
+              context.read<EventsBloc>().emit(state.clearMessages());
+            }
+            if (state.createErrorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.createErrorMessage!),
+                  backgroundColor: Colors.red[600],
+                  duration: const Duration(seconds: 3),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // Clear the message after showing
+              context.read<EventsBloc>().emit(state.clearMessages());
+            }
           }
         },
         builder: (context, state) {

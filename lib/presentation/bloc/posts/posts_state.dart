@@ -19,6 +19,9 @@ class PostsLoaded extends PostsState {
   final bool hasMore;
   final bool isLoadingMore;
   final int currentOffset;
+  final bool isCreatingPost;
+  final String? createErrorMessage;
+  final String? successMessage;
 
   const PostsLoaded({
     required this.posts,
@@ -26,6 +29,9 @@ class PostsLoaded extends PostsState {
     this.hasMore = true,
     this.isLoadingMore = false,
     this.currentOffset = 0,
+    this.isCreatingPost = false,
+    this.createErrorMessage,
+    this.successMessage,
   });
 
   PostsLoaded copyWith({
@@ -34,6 +40,9 @@ class PostsLoaded extends PostsState {
     bool? hasMore,
     bool? isLoadingMore,
     int? currentOffset,
+    bool? isCreatingPost,
+    String? createErrorMessage,
+    String? successMessage,
   }) {
     return PostsLoaded(
       posts: posts ?? this.posts,
@@ -41,11 +50,36 @@ class PostsLoaded extends PostsState {
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       currentOffset: currentOffset ?? this.currentOffset,
+      isCreatingPost: isCreatingPost ?? this.isCreatingPost,
+      createErrorMessage: createErrorMessage,
+      successMessage: successMessage,
+    );
+  }
+
+  PostsLoaded clearMessages() {
+    return PostsLoaded(
+      posts: posts,
+      commentsByPostId: commentsByPostId,
+      hasMore: hasMore,
+      isLoadingMore: isLoadingMore,
+      currentOffset: currentOffset,
+      isCreatingPost: isCreatingPost,
+      createErrorMessage: null,
+      successMessage: null,
     );
   }
 
   @override
-  List<Object?> get props => [posts, commentsByPostId, hasMore, isLoadingMore, currentOffset];
+  List<Object?> get props => [
+        posts,
+        commentsByPostId,
+        hasMore,
+        isLoadingMore,
+        currentOffset,
+        isCreatingPost,
+        createErrorMessage,
+        successMessage,
+      ];
 }
 
 class PostsError extends PostsState {

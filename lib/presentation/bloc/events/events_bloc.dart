@@ -101,12 +101,30 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     CreateEventRequested event,
     Emitter<EventsState> emit,
   ) async {
+    // Set creating state
+    if (state is EventsLoaded) {
+      final currentState = state as EventsLoaded;
+      emit(currentState.copyWith(isCreatingEvent: true));
+    }
+
     final result = await createEvent(
       CreateEventParams(event: event.event),
     );
 
     result.fold(
-      (failure) => emit(EventsError(failure.message)),
+      (failure) {
+        // Set error message so UI can show snackbar
+        if (state is EventsLoaded) {
+          final currentState = state as EventsLoaded;
+          emit(currentState.copyWith(
+            isCreatingEvent: false,
+            createErrorMessage: 'Gagal bikin event: ${failure.message}',
+          ));
+        } else {
+          // If not loaded state, emit error
+          emit(EventsError(failure.message));
+        }
+      },
       (createdEvent) {
         // Get current state and add the new event
         if (state is EventsLoaded) {
@@ -127,6 +145,8 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
             filteredEvents: filteredFutureEvents,
             nearbyEvents: updatedNearbyEvents,
             selectedCategory: currentState.selectedCategory,
+            isCreatingEvent: false,
+            successMessage: 'Event berhasil dibuat! 🎉',
           ));
         } else {
           // If no current state, just reload

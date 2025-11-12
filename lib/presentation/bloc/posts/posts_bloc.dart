@@ -127,17 +127,35 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   }
 
   Future<void> _onCreatePost(CreatePostRequested event, Emitter<PostsState> emit) async {
+    // Set creating state
+    if (state is PostsLoaded) {
+      final currentState = state as PostsLoaded;
+      emit(currentState.copyWith(isCreatingPost: true));
+    }
+
     final result = await createPost(CreatePostParams(post: event.post));
 
     result.fold(
       (failure) {
-        // Don't emit error - just log it. Keep posts visible!
+        // Set error message so UI can show snackbar
+        if (state is PostsLoaded) {
+          final currentState = state as PostsLoaded;
+          emit(currentState.copyWith(
+            isCreatingPost: false,
+            createErrorMessage: 'Gagal bikin post: ${failure.message}',
+          ));
+        }
       },
       (newPost) {
+        // Add new post to the list with success message
         if (state is PostsLoaded) {
           final currentState = state as PostsLoaded;
           final updatedPosts = [newPost, ...currentState.posts];
-          emit(currentState.copyWith(posts: updatedPosts));
+          emit(currentState.copyWith(
+            posts: updatedPosts,
+            isCreatingPost: false,
+            successMessage: 'Post berhasil dibuat! 🎉',
+          ));
         }
       },
     );

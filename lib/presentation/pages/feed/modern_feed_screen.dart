@@ -53,62 +53,91 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BlocBuilder<PostsBloc, PostsState>(
-                builder: (context, state) {
-                  if (state is PostsLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF8B5CF6),
-                        strokeWidth: 3,
-                      ),
-                    );
+      body: BlocConsumer<PostsBloc, PostsState>(
+        listener: (context, state) {
+          // Show snackbar for success/error messages
+          if (state is PostsLoaded) {
+            if (state.successMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.successMessage!),
+                  backgroundColor: Colors.green[600],
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // Clear the message after showing
+              context.read<PostsBloc>().emit(state.clearMessages());
+            }
+            if (state.createErrorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.createErrorMessage!),
+                  backgroundColor: Colors.red[600],
+                  duration: const Duration(seconds: 3),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // Clear the message after showing
+              context.read<PostsBloc>().emit(state.clearMessages());
+            }
+          }
+        },
+        builder: (context, state) {
+          if (state is PostsLoading) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF8B5CF6),
+                strokeWidth: 3,
+              ),
+            );
+          }
+
+          if (state is PostsError) {
+            return _buildErrorState(state.message);
+          }
+
+          if (state is PostsLoaded) {
+            // Get current user ID to filter out their posts
+            final userState = context.read<UserBloc>().state;
+            String? currentUserId;
+            if (userState is UserLoaded && userState.user != null) {
+              currentUserId = userState.user!.id;
+            }
+
+            // Filter out current user's posts (feed should only show others' posts)
+            final feedPosts = currentUserId != null
+                ? state.posts.where((post) => post.author.id != currentUserId).toList()
+                : state.posts;
+
+            if (feedPosts.isEmpty) {
+              return _buildEmptyState();
+            }
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<PostsBloc>().add(RefreshPosts());
+                await Future.delayed(const Duration(seconds: 1));
+              },
+              color: const Color(0xFF8B5CF6),
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: feedPosts.length + (state.hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  // Show loading indicator at the bottom
+                  if (index >= feedPosts.length) {
+                    return _buildLoadingIndicator(state.isLoadingMore);
                   }
 
-                  if (state is PostsError) {
-                    return _buildErrorState(state.message);
-                  }
-
-                  if (state is PostsLoaded) {
-                    // Get current user ID to filter out their posts
-                    final userState = context.read<UserBloc>().state;
-                    String? currentUserId;
-                    if (userState is UserLoaded && userState.user != null) {
-                      currentUserId = userState.user!.id;
-                    }
-
-                    // Filter out current user's posts (feed should only show others' posts)
-                    final feedPosts = currentUserId != null
-                        ? state.posts.where((post) => post.author.id != currentUserId).toList()
-                        : state.posts;
-
-                    if (feedPosts.isEmpty) {
-                      return _buildEmptyState();
-                    }
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        context.read<PostsBloc>().add(RefreshPosts());
-                        await Future.delayed(const Duration(seconds: 1));
-                      },
-                      color: const Color(0xFF8B5CF6),
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: feedPosts.length + (state.hasMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          // Show loading indicator at the bottom
-                          if (index >= feedPosts.length) {
-                            return _buildLoadingIndicator(state.isLoadingMore);
-                          }
-
-                          return ModernPostCard(post: feedPosts[index]);
-                        },
-                      ),
-                    );
-                  }
-
-                  return _buildEmptyState();
+                  return ModernPostCard(post: feedPosts[index]);
                 },
               ),
+            );
+          }
+
+          return _buildEmptyState();
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(

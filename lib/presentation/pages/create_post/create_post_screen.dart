@@ -4,8 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/user.dart';
+import '../../../domain/entities/event.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
+import '../../bloc/events/events_bloc.dart';
+import '../../bloc/events/events_state.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -18,6 +21,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _textController = TextEditingController();
   final List<String> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
+  Event? _selectedEvent; // For event tagging
 
   bool get canPost => _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
 
@@ -118,6 +122,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     const SizedBox(height: 16),
                     _buildImageGrid(),
                   ],
+                  if (_selectedEvent != null) ...[
+                    const SizedBox(height: 16),
+                    _buildEventChip(),
+                  ],
                 ],
               ),
             ),
@@ -213,11 +221,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               tooltip: 'Tambahin polling',
             ),
             IconButton(
-              onPressed: () {
-                // TODO: Add location
-              },
-              icon: Icon(Icons.location_on_outlined, color: Colors.grey.shade700),
-              tooltip: 'Tambahin lokasi',
+              onPressed: _showEventSelector,
+              icon: Icon(
+                Icons.event_outlined,
+                color: _selectedEvent != null ? const Color(0xFF84994F) : Colors.grey.shade700,
+              ),
+              tooltip: 'Tag event',
             ),
             const Spacer(),
             if (_textController.text.isNotEmpty)
@@ -274,6 +283,208 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
+  Widget _buildEventChip() {
+    if (_selectedEvent == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF84994F).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF84994F), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.event, color: Color(0xFF84994F), size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _selectedEvent!.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _selectedEvent!.location.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => setState(() => _selectedEvent = null),
+            icon: const Icon(Icons.close, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEventSelector() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Pilih Event',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: BlocBuilder<EventsBloc, EventsState>(
+                builder: (context, state) {
+                  if (state is EventsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is EventsLoaded) {
+                    // Get user's events (hosted + joined)
+                    final userEvents = state.events.where((event) {
+                      return event.isHostedByCurrentUser || event.isJoinedByCurrentUser;
+                    }).toList();
+
+                    if (userEvents.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Belum ada event nih',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Bikin atau join event dulu yaa!',
+                              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: userEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = userEvents[index];
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedEvent = event);
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                        event.imageUrls.isNotEmpty
+                                            ? event.imageUrls.first
+                                            : 'https://doodleipsum.com/200x200/abstract',
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        event.title,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        event.location.name,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(Icons.chevron_right, color: Colors.grey[400]),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+
+                  return const Center(child: Text('Failed to load events'));
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _createPost() {
     final userState = context.read<UserBloc>().state;
     User? currentUser;
@@ -303,13 +514,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return 'https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/800/600';
     }).toList();
 
+    // IMPORTANT: This ID is temporary and will be replaced by backend
+    // The repository layer does NOT send this ID to backend - backend generates its own ID
+    // This is only needed because Post entity requires an ID field
     final post = Post(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
       author: currentUser,
       content: _textController.text.trim(),
       type: type,
       imageUrls: imageUrls,
       createdAt: DateTime.now(),
+      attachedEvent: _selectedEvent, // Event tagging feature
     );
 
     Navigator.pop(context, post);

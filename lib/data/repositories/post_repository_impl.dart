@@ -52,6 +52,7 @@ class PostRepositoryImpl implements PostRepository {
         'type': post.type.toString().split('.').last,
         if (post.imageUrls.isNotEmpty) 'image_urls': post.imageUrls,
         if (post.originalPost != null) 'original_post_id': post.originalPost!.id,
+        if (post.attachedEvent != null) 'attached_event_id': post.attachedEvent!.id,
       };
       final newPost = await remoteDataSource.createPost(postData);
       return Right(newPost);
