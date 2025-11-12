@@ -77,8 +77,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     result.fold(
       (failure) => emit(const PostsError('Failed to refresh posts')),
       (posts) {
+        // Preserve existing comments when refreshing posts
+        final currentState = state is PostsLoaded ? state as PostsLoaded : null;
         emit(PostsLoaded(
           posts: posts,
+          commentsByPostId: currentState?.commentsByPostId ?? const {},
           hasMore: posts.length >= postsPerPage,
           currentOffset: posts.length,
         ));
