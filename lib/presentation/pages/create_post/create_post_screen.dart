@@ -303,13 +303,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return 'https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/800/600';
     }).toList();
 
+    // IMPORTANT: This ID is temporary and will be replaced by backend
+    // The repository layer does NOT send this ID to backend - backend generates its own ID
+    // This is only needed because Post entity requires an ID field
     final post = Post(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
       author: currentUser,
       content: _textController.text.trim(),
       type: type,
       imageUrls: imageUrls,
       createdAt: DateTime.now(),
+      // TODO: Add attachedEvent support - need UI to select event
     );
 
     Navigator.pop(context, post);

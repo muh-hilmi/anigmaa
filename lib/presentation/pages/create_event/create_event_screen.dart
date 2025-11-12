@@ -1622,9 +1622,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   }
 
   void _createEvent() {
-    // Create the new event object
+    // IMPORTANT: This ID is temporary and will be replaced by backend
+    // Unlike Post, EventModel.toJson() DOES send ID to backend
+    // Backend MUST ignore this temp ID and generate its own real ID
     final newEvent = EventModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text,
       description: _descriptionController.text,
       category: _selectedCategory,

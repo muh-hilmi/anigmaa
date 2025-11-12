@@ -105,7 +105,10 @@ Semua request (kecuali login/register) harus include:
 
 **CATATAN PENTING:**
 - ID harus di-generate oleh backend, BUKAN frontend!
-- Frontend saat ini masih generate ID sendiri (BUG yang perlu diperbaiki)
+- Frontend kirim ID dengan prefix "temp_" (e.g. "temp_1736689234567")
+- Backend HARUS IGNORE ID dari frontend dan generate ID baru sendiri
+- Frontend Post repository TIDAK mengirim ID ke backend (aman)
+- ✅ FIXED: Frontend sudah tambah comment warning tentang temporary ID
 
 ### 1.3. Update Post
 **Endpoint:** PUT /posts/{id}
@@ -272,7 +275,11 @@ Semua request (kecuali login/register) harus include:
 
 **CATATAN PENTING:**
 - ID harus di-generate oleh backend, BUKAN frontend!
-- Frontend saat ini masih generate ID sendiri (BUG yang perlu diperbaiki)
+- Frontend kirim ID dengan prefix "temp_" (e.g. "temp_1736689234567")
+- Backend HARUS IGNORE ID dari frontend dan generate ID baru sendiri
+- ⚠️ Frontend Event.toJson() MENGIRIM ID ke backend (berbeda dengan Post!)
+- Backend MUST check if ID starts with "temp_" and generate new ID
+- ✅ FIXED: Frontend sudah tambah comment warning tentang temporary ID
 
 ### 2.4. Update Event
 **Endpoint:** PUT /events/{id}
