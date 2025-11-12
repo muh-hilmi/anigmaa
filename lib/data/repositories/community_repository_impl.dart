@@ -4,119 +4,187 @@ import '../../domain/entities/community.dart';
 import '../../domain/entities/community_category.dart';
 import '../../domain/repositories/community_repository.dart';
 import '../datasources/community_local_datasource.dart';
+import '../datasources/community_remote_datasource.dart';
 
 class CommunityRepositoryImpl implements CommunityRepository {
+  final CommunityRemoteDataSource remoteDataSource;
   final CommunityLocalDataSource localDataSource;
 
   CommunityRepositoryImpl({
+    required this.remoteDataSource,
     required this.localDataSource,
   });
 
   @override
   Future<Either<Failure, List<Community>>> getCommunities() async {
     try {
-      final communities = await localDataSource.getCommunities();
+      // Fetch from API
+      final communityModels = await remoteDataSource.getCommunities();
+      final communities = communityModels.map((model) => model.toEntity()).toList();
+
+      // Cache locally
       await localDataSource.cacheCommunities(communities);
+
       return Right(communities);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to get communities: $e'));
+      // If API fails, try to get from cache
+      try {
+        final communities = await localDataSource.getCommunities();
+        return Right(communities);
+      } catch (cacheError) {
+        return Left(ServerFailure('Failed to get communities: $e'));
+      }
     }
   }
 
   @override
   Future<Either<Failure, List<Community>>> getCommunitiesByLocation(String location) async {
     try {
-      final communities = await localDataSource.getCommunitiesByLocation(location);
+      // Search communities by location using search parameter
+      final communityModels = await remoteDataSource.getCommunities(search: location);
+      final communities = communityModels.map((model) => model.toEntity()).toList();
       return Right(communities);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to get communities by location: $e'));
+      return Left(ServerFailure('Failed to get communities by location: $e'));
     }
   }
 
   @override
   Future<Either<Failure, List<Community>>> getCommunitiesByCategory(CommunityCategory category) async {
     try {
-      final communities = await localDataSource.getCommunitiesByCategory(category);
+      // Get all communities and filter by category
+      final communityModels = await remoteDataSource.getCommunities();
+      final communities = communityModels
+          .map((model) => model.toEntity())
+          .where((community) => community.category == category)
+          .toList();
       return Right(communities);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to get communities by category: $e'));
+      return Left(ServerFailure('Failed to get communities by category: $e'));
     }
   }
 
   @override
   Future<Either<Failure, List<Community>>> getJoinedCommunities(String userId) async {
     try {
-      final communities = await localDataSource.getJoinedCommunities(userId);
+      // Get user's joined communities from API
+      final communityModels = await remoteDataSource.getMyCommunities();
+      final communities = communityModels.map((model) => model.toEntity()).toList();
       return Right(communities);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to get joined communities: $e'));
+      return Left(ServerFailure('Failed to get joined communities: $e'));
     }
   }
 
   @override
   Future<Either<Failure, Community>> getCommunityById(String id) async {
     try {
-      final community = await localDataSource.getCommunityById(id);
-      if (community == null) {
-        return Left(CacheFailure('Community not found'));
-      }
+      // Fetch from API
+      final communityModel = await remoteDataSource.getCommunityById(id);
+      final community = communityModel.toEntity();
+
+      // Cache locally
+      await localDataSource.cacheCommunity(community);
+
       return Right(community);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to get community: $e'));
+      // If API fails, try to get from cache
+      try {
+        final community = await localDataSource.getCommunityById(id);
+        if (community == null) {
+          return Left(NotFoundFailure('Community not found'));
+        }
+        return Right(community);
+      } catch (cacheError) {
+        return Left(ServerFailure('Failed to get community: $e'));
+      }
     }
   }
 
   @override
   Future<Either<Failure, Community>> createCommunity(Community community) async {
     try {
-      await localDataSource.cacheCommunity(community);
-      return Right(community);
+      // Create via API
+      final communityData = {
+        'name': community.name,
+        'description': community.description,
+        'avatar_url': community.icon,
+        'cover_url': community.coverImage,
+        'privacy': community.isPublic ? 'public' : 'private',
+      };
+
+      final communityModel = await remoteDataSource.createCommunity(communityData);
+      final createdCommunity = communityModel.toEntity();
+
+      // Cache locally
+      await localDataSource.cacheCommunity(createdCommunity);
+
+      return Right(createdCommunity);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to create community: $e'));
+      return Left(ServerFailure('Failed to create community: $e'));
     }
   }
 
   @override
   Future<Either<Failure, Community>> updateCommunity(Community community) async {
     try {
-      await localDataSource.cacheCommunity(community);
-      return Right(community);
+      // Update via API
+      final communityData = {
+        'name': community.name,
+        'description': community.description,
+        'avatar_url': community.icon,
+        'cover_url': community.coverImage,
+        'privacy': community.isPublic ? 'public' : 'private',
+      };
+
+      final communityModel = await remoteDataSource.updateCommunity(community.id, communityData);
+      final updatedCommunity = communityModel.toEntity();
+
+      // Update cache
+      await localDataSource.cacheCommunity(updatedCommunity);
+
+      return Right(updatedCommunity);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to update community: $e'));
+      return Left(ServerFailure('Failed to update community: $e'));
     }
   }
 
   @override
   Future<Either<Failure, void>> deleteCommunity(String id) async {
     try {
+      // Delete via API
+      await remoteDataSource.deleteCommunity(id);
+
+      // Delete from cache
       await localDataSource.deleteCommunity(id);
+
       return const Right(null);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(CacheFailure('Failed to delete community: $e'));
+      return Left(ServerFailure('Failed to delete community: $e'));
     }
   }
 
   @override
   Future<Either<Failure, void>> joinCommunity(String communityId, String userId) async {
     try {
-      // Mock implementation - in real app, this would call API
-      // For now, just return success
+      // Join via API
+      await remoteDataSource.joinCommunity(communityId);
       return const Right(null);
     } on Failure catch (e) {
       return Left(e);
@@ -128,8 +196,8 @@ class CommunityRepositoryImpl implements CommunityRepository {
   @override
   Future<Either<Failure, void>> leaveCommunity(String communityId, String userId) async {
     try {
-      // Mock implementation - in real app, this would call API
-      // For now, just return success
+      // Leave via API
+      await remoteDataSource.leaveCommunity(communityId);
       return const Right(null);
     } on Failure catch (e) {
       return Left(e);
