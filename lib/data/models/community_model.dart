@@ -68,7 +68,6 @@ class CommunityModel extends Community {
   static CommunityCategory _parseCategoryFromString(String category) {
     switch (category.toLowerCase()) {
       case 'coffee':
-        return CommunityCategory.coffee;
       case 'food':
         return CommunityCategory.food;
       case 'sports':
@@ -79,25 +78,27 @@ class CommunityModel extends Community {
         return CommunityCategory.gaming;
       case 'technology':
       case 'tech':
-        return CommunityCategory.technology;
+        return CommunityCategory.tech;
       case 'art':
-        return CommunityCategory.art;
+      case 'creative':
+        return CommunityCategory.creative;
       case 'books':
-        return CommunityCategory.books;
+      case 'education':
+        return CommunityCategory.education;
       case 'fitness':
-        return CommunityCategory.fitness;
+      case 'health':
+        return CommunityCategory.health;
       case 'travel':
         return CommunityCategory.travel;
       case 'general':
+      case 'other':
       default:
-        return CommunityCategory.general;
+        return CommunityCategory.other;
     }
   }
 
   static String _categoryToString(CommunityCategory category) {
     switch (category) {
-      case CommunityCategory.coffee:
-        return 'coffee';
       case CommunityCategory.food:
         return 'food';
       case CommunityCategory.sports:
@@ -106,17 +107,21 @@ class CommunityModel extends Community {
         return 'music';
       case CommunityCategory.gaming:
         return 'gaming';
-      case CommunityCategory.technology:
+      case CommunityCategory.tech:
         return 'technology';
-      case CommunityCategory.art:
+      case CommunityCategory.creative:
         return 'art';
-      case CommunityCategory.books:
+      case CommunityCategory.education:
         return 'books';
-      case CommunityCategory.fitness:
+      case CommunityCategory.health:
         return 'fitness';
       case CommunityCategory.travel:
         return 'travel';
-      case CommunityCategory.general:
+      case CommunityCategory.professional:
+        return 'professional';
+      case CommunityCategory.lifestyle:
+        return 'lifestyle';
+      case CommunityCategory.other:
       default:
         return 'general';
     }
