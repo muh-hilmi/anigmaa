@@ -13,6 +13,7 @@ import 'domain/repositories/event_repository.dart';
 import 'domain/repositories/post_repository.dart';
 import 'domain/repositories/ticket_repository.dart';
 import 'domain/repositories/community_repository.dart';
+import 'domain/repositories/user_repository.dart';
 import 'domain/usecases/get_events.dart';
 import 'domain/usecases/get_events_by_category.dart';
 import 'domain/usecases/create_event.dart';
@@ -36,6 +37,12 @@ import 'domain/usecases/create_community.dart';
 import 'domain/usecases/get_event_qna.dart';
 import 'domain/usecases/ask_question.dart';
 import 'domain/usecases/upvote_question.dart';
+import 'domain/usecases/get_current_user.dart';
+import 'domain/usecases/search_users.dart';
+import 'domain/usecases/follow_user.dart';
+import 'domain/usecases/unfollow_user.dart';
+import 'domain/usecases/get_user_followers.dart';
+import 'domain/usecases/get_user_following.dart';
 
 // Data
 import 'data/datasources/event_local_datasource.dart';
@@ -52,6 +59,7 @@ import 'data/repositories/event_repository_impl.dart';
 import 'data/repositories/post_repository_impl.dart';
 import 'data/repositories/ticket_repository_impl.dart';
 import 'data/repositories/community_repository_impl.dart';
+import 'data/repositories/user_repository_impl.dart';
 import 'data/repositories/qna_repository_impl.dart';
 import 'domain/repositories/qna_repository.dart';
 import 'data/services/auth_api_service.dart';
@@ -202,6 +210,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpvoteQuestion(sl()));
   sl.registerLazySingleton(() => RemoveUpvote(sl()));
 
+  // Use cases - Users
+  sl.registerLazySingleton(() => GetCurrentUser(sl()));
+  sl.registerLazySingleton(() => SearchUsers(sl()));
+  sl.registerLazySingleton(() => FollowUser(sl()));
+  sl.registerLazySingleton(() => UnfollowUser(sl()));
+  sl.registerLazySingleton(() => GetUserFollowers(sl()));
+  sl.registerLazySingleton(() => GetUserFollowing(sl()));
+
   // Data sources - Remote
   sl.registerLazySingleton<EventRemoteDataSource>(
     () => EventRemoteDataSourceImpl(dioClient: sl()),
@@ -273,6 +289,13 @@ Future<void> init() async {
     () => CommunityRepositoryImpl(
       remoteDataSource: sl(),
       localDataSource: sl(),
+    ),
+  );
+
+  // Repository - Users
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(
+      remoteDataSource: sl(),
     ),
   );
 
