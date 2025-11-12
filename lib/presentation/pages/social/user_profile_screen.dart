@@ -130,7 +130,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             id: widget.userId,
             name: _user?.name ?? widget.userName ?? 'User',
             bio: 'Photography enthusiast',
-            avatar: _user?.avatar,
+            avatar: _user?.avatar ?? '',
             rating: 4.6,
             eventsHosted: 12,
             isVerified: _user?.isVerified ?? false,
@@ -185,7 +185,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             children: [
               CircleAvatar(
                 radius: 40,
-                backgroundImage: NetworkImage(_user.avatar ?? ''),
+                backgroundImage: NetworkImage(_user!.avatar ?? ''),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -195,14 +195,14 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                     Row(
                       children: [
                         Text(
-                          _user.name,
+                          _user!.name,
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
                         ),
-                        if (_user.isVerified) ...[
+                        if (_user!.isVerified) ...[
                           const SizedBox(width: 4),
                           Icon(
                             Icons.verified,
@@ -214,7 +214,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Gabung sejak ${_formatJoinDate(_user.createdAt)}',
+                      'Gabung sejak ${_formatJoinDate(_user!.createdAt)}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -225,10 +225,10 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               ),
             ],
           ),
-          if (_user.bio != null) ...[
+          if (_user!.bio != null) ...[
             const SizedBox(height: 16),
             Text(
-              _user.bio!,
+              _user!.bio!,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[700],
@@ -236,14 +236,14 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               ),
             ),
           ],
-          if (_user.interests.isNotEmpty) ...[
+          if (_user!.interests.isNotEmpty) ...[
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerLeft,
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _user.interests.take(5).map((interest) {
+                children: _user!.interests.take(5).map((interest) {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -318,13 +318,13 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Event\nDihadiri', _user.stats.eventsAttended.toString()),
+          _buildStatItem('Event\nDihadiri', _user!.stats.eventsAttended.toString()),
           Container(width: 1, height: 40, color: Colors.grey.shade300),
-          _buildStatItem('Event\nDibuat', _user.stats.eventsCreated.toString()),
+          _buildStatItem('Event\nDibuat', _user!.stats.eventsCreated.toString()),
           Container(width: 1, height: 40, color: Colors.grey.shade300),
-          _buildStatItem('Followers', _user.stats.followersCount.toString()),
+          _buildStatItem('Followers', _user!.stats.followersCount.toString()),
           Container(width: 1, height: 40, color: Colors.grey.shade300),
-          _buildStatItem('Following', _user.stats.followingCount.toString()),
+          _buildStatItem('Following', _user!.stats.followingCount.toString()),
         ],
       ),
     );
@@ -690,7 +690,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Blokir User'),
-        content: Text('Yakin mau blokir ${_user.name}?'),
+        content: Text('Yakin mau blokir ${_user!.name}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -701,7 +701,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               Navigator.pop(context);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${_user.name} udah diblokir')),
+                SnackBar(content: Text('${_user!.name} udah diblokir')),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -715,7 +715,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   void _reportUser() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${_user.name} udah dilaporin nih'),
+        content: Text('${_user!.name} udah dilaporin nih'),
         duration: const Duration(seconds: 2),
       ),
     );

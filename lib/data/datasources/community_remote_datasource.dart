@@ -34,7 +34,7 @@ class CommunityRemoteDataSourceImpl implements CommunityRemoteDataSource {
   }) async {
     try {
       print('[CommunityRemoteDataSource] Fetching communities...');
-      final queryParams = {
+      final queryParams = <String, dynamic>{
         'limit': limit,
         'offset': offset,
       };
