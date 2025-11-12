@@ -44,7 +44,9 @@ import 'data/datasources/post_remote_datasource.dart';
 import 'data/datasources/ticket_remote_datasource.dart';
 import 'data/datasources/ticket_local_datasource.dart';
 import 'data/datasources/auth_remote_datasource.dart';
+import 'data/datasources/user_remote_datasource.dart';
 import 'data/datasources/community_local_datasource.dart';
+import 'data/datasources/community_remote_datasource.dart';
 import 'data/datasources/qna_remote_datasource.dart';
 import 'data/repositories/event_repository_impl.dart';
 import 'data/repositories/post_repository_impl.dart';
@@ -221,6 +223,14 @@ Future<void> init() async {
     () => QnARemoteDataSourceImpl(dioClient: sl()),
   );
 
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<CommunityRemoteDataSource>(
+    () => CommunityRemoteDataSourceImpl(dioClient: sl()),
+  );
+
   // Data sources - Local
   sl.registerLazySingleton<EventLocalDataSource>(
     () => EventLocalDataSourceImpl(),
@@ -261,6 +271,7 @@ Future<void> init() async {
   // Repository - Communities
   sl.registerLazySingleton<CommunityRepository>(
     () => CommunityRepositoryImpl(
+      remoteDataSource: sl(),
       localDataSource: sl(),
     ),
   );
