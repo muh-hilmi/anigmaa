@@ -13,6 +13,7 @@ import 'presentation/bloc/user/user_event.dart';
 import 'presentation/bloc/posts/posts_bloc.dart';
 import 'presentation/bloc/communities/communities_bloc.dart';
 import 'presentation/bloc/communities/communities_event.dart';
+import 'presentation/bloc/qna/qna_bloc.dart';
 import 'domain/entities/event.dart';
 import 'presentation/pages/profile/profile_screen.dart';
 import 'presentation/pages/community/new_community_screen.dart';
@@ -90,6 +91,9 @@ class NotionSocialApp extends StatelessWidget {
         ),
         BlocProvider<CommunitiesBloc>(
           create: (context) => di.sl<CommunitiesBloc>()..add(LoadCommunities()),
+        ),
+        BlocProvider<QnABloc>(
+          create: (context) => di.sl<QnABloc>(),
         ),
       ],
       child: MaterialApp(
