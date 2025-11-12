@@ -59,3 +59,55 @@ class UserError extends UserState {
   @override
   List<Object?> get props => [message];
 }
+
+// New states for social features
+class UsersSearchLoading extends UserState {}
+
+class UsersSearchLoaded extends UserState {
+  final List<User> users;
+
+  const UsersSearchLoaded(this.users);
+
+  @override
+  List<Object?> get props => [users];
+}
+
+class UsersSearchError extends UserState {
+  final String message;
+
+  const UsersSearchError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class FollowersLoading extends UserState {}
+
+class FollowersLoaded extends UserState {
+  final List<User> followers;
+
+  const FollowersLoaded(this.followers);
+
+  @override
+  List<Object?> get props => [followers];
+}
+
+class FollowingLoading extends UserState {}
+
+class FollowingLoaded extends UserState {
+  final List<User> following;
+
+  const FollowingLoaded(this.following);
+
+  @override
+  List<Object?> get props => [following];
+}
+
+class UserActionSuccess extends UserState {
+  final String message;
+
+  const UserActionSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
