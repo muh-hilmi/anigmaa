@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
 import '../../../domain/entities/event_location.dart';
 import '../../../domain/entities/event_host.dart';
+import '../../bloc/user/user_bloc.dart';
+import '../../bloc/user/user_event.dart';
+import '../../bloc/user/user_state.dart';
 import '../event_detail/event_detail_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
-  final String userName;
+  final String? userName;
 
   const UserProfileScreen({
     super.key,
     required this.userId,
-    required this.userName,
+    this.userName,
   });
 
   @override
@@ -24,120 +28,121 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isFollowing = false;
-  bool _isLoading = false;
 
-  // Mock user data
-  late User _user;
-  late List<Event> _userEvents;
+  User? _user;
+  List<Event> _userEvents = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadUserData();
-  }
-
-  void _loadUserData() {
-    _user = User(
-      id: widget.userId,
-      email: 'user@example.com',
-      name: widget.userName,
-      bio: 'Event enthusiast and community builder. Love connecting with like-minded people and creating memorable experiences. Always excited for the next adventure! 🎉',
-      avatar: 'https://picsum.photos/200/200?random=${widget.userId.hashCode}',
-      createdAt: DateTime.now().subtract(const Duration(days: 365)),
-      interests: ['Technology', 'Photography', 'Travel', 'Food', 'Music'],
-      settings: const UserSettings(),
-      stats: const UserStats(
-        eventsAttended: 45,
-        eventsCreated: 12,
-        followersCount: 234,
-        followingCount: 189,
-        reviewsGiven: 32,
-        averageRating: 4.6,
-      ),
-      privacy: const UserPrivacy(),
-    );
-
-    _userEvents = [
-      Event(
-        id: 'event1',
-        title: 'Street Photography Workshop',
-        description: 'Learn the art of street photography with professional tips',
-        category: EventCategory.creative,
-        startTime: DateTime.now().add(const Duration(days: 5)),
-        endTime: DateTime.now().add(const Duration(days: 5, hours: 3)),
-        location: const EventLocation(
-          name: 'Kota Tua Jakarta',
-          address: 'Jakarta Barat',
-          latitude: -6.1352,
-          longitude: 106.8133,
-        ),
-        host: EventHost(
-          id: widget.userId,
-          name: widget.userName,
-          bio: 'Photography enthusiast',
-          avatar: 'https://picsum.photos/200/200?random=${widget.userId.hashCode}',
-          rating: 4.6,
-          eventsHosted: 12,
-          isVerified: true,
-        ),
-        maxAttendees: 15,
-        attendeeIds: ['user1', 'user2', 'user3'],
-        price: 75000,
-        isFree: false,
-        imageUrls: ['https://picsum.photos/600/400?random=101'],
-      ),
-      Event(
-        id: 'event2',
-        title: 'Tech Meetup: Flutter Development',
-        description: 'Monthly Flutter developer meetup and networking',
-        category: EventCategory.meetup,
-        startTime: DateTime.now().add(const Duration(days: 12)),
-        endTime: DateTime.now().add(const Duration(days: 12, hours: 2)),
-        location: const EventLocation(
-          name: 'Tech Hub Jakarta',
-          address: 'Sudirman, Jakarta',
-          latitude: -6.2088,
-          longitude: 106.8456,
-        ),
-        host: EventHost(
-          id: widget.userId,
-          name: widget.userName,
-          bio: 'Flutter developer',
-          avatar: 'https://picsum.photos/200/200?random=${widget.userId.hashCode}',
-          rating: 4.6,
-          eventsHosted: 12,
-          isVerified: true,
-        ),
-        maxAttendees: 50,
-        attendeeIds: List.generate(32, (index) => 'user$index'),
-        isFree: true,
-        imageUrls: ['https://picsum.photos/600/400?random=102'],
-      ),
-    ];
-
-    _isFollowing = [true, false, true][widget.userId.hashCode % 3] == true;
+    // Load user data via BLoC
+    context.read<UserBloc>().add(LoadUserById(widget.userId));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                _buildProfileInfo(),
-                _buildStatsSection(),
-                _buildTabSection(),
-              ],
-            ),
-          ),
-        ],
+      body: BlocConsumer<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is UserError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is UserLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is UserLoaded && state.user.id == widget.userId) {
+            _user = state.user;
+            // TODO: Load user events from API
+            _loadMockEventsForUser();
+          }
+
+          if (_user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('Gagal load profil user'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<UserBloc>().add(LoadUserById(widget.userId));
+                    },
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    _buildProfileInfo(),
+                    _buildStatsSection(),
+                    _buildTabSection(),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  void _loadMockEventsForUser() {
+    // TODO: Replace with real API call to get user's events
+    if (_userEvents.isEmpty) {
+      _userEvents = [
+        Event(
+          id: 'event1',
+          title: 'Street Photography Workshop',
+          description: 'Learn the art of street photography with professional tips',
+          category: EventCategory.creative,
+          startTime: DateTime.now().add(const Duration(days: 5)),
+          endTime: DateTime.now().add(const Duration(days: 5, hours: 3)),
+          location: const EventLocation(
+            name: 'Kota Tua Jakarta',
+            address: 'Jakarta Barat',
+            latitude: -6.1352,
+            longitude: 106.8133,
+          ),
+          host: EventHost(
+            id: widget.userId,
+            name: _user?.name ?? widget.userName ?? 'User',
+            bio: 'Photography enthusiast',
+            avatar: _user?.avatar,
+            rating: 4.6,
+            eventsHosted: 12,
+            isVerified: _user?.isVerified ?? false,
+          ),
+          maxAttendees: 15,
+          attendeeIds: ['user1', 'user2', 'user3'],
+          price: 75000,
+          isFree: false,
+          imageUrls: ['https://picsum.photos/600/400?random=101'],
+        ),
+      ];
+    }
   }
 
   Widget _buildSliverAppBar() {
@@ -263,7 +268,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _toggleFollow,
+                  onPressed: _toggleFollow,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _isFollowing ? Colors.grey[200] : Colors.black,
                     foregroundColor: _isFollowing ? Colors.black87 : Colors.white,
@@ -272,19 +277,13 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          _isFollowing ? 'Udah Follow' : 'Follow',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  child: Text(
+                    _isFollowing ? 'Udah Follow' : 'Follow',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -601,40 +600,34 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     }
   }
 
-  void _toggleFollow() async {
-    setState(() {
-      _isLoading = true;
-    });
+  void _toggleFollow() {
+    if (_user == null) return;
 
-    await Future.delayed(const Duration(seconds: 1));
+    if (_isFollowing) {
+      // Unfollow user via API
+      context.read<UserBloc>().add(UnfollowUserEvent(widget.userId));
+    } else {
+      // Follow user via API
+      context.read<UserBloc>().add(FollowUserEvent(widget.userId));
+    }
 
+    // Optimistically update UI
     setState(() {
       _isFollowing = !_isFollowing;
-      _isLoading = false;
-
       if (_isFollowing) {
-        _user = _user.copyWith(
-          stats: _user.stats.copyWith(
-            followersCount: _user.stats.followersCount + 1,
+        _user = _user!.copyWith(
+          stats: _user!.stats.copyWith(
+            followersCount: _user!.stats.followersCount + 1,
           ),
         );
       } else {
-        _user = _user.copyWith(
-          stats: _user.stats.copyWith(
-            followersCount: _user.stats.followersCount - 1,
+        _user = _user!.copyWith(
+          stats: _user!.stats.copyWith(
+            followersCount: _user!.stats.followersCount - 1,
           ),
         );
       }
     });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_isFollowing ? 'Udah follow ${_user.name} nih!' : 'Unfollow ${_user.name}'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   void _sendMessage() {

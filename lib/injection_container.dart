@@ -123,6 +123,12 @@ Future<void> init() async {
   sl.registerFactory(
     () => UserBloc(
       authService: sl(),
+      getCurrentUser: sl(),
+      searchUsers: sl(),
+      followUser: sl(),
+      unfollowUser: sl(),
+      getUserFollowers: sl(),
+      getUserFollowing: sl(),
     ),
   );
 

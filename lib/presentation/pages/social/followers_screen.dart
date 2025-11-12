@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../domain/entities/user.dart';
+import '../../bloc/user/user_bloc.dart';
+import '../../bloc/user/user_event.dart';
+import '../../bloc/user/user_state.dart';
 import 'user_profile_screen.dart';
 
 class FollowersScreen extends StatefulWidget {
@@ -20,9 +25,8 @@ class FollowersScreen extends StatefulWidget {
 class _FollowersScreenState extends State<FollowersScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  List<UserFollow> _users = [];
-  List<UserFollow> _filteredUsers = [];
-  bool _isLoading = true;
+  List<User> _users = [];
+  List<User> _filteredUsers = [];
 
   @override
   void initState() {
@@ -30,55 +34,12 @@ class _FollowersScreenState extends State<FollowersScreen> {
     _loadUsers();
   }
 
-  void _loadUsers() async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _users = _generateMockUsers();
-      _filteredUsers = _users;
-      _isLoading = false;
-    });
-  }
-
-  List<UserFollow> _generateMockUsers() {
-    return List.generate(20, (index) {
-      return UserFollow(
-        id: 'user_$index',
-        name: _getRandomName(index),
-        avatar: 'https://picsum.photos/100/100?random=$index',
-        bio: _getRandomBio(index),
-        isFollowing: index % 3 != 0,
-        isVerified: index % 5 == 0,
-        mutualFollowers: index % 4 == 0 ? ['mutual1', 'mutual2'] : [],
-      );
-    });
-  }
-
-  String _getRandomName(int index) {
-    final names = [
-      'Sarah Chen', 'Mike Johnson', 'Jessica Wong', 'David Kim',
-      'Emily Rodriguez', 'Alex Thompson', 'Maria Garcia', 'James Wilson',
-      'Lisa Anderson', 'Chris Lee', 'Amanda Davis', 'Kevin Brown',
-      'Sophie Taylor', 'Daniel Martinez', 'Rachel Green', 'Ryan Clark',
-      'Michelle White', 'Justin Harris', 'Jennifer Lewis', 'Michael Scott'
-    ];
-    return names[index % names.length];
-  }
-
-  String _getRandomBio(int index) {
-    final bios = [
-      'Photography enthusiast 📸',
-      'Tech lover & coffee addict ☕',
-      'Event organizer & community builder',
-      'Travel blogger ✈️',
-      'Fitness coach & wellness advocate',
-      'Foodie & cooking enthusiast 🍳',
-      'Music lover & event planner 🎵',
-      'Startup founder & entrepreneur',
-      'Designer & creative thinker',
-      'Developer & tech speaker',
-    ];
-    return bios[index % bios.length];
+  void _loadUsers() {
+    if (widget.isFollowers) {
+      context.read<UserBloc>().add(LoadFollowersEvent(widget.userId));
+    } else {
+      context.read<UserBloc>().add(LoadFollowingEvent(widget.userId));
+    }
   }
 
   @override
@@ -97,13 +58,43 @@ class _FollowersScreenState extends State<FollowersScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(
-            child: _isLoading ? _buildLoadingState() : _buildUsersList(),
-          ),
-        ],
+      body: BlocConsumer<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is UserError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is FollowersLoading || state is FollowingLoading) {
+            return _buildLoadingState();
+          }
+
+          if (state is FollowersLoaded) {
+            _users = state.followers;
+            _filteredUsers = _searchQuery.isEmpty ? _users : _filteredUsers;
+          } else if (state is FollowingLoaded) {
+            _users = state.following;
+            _filteredUsers = _searchQuery.isEmpty ? _users : _filteredUsers;
+          }
+
+          return Column(
+            children: [
+              _buildSearchBar(),
+              Expanded(
+                child: _buildUsersList(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -200,7 +191,11 @@ class _FollowersScreenState extends State<FollowersScreen> {
     );
   }
 
-  Widget _buildUserCard(UserFollow user) {
+  Widget _buildUserCard(User user) {
+    // Note: In real implementation, isFollowing status should come from API
+    // For now, we assume users in following list are being followed
+    final isFollowing = !widget.isFollowers;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -213,7 +208,12 @@ class _FollowersScreenState extends State<FollowersScreen> {
           children: [
             CircleAvatar(
               radius: 25,
-              backgroundImage: NetworkImage(user.avatar),
+              backgroundImage: user.avatar != null
+                ? NetworkImage(user.avatar!)
+                : null,
+              child: user.avatar == null
+                ? Icon(Icons.person, size: 25, color: Colors.grey[400])
+                : null,
             ),
             if (user.isVerified)
               Positioned(
@@ -236,70 +236,37 @@ class _FollowersScreenState extends State<FollowersScreen> {
               ),
           ],
         ),
-        title: Row(
-          children: [
-            Expanded(
+        title: Text(
+          user.name,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: user.bio != null
+          ? Padding(
+              padding: const EdgeInsets.only(top: 2),
               child: Text(
-                user.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                user.bio!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            ),
-            if (user.mutualFollowers.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '${user.mutualFollowers.length} temen sama',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.blue.shade700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 2),
-            Text(
-              user.bio,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (user.mutualFollowers.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Di-follow sama temen lo',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ],
-        ),
+            )
+          : null,
         trailing: SizedBox(
           width: 80,
           child: ElevatedButton(
-            onPressed: () => _toggleFollow(user),
+            onPressed: () => _toggleFollow(user, isFollowing),
             style: ElevatedButton.styleFrom(
-              backgroundColor: user.isFollowing ? Colors.grey[200] : Colors.black,
-              foregroundColor: user.isFollowing ? Colors.black87 : Colors.white,
+              backgroundColor: isFollowing ? Colors.grey[200] : Colors.black,
+              foregroundColor: isFollowing ? Colors.black87 : Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(6),
@@ -307,7 +274,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             ),
             child: Text(
-              user.isFollowing ? 'Udah Follow' : 'Follow',
+              isFollowing ? 'Following' : 'Follow',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -330,19 +297,14 @@ class _FollowersScreenState extends State<FollowersScreen> {
     );
   }
 
-  void _toggleFollow(UserFollow user) {
-    setState(() {
-      user.isFollowing = !user.isFollowing;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          user.isFollowing ? 'Udah follow ${user.name} nih!' : 'Unfollow ${user.name}',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _toggleFollow(User user, bool currentlyFollowing) {
+    if (currentlyFollowing) {
+      // Unfollow user via API
+      context.read<UserBloc>().add(UnfollowUserEvent(user.id));
+    } else {
+      // Follow user via API
+      context.read<UserBloc>().add(FollowUserEvent(user.id));
+    }
   }
 
   @override
@@ -350,24 +312,4 @@ class _FollowersScreenState extends State<FollowersScreen> {
     _searchController.dispose();
     super.dispose();
   }
-}
-
-class UserFollow {
-  final String id;
-  final String name;
-  final String avatar;
-  final String bio;
-  bool isFollowing;
-  final bool isVerified;
-  final List<String> mutualFollowers;
-
-  UserFollow({
-    required this.id,
-    required this.name,
-    required this.avatar,
-    required this.bio,
-    this.isFollowing = false,
-    this.isVerified = false,
-    this.mutualFollowers = const [],
-  });
 }

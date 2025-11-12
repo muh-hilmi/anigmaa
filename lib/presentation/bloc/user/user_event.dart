@@ -9,6 +9,15 @@ abstract class UserEvent extends Equatable {
 
 class LoadUserProfile extends UserEvent {}
 
+class LoadUserById extends UserEvent {
+  final String userId;
+
+  const LoadUserById(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
 class UpdateUserProfile extends UserEvent {
   final String name;
   final String bio;
@@ -42,4 +51,50 @@ class RemoveInterest extends UserEvent {
 
   @override
   List<Object?> get props => [interest];
+}
+
+// New events for social features
+class SearchUsersEvent extends UserEvent {
+  final String query;
+
+  const SearchUsersEvent(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
+class FollowUserEvent extends UserEvent {
+  final String userId;
+
+  const FollowUserEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class UnfollowUserEvent extends UserEvent {
+  final String userId;
+
+  const UnfollowUserEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class LoadFollowersEvent extends UserEvent {
+  final String userId;
+
+  const LoadFollowersEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class LoadFollowingEvent extends UserEvent {
+  final String userId;
+
+  const LoadFollowingEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
 }
