@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../core/api/dio_client.dart';
 import '../../core/errors/failures.dart';
 import '../models/event_model.dart';
+import '../models/user_model.dart';
 
 abstract class EventRemoteDataSource {
   Future<List<EventModel>> getEvents();
@@ -14,6 +15,9 @@ abstract class EventRemoteDataSource {
   Future<void> leaveEvent(String eventId);
   Future<List<EventModel>> getMyEvents();
   Future<List<EventModel>> getMyHostedEvents();
+  Future<List<EventModel>> getJoinedEvents({int limit = 20, int offset = 0});
+  Future<List<UserModel>> getEventAttendees(String eventId, {int limit = 20, int offset = 0});
+  Future<List<EventModel>> getUserEventsByUsername(String username, {int limit = 20, int offset = 0});
 }
 
 class EventRemoteDataSourceImpl implements EventRemoteDataSource {
@@ -219,6 +223,63 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         return data.map((json) => EventModel.fromJson(json)).toList();
       } else {
         throw ServerFailure('Failed to fetch hosted events');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<List<EventModel>> getJoinedEvents({int limit = 20, int offset = 0}) async {
+    try {
+      final response = await dioClient.get(
+        '/events/joined',
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? response.data;
+        return data.map((json) => EventModel.fromJson(json)).toList();
+      } else {
+        throw ServerFailure('Failed to fetch joined events');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<List<UserModel>> getEventAttendees(String eventId, {int limit = 20, int offset = 0}) async {
+    try {
+      final response = await dioClient.get(
+        '/events/$eventId/attendees',
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? response.data;
+        return data.map((json) => UserModel.fromJson(json)).toList();
+      } else {
+        throw ServerFailure('Failed to fetch event attendees');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<List<EventModel>> getUserEventsByUsername(String username, {int limit = 20, int offset = 0}) async {
+    try {
+      final response = await dioClient.get(
+        '/profile/$username/events',
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? response.data;
+        return data.map((json) => EventModel.fromJson(json)).toList();
+      } else {
+        throw ServerFailure('Failed to fetch user events');
       }
     } on DioException catch (e) {
       throw _handleDioException(e);
