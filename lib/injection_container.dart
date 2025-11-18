@@ -38,6 +38,7 @@ import 'domain/usecases/get_event_qna.dart';
 import 'domain/usecases/ask_question.dart';
 import 'domain/usecases/upvote_question.dart';
 import 'domain/usecases/get_current_user.dart';
+import 'domain/usecases/get_user_by_id.dart';
 import 'domain/usecases/search_users.dart';
 import 'domain/usecases/follow_user.dart';
 import 'domain/usecases/unfollow_user.dart';
@@ -124,6 +125,7 @@ Future<void> init() async {
     () => UserBloc(
       authService: sl(),
       getCurrentUser: sl(),
+      getUserById: sl(),
       searchUsers: sl(),
       followUser: sl(),
       unfollowUser: sl(),
@@ -218,6 +220,7 @@ Future<void> init() async {
 
   // Use cases - Users
   sl.registerLazySingleton(() => GetCurrentUser(sl()));
+  sl.registerLazySingleton(() => GetUserById(sl()));
   sl.registerLazySingleton(() => SearchUsers(sl()));
   sl.registerLazySingleton(() => FollowUser(sl()));
   sl.registerLazySingleton(() => UnfollowUser(sl()));

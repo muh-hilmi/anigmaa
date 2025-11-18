@@ -3,6 +3,7 @@ import '../../../domain/entities/user.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../domain/usecases/get_current_user.dart';
+import '../../../domain/usecases/get_user_by_id.dart';
 import '../../../domain/usecases/search_users.dart';
 import '../../../domain/usecases/follow_user.dart';
 import '../../../domain/usecases/unfollow_user.dart';
@@ -14,6 +15,7 @@ import 'user_state.dart';
 class UserBloc extends Bloc<UserEvent, UserState> {
   final AuthService authService;
   final GetCurrentUser? getCurrentUser;
+  final GetUserById? getUserById;
   final SearchUsers? searchUsers;
   final FollowUser? followUser;
   final UnfollowUser? unfollowUser;
@@ -23,6 +25,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc({
     required this.authService,
     this.getCurrentUser,
+    this.getUserById,
     this.searchUsers,
     this.followUser,
     this.unfollowUser,
@@ -194,9 +197,27 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     emit(UserLoading());
 
     try {
-      // For now, just load the current user profile
-      // TODO: Implement getUserById use case
-      add(LoadUserProfile());
+      if (getUserById != null) {
+        final result = await getUserById!(
+          GetUserByIdParams(userId: event.userId),
+        );
+
+        result.fold(
+          (failure) => emit(UserError('Failed to load user: ${failure.toString()}')),
+          (user) {
+            emit(UserLoaded(
+              user: user,
+              eventsHosted: user.stats.eventsCreated,
+              eventsAttended: user.stats.eventsAttended,
+              connections: user.stats.followersCount,
+              postsCount: 0, // TODO: Get from actual posts data
+              totalInvitedAttendees: 0, // TODO: Calculate from events attendees
+            ));
+          },
+        );
+      } else {
+        emit(const UserError('GetUserById use case not available'));
+      }
     } catch (e) {
       emit(UserError('Failed to load user: $e'));
     }

@@ -9,6 +9,7 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 import '../event_detail/event_detail_screen.dart';
+import '../social/followers_screen.dart';
 import '../../../core/utils/app_logger.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -296,7 +297,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   Widget _buildStatItem(String label, String value) {
     return GestureDetector(
-      onTap: () => _showStatDetail(label, value),
+      onTap: () => _handleStatClick(label, value),
       child: Column(
         children: [
           Text(
@@ -685,13 +686,42 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     );
   }
 
-  void _showStatDetail(String label, String value) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label: $value'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _handleStatClick(String label, String value) {
+    if (_user == null) return;
+
+    if (label == 'Followers') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FollowersScreen(
+            userId: widget.userId,
+            title: 'Followers',
+            isFollowers: true,
+          ),
+        ),
+      );
+    } else if (label == 'Following') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FollowersScreen(
+            userId: widget.userId,
+            title: 'Following',
+            isFollowers: false,
+          ),
+        ),
+      );
+    } else if (label.contains('Event')) {
+      // Switch to Events tab
+      _tabController.animateTo(0);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$label: $value'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
