@@ -36,12 +36,11 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
       (failure) => emit(EventsError(failure.message)),
       (paginatedResponse) {
         final events = paginatedResponse.data;
-        // Filter untuk hanya menampilkan event yang belum selesai
-        final futureEvents = events.where((event) => !event.hasEnded).toList();
-        final nearbyEvents = futureEvents.where((event) => event.isStartingSoon).toList();
+        // Show all events (including completed ones)
+        final nearbyEvents = events.where((event) => event.isStartingSoon).toList();
         emit(EventsLoaded(
           events: events,
-          filteredEvents: futureEvents,
+          filteredEvents: events,
           nearbyEvents: nearbyEvents,
           paginationMeta: paginatedResponse.meta,
         ));
@@ -80,16 +79,15 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
       final currentState = state as EventsLoaded;
 
       if (event.category == null) {
-        // Clear filter - tapi tetap hanya tampilkan event yang belum selesai
-        final futureEvents = currentState.events.where((e) => !e.hasEnded).toList();
+        // Clear filter - show all events
         emit(currentState.copyWith(
-          filteredEvents: futureEvents,
+          filteredEvents: currentState.events,
           selectedCategory: null,
         ));
       } else {
-        // Apply filter - dan hanya tampilkan event yang belum selesai
+        // Apply category filter - show all events in category
         final filteredEvents = currentState.events
-            .where((e) => e.category == event.category && !e.hasEnded)
+            .where((e) => e.category == event.category)
             .toList();
 
         emit(currentState.copyWith(
@@ -138,14 +136,14 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
             ? [createdEvent, ...currentState.nearbyEvents]
             : currentState.nearbyEvents;
 
-          // Filter untuk hanya menampilkan event yang belum selesai
-          final filteredFutureEvents = currentState.selectedCategory == null
-              ? updatedEvents.where((e) => !e.hasEnded).toList()
-              : updatedEvents.where((e) => e.category == currentState.selectedCategory && !e.hasEnded).toList();
+          // Apply category filter if selected
+          final filteredEvents = currentState.selectedCategory == null
+              ? updatedEvents
+              : updatedEvents.where((e) => e.category == currentState.selectedCategory).toList();
 
           emit(EventsLoaded(
             events: updatedEvents,
-            filteredEvents: filteredFutureEvents,
+            filteredEvents: filteredEvents,
             nearbyEvents: updatedNearbyEvents,
             selectedCategory: currentState.selectedCategory,
             isCreatingEvent: false,
