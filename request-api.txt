@@ -203,7 +203,19 @@ Semua request (kecuali login/register) harus include:
 **Endpoint:** GET /events
 **Query Params:**
 - category: string (optional) "meetup|sports|workshop|music|food|gaming"
+- mode: string (optional) "for_you|trending|chill" (untuk Discover page filtering)
 - limit, offset
+
+**Mode Parameter Explanation:**
+- **trending**: Popular events with high engagement (ORDER BY POWER(attendees + 1, 2) * random() DESC)
+- **for_you**: Balanced mix of events (ORDER BY (attendees + 1) * random() DESC) - Default
+- **chill**: Small, intimate events (ORDER BY 100.0 / (attendees + 1) * random() DESC)
+
+**CATATAN IMPLEMENTASI:**
+- ✅ Backend sudah support parameter `mode` dengan algoritma sophisticated
+- ✅ Frontend sudah mengirim parameter `mode` ke API
+- ✅ Setiap mode menggunakan weighted random untuk variasi di setiap refresh
+- Backend implementation: internal/repository/postgres/event_repo.go:151-180
 
 **Response:**
 ```json

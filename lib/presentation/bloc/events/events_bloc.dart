@@ -55,6 +55,10 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   ) async {
     emit(EventsLoading());
 
+    // Backend now supports mode parameter with sophisticated algorithms:
+    // - trending: Popular events with high engagement
+    // - for_you: Balanced mix of events
+    // - chill: Small, intimate events
     final result = await getEvents(GetEventsParams(limit: 50, offset: 0, mode: event.mode));
 
     result.fold(

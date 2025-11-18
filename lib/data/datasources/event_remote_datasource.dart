@@ -35,17 +35,18 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data['data'] ?? response.data;
+        print('[EventRemoteDataSource] ===== MODE: $mode =====');
         print('[EventRemoteDataSource] Received ${data.length} events');
-
-        if (data.isNotEmpty) {
-          print('[EventRemoteDataSource] Sample event data: ${data[0]}');
-        }
 
         final events = <EventModel>[];
         for (int i = 0; i < data.length; i++) {
           try {
             final event = EventModel.fromJson(data[i]);
             events.add(event);
+            // Log first 5 events to see ordering
+            if (i < 5) {
+              print('[EventRemoteDataSource] #${i + 1}: ${event.title} (${event.currentAttendees} attendees)');
+            }
           } catch (e) {
             print('[EventRemoteDataSource] Error parsing event $i: $e');
             print('[EventRemoteDataSource] Event data: ${data[i]}');
@@ -54,6 +55,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         }
 
         print('[EventRemoteDataSource] Successfully parsed ${events.length} events');
+        print('[EventRemoteDataSource] ===========================');
         return events;
       } else {
         throw ServerFailure('Failed to fetch events');
