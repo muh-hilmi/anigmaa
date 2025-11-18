@@ -18,10 +18,10 @@ class EventRepositoryImpl implements EventRepository {
   });
 
   @override
-  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0}) async {
+  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0, String? mode}) async {
     try {
       // Fetch from remote only - no fallback
-      final events = await remoteDataSource.getEvents();
+      final events = await remoteDataSource.getEvents(mode: mode);
       // Cache the events locally for future use
       await localDataSource.cacheEvents(events);
 

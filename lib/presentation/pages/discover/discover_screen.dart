@@ -25,74 +25,25 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
   // Events data from BLoC
   List<Event> _allEvents = [];
-  List<Event> _trendingEvents = [];
-  List<Event> _mostJoinedEvents = [];
-  List<Event> _forYouEvents = [];
-  List<Event> _chillEvents = [];
+
+  // Current selected mode
+  String _selectedMode = 'for_you'; // 'trending', 'for_you', 'chill'
 
   @override
   void initState() {
     super.initState();
-    context.read<EventsBloc>().add(LoadEvents());
+    context.read<EventsBloc>().add(const LoadEventsByMode(mode: 'for_you'));
   }
 
   void addNewEvent(Event event) {
     context.read<EventsBloc>().add(CreateEventRequested(event));
   }
 
-  // Categorize events into 4 sections
-  void _categorizeEvents(List<Event> events) {
-    final now = DateTime.now();
-
-    AppLogger().debug('Categorizing ${events.length} total events');
-
-    // CHANGED: Show all events, not just upcoming ones (to handle test data with past events)
-    // Filter out events that ended more than 30 days ago
-    final relevantEvents = events.where((event) {
-      final daysSinceEnd = now.difference(event.endTime).inDays;
-      return daysSinceEnd < 30; // Show events that ended less than 30 days ago
-    }).toList();
-
-    AppLogger().debug('Found ${relevantEvents.length} relevant events (ended < 30 days ago)');
-
-    // Separate upcoming and recent past events
-    final upcomingEvents = relevantEvents.where((event) => event.startTime.isAfter(now)).toList();
-    final recentPastEvents = relevantEvents.where((event) => !event.startTime.isAfter(now)).toList();
-
-    AppLogger().debug('Upcoming: ${upcomingEvents.length}, Recent past: ${recentPastEvents.length}');
-
-    // Use upcoming events first, fallback to recent past if no upcoming events
-    final displayEvents = upcomingEvents.isNotEmpty ? upcomingEvents : recentPastEvents;
-
-    AppLogger().debug('Using ${displayEvents.length} events for display');
-
-    // 1. Trending: Events happening soon (within 48 hours) with some attendees
-    _trendingEvents = displayEvents.where((event) {
-      if (event.startTime.isAfter(now)) {
-        final hoursUntilStart = event.startTime.difference(now).inHours;
-        return hoursUntilStart > 0 &&
-               hoursUntilStart <= 48 &&
-               event.currentAttendees >= 0; // CHANGED: Show even with 0 attendees for testing
-      }
-      return false;
-    }).toList()
-      ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees));
-
-    // 2. Most Joined: Events sorted by attendee count (take top 10)
-    _mostJoinedEvents = (List<Event>.from(displayEvents)
-      ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees)))
-      .take(10).toList();
-
-    // 3. For You (FYP): Mix of different categories (personalized later)
-    // Show first 10 events
-    _forYouEvents = displayEvents.take(10).toList();
-
-    // 4. Chill: Small intimate events (<= 50 people, increased from 20)
-    _chillEvents = displayEvents.where((event) {
-      return event.maxAttendees <= 50;
-    }).toList();
-
-    AppLogger().debug('Categorized: Trending=${_trendingEvents.length}, MostJoined=${_mostJoinedEvents.length}, ForYou=${_forYouEvents.length}, Chill=${_chillEvents.length}');
+  void _changeMode(String mode) {
+    setState(() {
+      _selectedMode = mode;
+    });
+    context.read<EventsBloc>().add(LoadEventsByMode(mode: mode));
   }
 
   @override
@@ -132,25 +83,22 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
           if (state is EventsLoaded) {
             _allEvents = state.events;
-            _categorizeEvents(_allEvents);
 
             return _allEvents.isEmpty
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     color: const Color(0xFF84994F),
                     onRefresh: () async {
-                      context.read<EventsBloc>().add(LoadEvents());
+                      context.read<EventsBloc>().add(LoadEventsByMode(mode: _selectedMode));
                       await Future.delayed(const Duration(seconds: 1));
                     },
                     child: CustomScrollView(
                       controller: _scrollController,
                       slivers: [
                         _buildAppBar(),
+                        SliverToBoxAdapter(child: _buildModeSwitcher()),
                         SliverToBoxAdapter(child: _buildLiveEventsBar()),
-                        SliverToBoxAdapter(child: _buildTrendingSection()),
-                        SliverToBoxAdapter(child: _buildMostJoinedSection()),
-                        SliverToBoxAdapter(child: _buildForYouSection()),
-                        SliverToBoxAdapter(child: _buildChillSection()),
+                        _buildEventsList(),
                         const SliverToBoxAdapter(child: SizedBox(height: 20)),
                       ],
                     ),
@@ -264,6 +212,227 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         ),
         const SizedBox(width: 8),
       ],
+    );
+  }
+
+  // Mode Switcher
+  Widget _buildModeSwitcher() {
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          _buildModeChip(
+            mode: 'trending',
+            label: 'Trending',
+            icon: Icons.local_fire_department_rounded,
+            color: const Color(0xFFFF3B30),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'for_you',
+            label: 'For You',
+            icon: Icons.auto_awesome_rounded,
+            color: Colors.purple,
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'chill',
+            label: 'Chill',
+            icon: Icons.nightlight_round,
+            color: Colors.blue,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeChip({
+    required String mode,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isSelected = _selectedMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _changeMode(mode),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey[300]!,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? color : Colors.grey[600],
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected ? color : Colors.grey[700],
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Events List
+  Widget _buildEventsList() {
+    final now = DateTime.now();
+
+    // Filter out events that ended more than 30 days ago
+    final displayEvents = _allEvents.where((event) {
+      final daysSinceEnd = now.difference(event.endTime).inDays;
+      return daysSinceEnd < 30;
+    }).toList();
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.75,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return _buildEventCard(displayEvents[index]);
+          },
+          childCount: displayEvents.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventCard(Event event) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventDetailScreen(event: event),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF84994F).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            Stack(
+              children: [
+                Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        event.imageUrls.isNotEmpty
+                            ? event.imageUrls.first
+                            : 'https://picsum.photos/400/300?random=${event.id}',
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                // Category badge
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.getCategoryColor(event.category),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      EventCategoryUtils.getCategoryName(event.category),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.people_rounded,
+                          size: 12,
+                          color: Color(0xFF84994F),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${event.currentAttendees}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF84994F),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
