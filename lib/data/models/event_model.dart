@@ -95,10 +95,7 @@ class EventModel extends Event {
               : <String>[]),
       price: json['price']?.toDouble(),
       isFree: isFree as bool? ?? true,
-      status: EventStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => EventStatus.upcoming,
-      ),
+      status: _parseEventStatus(json['status'] as String?),
       privacy: EventPrivacy.values.firstWhere(
         (e) => e.toString().split('.').last == json['privacy'],
         orElse: () => EventPrivacy.public,
@@ -152,6 +149,22 @@ class EventModel extends Event {
       pendingRequests: event.pendingRequests,
       // tags: event.tags,
       requirements: event.requirements,
+    );
+  }
+
+  /// Parse event status from backend string, handling both "ended" and "completed"
+  static EventStatus _parseEventStatus(String? status) {
+    if (status == null) return EventStatus.upcoming;
+
+    final statusLower = status.toLowerCase();
+    // Backend may send "completed" but frontend uses "ended"
+    if (statusLower == 'completed' || statusLower == 'ended') {
+      return EventStatus.ended;
+    }
+
+    return EventStatus.values.firstWhere(
+      (e) => e.toString().split('.').last.toLowerCase() == statusLower,
+      orElse: () => EventStatus.upcoming,
     );
   }
 }
