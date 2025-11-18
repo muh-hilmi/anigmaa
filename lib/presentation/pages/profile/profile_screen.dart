@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF84994F),
         child: const Icon(Icons.menu_rounded, color: Colors.white),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
