@@ -9,12 +9,14 @@ import '../../../domain/usecases/follow_user.dart';
 import '../../../domain/usecases/unfollow_user.dart';
 import '../../../domain/usecases/get_user_followers.dart';
 import '../../../domain/usecases/get_user_following.dart';
+import '../../../domain/usecases/update_current_user.dart';
 import 'user_event.dart';
 import 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final AuthService authService;
   final GetCurrentUser? getCurrentUser;
+  final UpdateCurrentUser? updateCurrentUser;
   final GetUserById? getUserById;
   final SearchUsers? searchUsers;
   final FollowUser? followUser;
@@ -25,6 +27,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc({
     required this.authService,
     this.getCurrentUser,
+    this.updateCurrentUser,
     this.getUserById,
     this.searchUsers,
     this.followUser,
@@ -141,7 +144,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       // Call API to update user
       if (updateCurrentUser != null) {
-        final result = await updateCurrentUser!(updateData);
+        final result = await updateCurrentUser!(
+          UpdateCurrentUserParams(userData: updateData),
+        );
 
         result.fold(
           (failure) {
