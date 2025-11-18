@@ -413,7 +413,7 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur ini coming soon yaa!')),
+                    const SnackBar(content: Text('Fitur ini sedang dalam pengembangan')),
                   );
                 },
               ),
@@ -488,7 +488,7 @@ class ProfileScreen extends StatelessWidget {
           Icon(Icons.event_note_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'Postingan akan muncul setelah integrasi API',
+            'Belum ada postingan nih',
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -693,7 +693,7 @@ class ProfileScreen extends StatelessWidget {
           Icon(Icons.event_busy_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'Event akan muncul setelah integrasi API',
+            'Belum ada event nih',
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -1129,7 +1129,7 @@ class ProfileScreen extends StatelessWidget {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Fitur share coming soon!'),
+                      content: Text('Fitur berbagi sedang dalam pengembangan'),
                       backgroundColor: Color(0xFF84994F),
                     ),
                   );

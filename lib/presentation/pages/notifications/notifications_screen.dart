@@ -116,7 +116,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 // context.read<NotificationsBloc>().add(MarkAllAsRead());
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Fitur akan tersedia setelah integrasi backend'),
+                    content: Text('Fitur ini sedang dalam pengembangan'),
                     backgroundColor: Color(0xFF84994F),
                   ),
                 );
