@@ -154,7 +154,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       final eventModels = await eventDataSource.getUserEventsByUsername(username, limit: 20, offset: 0);
 
       // Convert models to entities
-      final events = eventModels.map((model) => model.toEntity()).toList();
+      final events = eventModels.map((model) => (model as dynamic).toEntity() as Event).toList();
 
       setState(() {
         _userEvents = events;
