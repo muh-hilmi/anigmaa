@@ -196,7 +196,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationItem(Notification notification) {
+  Widget _buildNotificationItem(domain.Notification notification) {
     return Container(
       color: notification.isRead ? Colors.white : const Color(0xFFFAF8F5),
       child: InkWell(
