@@ -9,6 +9,7 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 import '../event_detail/event_detail_screen.dart';
+import '../../../core/utils/app_logger.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -51,12 +52,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               SnackBar(content: Text(state.message)),
             );
           } else if (state is UserError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppLogger().error('User error: ${state.message}');
           }
         },
         builder: (context, state) {
