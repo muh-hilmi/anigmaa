@@ -35,14 +35,12 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     result.fold(
       (failure) => emit(EventsError(failure.message)),
       (paginatedResponse) {
-        final now = DateTime.now();
         final allEvents = paginatedResponse.data;
-        // Filter out past events (events that have ended)
-        final events = allEvents.where((event) => event.endTime.isAfter(now)).toList();
-        final nearbyEvents = events.where((event) => event.isStartingSoon).toList();
+        // No longer filtering past events - let UI handle display
+        final nearbyEvents = allEvents.where((event) => event.isStartingSoon).toList();
         emit(EventsLoaded(
-          events: events,
-          filteredEvents: events,
+          events: allEvents,
+          filteredEvents: allEvents,
           nearbyEvents: nearbyEvents,
           paginationMeta: paginatedResponse.meta,
         ));
@@ -79,19 +77,17 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   ) {
     if (state is EventsLoaded) {
       final currentState = state as EventsLoaded;
-      final now = DateTime.now();
 
       if (event.category == null) {
-        // Clear filter - show all active events (not past events)
-        final activeEvents = currentState.events.where((e) => e.endTime.isAfter(now)).toList();
+        // Clear filter - show all events
         emit(currentState.copyWith(
-          filteredEvents: activeEvents,
+          filteredEvents: currentState.events,
           selectedCategory: null,
         ));
       } else {
-        // Apply category filter - show active events in category
+        // Apply category filter - show all events in category
         final filteredEvents = currentState.events
-            .where((e) => e.category == event.category && e.endTime.isAfter(now))
+            .where((e) => e.category == event.category)
             .toList();
 
         emit(currentState.copyWith(
