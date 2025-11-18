@@ -7,9 +7,11 @@ import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
 import '../../../data/models/event_model.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
+import '../../widgets/location_picker.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -29,7 +31,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   // Form controllers
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
   final _maxAttendeesController = TextEditingController();
   final _priceController = TextEditingController();
   final _requirementsController = TextEditingController();
@@ -43,6 +44,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   double _price = 0;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  LocationData? _selectedLocationData;
 
   // Hashtag data
   final List<String> _defaultHashtags = [
@@ -55,7 +57,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   // Validation states
   String? _titleError;
   String? _descriptionError;
-  String? _locationError;
   String? _maxAttendeesError;
   String? _priceError;
   String? _requirementsError;
@@ -261,14 +262,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
           const SizedBox(height: 24),
 
           // Location
-          _buildTextField(
-            controller: _locationController,
-            label: 'Lokasi',
-            hint: 'Dimana nih tempatnya? 📍',
-            required: true,
-            prefixIcon: Icons.location_on_outlined,
-            errorText: _locationError,
-            onChanged: _validateLocation,
+          _buildSectionTitle('Lokasi Event'),
+          const SizedBox(height: 8),
+          LocationPicker(
+            onLocationSelected: (locationData) {
+              setState(() {
+                _selectedLocationData = locationData;
+              });
+              AppLogger().info('Location selected for event: ${locationData.name}');
+            },
+            initialLocation: _selectedLocationData,
           ),
           const SizedBox(height: 20),
         ],
@@ -571,8 +574,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      _locationController.text.isNotEmpty
-                          ? _locationController.text
+                      _selectedLocationData != null
+                          ? _selectedLocationData!.name
                           : 'Lokasi acara',
                       style: TextStyle(
                         fontSize: 13,
@@ -1573,7 +1576,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
       case 0:
         return _titleController.text.isNotEmpty &&
                _descriptionController.text.isNotEmpty &&
-               _locationController.text.isNotEmpty;
+               _selectedLocationData != null;
       case 1:
         return _maxAttendeesController.text.isNotEmpty;
       default:
@@ -1645,10 +1648,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
         _selectedTime.minute,
       ),
       location: EventLocationModel(
-        name: _locationController.text,
-        address: _locationController.text,
-        latitude: -6.2088,
-        longitude: 106.8456,
+        name: _selectedLocationData?.name ?? 'Unknown Location',
+        address: _selectedLocationData?.address ?? 'Unknown Address',
+        latitude: _selectedLocationData?.latitude ?? -6.2088,
+        longitude: _selectedLocationData?.longitude ?? 106.8456,
       ),
       host: const EventHostModel(
         id: 'current_user',
@@ -1770,16 +1773,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     });
   }
 
-  void _validateLocation(String value) {
-    setState(() {
-      if (value.isEmpty) {
-        _locationError = 'Lokasi wajib diisi';
-      } else {
-        _locationError = null;
-      }
-    });
-  }
-
   void _validateMaxAttendees(String value) {
     setState(() {
       if (value.isEmpty) {
@@ -1821,8 +1814,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
       case 0:
         _validateTitle(_titleController.text);
         _validateDescription(_descriptionController.text);
-        _validateLocation(_locationController.text);
-        return _titleError == null && _descriptionError == null && _locationError == null;
+        return _titleError == null && _descriptionError == null && _selectedLocationData != null;
       case 1:
         _validateMaxAttendees(_maxAttendeesController.text);
         if (!_isFree) {
@@ -2068,7 +2060,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
     _titleController.dispose();
     _descriptionController.dispose();
     _requirementsController.dispose();
-    _locationController.dispose();
     _maxAttendeesController.dispose();
     _priceController.dispose();
     _hashtagController.dispose();
