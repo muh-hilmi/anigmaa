@@ -58,11 +58,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         (failure) {
           emit(PostsError('Failed to load posts: ${failure.toString()}'));
         },
-        (posts) {
+        (paginatedResponse) {
           emit(PostsLoaded(
-            posts: posts,
-            hasMore: posts.length >= postsPerPage,
-            currentOffset: posts.length,
+            posts: paginatedResponse.data,
+            paginationMeta: paginatedResponse.meta,
           ));
         },
       );
@@ -76,14 +75,13 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
     result.fold(
       (failure) => emit(const PostsError('Failed to refresh posts')),
-      (posts) {
+      (paginatedResponse) {
         // Preserve existing comments when refreshing posts
         final currentState = state is PostsLoaded ? state as PostsLoaded : null;
         emit(PostsLoaded(
-          posts: posts,
+          posts: paginatedResponse.data,
           commentsByPostId: currentState?.commentsByPostId ?? const {},
-          hasMore: posts.length >= postsPerPage,
-          currentOffset: posts.length,
+          paginationMeta: paginatedResponse.meta,
         ));
       },
     );
@@ -113,13 +111,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           // Revert loading state on error
           emit(currentState.copyWith(isLoadingMore: false));
         },
-        (newPosts) {
-          final updatedPosts = [...currentState.posts, ...newPosts];
+        (paginatedResponse) {
+          final updatedPosts = [...currentState.posts, ...paginatedResponse.data];
           emit(currentState.copyWith(
             posts: updatedPosts,
-            hasMore: newPosts.length >= postsPerPage,
+            paginationMeta: paginatedResponse.meta,
             isLoadingMore: false,
-            currentOffset: updatedPosts.length,
           ));
         },
       );
@@ -243,9 +240,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         updatedComments[event.postId] = [];
         emit(currentState.copyWith(commentsByPostId: updatedComments));
       },
-      (comments) {
+      (paginatedResponse) {
         final updatedComments = Map<String, List<Comment>>.from(currentState.commentsByPostId);
-        updatedComments[event.postId] = comments;
+        updatedComments[event.postId] = paginatedResponse.data;
         emit(currentState.copyWith(commentsByPostId: updatedComments));
       },
     );

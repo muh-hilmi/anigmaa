@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../core/models/pagination.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/comment.dart';
 
@@ -16,9 +17,8 @@ class PostsLoading extends PostsState {}
 class PostsLoaded extends PostsState {
   final List<Post> posts;
   final Map<String, List<Comment>> commentsByPostId;
-  final bool hasMore;
+  final PaginationMeta? paginationMeta;
   final bool isLoadingMore;
-  final int currentOffset;
   final bool isCreatingPost;
   final String? createErrorMessage;
   final String? successMessage;
@@ -26,20 +26,22 @@ class PostsLoaded extends PostsState {
   const PostsLoaded({
     required this.posts,
     this.commentsByPostId = const {},
-    this.hasMore = true,
+    this.paginationMeta,
     this.isLoadingMore = false,
-    this.currentOffset = 0,
     this.isCreatingPost = false,
     this.createErrorMessage,
     this.successMessage,
   });
 
+  // Computed properties for backward compatibility
+  bool get hasMore => paginationMeta?.hasNext ?? false;
+  int get currentOffset => paginationMeta?.nextOffset ?? posts.length;
+
   PostsLoaded copyWith({
     List<Post>? posts,
     Map<String, List<Comment>>? commentsByPostId,
-    bool? hasMore,
+    PaginationMeta? paginationMeta,
     bool? isLoadingMore,
-    int? currentOffset,
     bool? isCreatingPost,
     String? createErrorMessage,
     String? successMessage,
@@ -47,9 +49,8 @@ class PostsLoaded extends PostsState {
     return PostsLoaded(
       posts: posts ?? this.posts,
       commentsByPostId: commentsByPostId ?? this.commentsByPostId,
-      hasMore: hasMore ?? this.hasMore,
+      paginationMeta: paginationMeta ?? this.paginationMeta,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      currentOffset: currentOffset ?? this.currentOffset,
       isCreatingPost: isCreatingPost ?? this.isCreatingPost,
       createErrorMessage: createErrorMessage,
       successMessage: successMessage,
@@ -60,9 +61,8 @@ class PostsLoaded extends PostsState {
     return PostsLoaded(
       posts: posts,
       commentsByPostId: commentsByPostId,
-      hasMore: hasMore,
+      paginationMeta: paginationMeta,
       isLoadingMore: isLoadingMore,
-      currentOffset: currentOffset,
       isCreatingPost: isCreatingPost,
       createErrorMessage: null,
       successMessage: null,
@@ -73,9 +73,8 @@ class PostsLoaded extends PostsState {
   List<Object?> get props => [
         posts,
         commentsByPostId,
-        hasMore,
+        paginationMeta,
         isLoadingMore,
-        currentOffset,
         isCreatingPost,
         createErrorMessage,
         successMessage,
