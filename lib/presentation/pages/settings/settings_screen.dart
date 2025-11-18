@@ -51,19 +51,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSection(
               title: 'Preferensi Gue',
               children: [
-                _buildSwitchTile(
-                  icon: Icons.dark_mode,
-                  title: 'Dark Mode',
-                  subtitle: 'Ganti ke tema gelap biar adem di mata',
-                  value: _darkMode,
-                  onChanged: (value) {
-                    setState(() {
-                      _darkMode = value;
-                    });
-                    _showMessage('Dark mode ${value ? 'udah nyala nih! ✨' : 'dimatiin'}');
-                  },
-                ),
-                _buildLanguageTile(),
+                // TODO: Dark Mode feature hidden temporarily
+                // _buildSwitchTile(
+                //   icon: Icons.dark_mode,
+                //   title: 'Dark Mode',
+                //   subtitle: 'Ganti ke tema gelap biar adem di mata',
+                //   value: _darkMode,
+                //   onChanged: (value) {
+                //     setState(() {
+                //       _darkMode = value;
+                //     });
+                //     _showMessage('Dark mode ${value ? 'udah nyala nih! ✨' : 'dimatiin'}');
+                //   },
+                // ),
+                // TODO: Language feature hidden temporarily
+                // _buildLanguageTile(),
                 _buildSwitchTile(
                   icon: Icons.location_on,
                   title: 'Layanan Lokasi',
@@ -91,17 +93,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     });
                   },
                 ),
-                _buildSwitchTile(
-                  icon: Icons.email,
-                  title: 'Email Notifications',
-                  subtitle: 'Terima notif lewat email',
-                  value: _emailNotifications,
-                  onChanged: (value) {
-                    setState(() {
-                      _emailNotifications = value;
-                    });
-                  },
-                ),
+                // TODO: Email Notifications feature hidden temporarily
+                // _buildSwitchTile(
+                //   icon: Icons.email,
+                //   title: 'Email Notifications',
+                //   subtitle: 'Terima notif lewat email',
+                //   value: _emailNotifications,
+                //   onChanged: (value) {
+                //     setState(() {
+                //       _emailNotifications = value;
+                //     });
+                //   },
+                // ),
                 _buildNavigationTile(
                   icon: Icons.tune,
                   title: 'Atur Notifikasi',
@@ -147,52 +150,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            _buildSection(
-              title: 'Data & Storage 💾',
-              children: [
-                _buildNavigationTile(
-                  icon: Icons.download,
-                  title: 'Download Data Lo',
-                  subtitle: 'Ekspor semua data akun lo',
-                  onTap: _downloadData,
-                ),
-                _buildNavigationTile(
-                  icon: Icons.storage,
-                  title: 'Storage & Data',
-                  subtitle: 'Kelola penyimpanan & penggunaan data',
-                  onTap: _navigateToStorage,
-                ),
-                _buildNavigationTile(
-                  icon: Icons.clear,
-                  title: 'Bersihin Cache',
-                  subtitle: 'Kosongin space dengan hapus cache',
-                  onTap: _clearCache,
-                ),
-              ],
-            ),
-            _buildSection(
-              title: 'Bantuan 💬',
-              children: [
-                _buildNavigationTile(
-                  icon: Icons.help,
-                  title: 'Pusat Bantuan',
-                  subtitle: 'Butuh bantuan? Yuk kesini!',
-                  onTap: _navigateToHelp,
-                ),
-                _buildNavigationTile(
-                  icon: Icons.feedback,
-                  title: 'Kirim Feedback',
-                  subtitle: 'Bantu gue tingkatin app ini',
-                  onTap: _sendFeedback,
-                ),
-                _buildNavigationTile(
-                  icon: Icons.bug_report,
-                  title: 'Lapor Bug',
-                  subtitle: 'Ada masalah teknis? Kabarin gue!',
-                  onTap: _reportBug,
-                ),
-              ],
-            ),
+            // TODO: Data & Storage section hidden temporarily
+            // _buildSection(
+            //   title: 'Data & Storage 💾',
+            //   children: [
+            //     _buildNavigationTile(
+            //       icon: Icons.download,
+            //       title: 'Download Data Lo',
+            //       subtitle: 'Ekspor semua data akun lo',
+            //       onTap: _downloadData,
+            //     ),
+            //     _buildNavigationTile(
+            //       icon: Icons.storage,
+            //       title: 'Storage & Data',
+            //       subtitle: 'Kelola penyimpanan & penggunaan data',
+            //       onTap: _navigateToStorage,
+            //     ),
+            //     _buildNavigationTile(
+            //       icon: Icons.clear,
+            //       title: 'Bersihin Cache',
+            //       subtitle: 'Kosongin space dengan hapus cache',
+            //       onTap: _clearCache,
+            //     ),
+            //   ],
+            // ),
+            // TODO: Bantuan section hidden temporarily
+            // _buildSection(
+            //   title: 'Bantuan 💬',
+            //   children: [
+            //     _buildNavigationTile(
+            //       icon: Icons.help,
+            //       title: 'Pusat Bantuan',
+            //       subtitle: 'Butuh bantuan? Yuk kesini!',
+            //       onTap: _navigateToHelp,
+            //     ),
+            //     _buildNavigationTile(
+            //       icon: Icons.feedback,
+            //       title: 'Kirim Feedback',
+            //       subtitle: 'Bantu gue tingkatin app ini',
+            //       onTap: _sendFeedback,
+            //     ),
+            //     _buildNavigationTile(
+            //       icon: Icons.bug_report,
+            //       title: 'Lapor Bug',
+            //       subtitle: 'Ada masalah teknis? Kabarin gue!',
+            //       onTap: _reportBug,
+            //     ),
+            //   ],
+            // ),
             _buildSection(
               title: 'Tentang App 📱',
               children: [
@@ -202,18 +207,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'Versi 1.0.0',
                   onTap: _showAbout,
                 ),
-                _buildNavigationTile(
-                  icon: Icons.description,
-                  title: 'Syarat & Ketentuan',
-                  subtitle: 'Baca ketentuan penggunaan app',
-                  onTap: _showTerms,
-                ),
-                _buildNavigationTile(
-                  icon: Icons.policy,
-                  title: 'Kebijakan Privasi',
-                  subtitle: 'Baca kebijakan privasi gue',
-                  onTap: _showPrivacyPolicy,
-                ),
+                // TODO: Syarat & Ketentuan hidden temporarily
+                // _buildNavigationTile(
+                //   icon: Icons.description,
+                //   title: 'Syarat & Ketentuan',
+                //   subtitle: 'Baca ketentuan penggunaan app',
+                //   onTap: _showTerms,
+                // ),
+                // TODO: Kebijakan Privasi hidden temporarily
+                // _buildNavigationTile(
+                //   icon: Icons.policy,
+                //   title: 'Kebijakan Privasi',
+                //   subtitle: 'Baca kebijakan privasi gue',
+                //   onTap: _showPrivacyPolicy,
+                // ),
               ],
             ),
             _buildSection(
