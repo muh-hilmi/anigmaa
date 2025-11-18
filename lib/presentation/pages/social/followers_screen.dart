@@ -135,7 +135,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
     } else {
       _filteredUsers = _users.where((user) {
         return user.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            user.bio.toLowerCase().contains(_searchQuery.toLowerCase());
+            (user.bio?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
       }).toList();
     }
   }

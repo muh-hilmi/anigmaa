@@ -104,7 +104,7 @@ class _MapScreenState extends State<MapScreen> {
                     final index = entry.key;
                     final event = entry.value;
                     return _buildEventPin(event, index);
-                  }).toList(),
+                  }),
                   // Current location indicator
                   Positioned(
                     left: MediaQuery.of(context).size.width / 2 - 20,
@@ -192,7 +192,7 @@ class _MapScreenState extends State<MapScreen> {
         child: AnimatedScale(
           scale: isSelected ? 1.2 : 1.0,
           duration: const Duration(milliseconds: 200),
-          child: Container(
+          child: SizedBox(
             width: 40,
             height: 50,
             child: Stack(

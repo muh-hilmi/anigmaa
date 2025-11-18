@@ -29,6 +29,14 @@ class PostModel extends Post {
     super.visibility = PostVisibility.public,
   });
 
+  // REVIEW: MULTIPLE FALLBACK PATTERN INDICATES BACKEND INCONSISTENCY
+  // This code tries 3 different ways to parse author: 'author' object, 'author_data' object, or fallback to 'author_id'.
+  // This defensive programming is a RED FLAG that backend is returning different response shapes for the same endpoint.
+  // Backend PostResponse.Author is defined as AuthorSummary (nested object) at post/entity.go:138, so frontend should ONLY
+  // expect json['author'] as an object, never 'author_data' or flat 'author_id'. The existence of these fallbacks means
+  // backend has inconsistent serialization - likely some endpoints return PostWithDetails (flat) vs PostResponse (nested).
+  // SOLUTION: Backend must standardize on ALWAYS using ToResponse() method before sending posts to frontend.
+  // Remove these fallback branches once backend is fixed - they mask the real problem and allow bugs to persist.
   factory PostModel.fromJson(Map<String, dynamic> json) {
     // Handle author - could be full object or just ID
     UserModel author;

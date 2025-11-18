@@ -6,7 +6,7 @@ import '../../../injection_container.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class HostDashboardScreen extends StatefulWidget {
-  const HostDashboardScreen({Key? key}) : super(key: key);
+  const HostDashboardScreen({super.key});
 
   @override
   State<HostDashboardScreen> createState() => _HostDashboardScreenState();
@@ -400,7 +400,7 @@ class _HostDashboardScreenState extends State<HostDashboardScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

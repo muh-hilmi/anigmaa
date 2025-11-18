@@ -474,7 +474,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
 
     final userState = context.read<UserBloc>().state;
     User? currentUser;
-    if (userState is UserLoaded && userState.user != null) {
+    if (userState is UserLoaded) {
       currentUser = userState.user;
     }
 

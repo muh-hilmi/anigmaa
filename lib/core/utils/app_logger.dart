@@ -60,7 +60,7 @@ class NetworkLogger {
   static void logRequest(String method, String path, {Map<String, dynamic>? queryParams, dynamic data}) {
     if (kDebugMode) {
       final query = queryParams != null && queryParams.isNotEmpty ? '?${queryParams.entries.map((e) => '${e.key}=${e.value}').join('&')}' : '';
-      final body = data != null ? '\n  Body: ${data.toString().length > 100 ? data.toString().substring(0, 100) + '...' : data}' : '';
+      final body = data != null ? '\n  Body: ${data.toString().length > 100 ? '${data.toString().substring(0, 100)}...' : data}' : '';
       _appLogger.debug('→ $method $path$query$body');
     }
   }
@@ -69,7 +69,7 @@ class NetworkLogger {
     if (kDebugMode) {
       final durationStr = duration != null ? ' (${duration.inMilliseconds}ms)' : '';
       final responseData = data != null && kDebugMode
-          ? '\n  Response: ${data.toString().length > 200 ? data.toString().substring(0, 200) + '...' : data}'
+          ? '\n  Response: ${data.toString().length > 200 ? '${data.toString().substring(0, 200)}...' : data}'
           : '';
 
       if (statusCode != null && statusCode >= 200 && statusCode < 300) {

@@ -287,9 +287,11 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   @override
   Future<List<Comment>> getPostComments(String postId, {int page = 1, int limit = 20}) async {
     try {
+      // Convert page to offset (page 1 = offset 0)
+      final offset = (page - 1) * limit;
       final response = await dioClient.get(
         '/posts/$postId/comments',
-        queryParameters: {'page': page, 'limit': limit},
+        queryParameters: {'offset': offset, 'limit': limit},
       );
 
       if (response.statusCode == 200) {

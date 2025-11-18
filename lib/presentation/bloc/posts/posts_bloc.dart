@@ -66,7 +66,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           ));
         },
       );
-    } catch (e, stackTrace) {
+    } catch (e) {
       emit(PostsError('Exception loading posts: $e'));
     }
   }
@@ -123,7 +123,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           ));
         },
       );
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Revert loading state on error
       emit(currentState.copyWith(isLoadingMore: false));
     }

@@ -25,16 +25,29 @@ class EventModel extends Event {
     super.requirements,
   });
 
+  // REVIEW: DUAL NAMING CONVENTION FALLBACKS INDICATE LACK OF STANDARDIZATION
+  // Frontend is doing ?? fallbacks for every field: snake_case ?? camelCase. This is a symptom of backend not having
+  // a clear serialization standard. Backend Event entity uses snake_case consistently (start_time, end_time, etc.),
+  // but frontend is hedging bets by accepting both. This is technical debt that will cause confusion.
+  // DECISION: Backend MUST use snake_case for all JSON fields (already mostly doing this). Remove camelCase fallbacks
+  // from frontend once backend is verified to be 100% snake_case. Document this as THE standard in API guidelines.
   factory EventModel.fromJson(Map<String, dynamic> json) {
     // Support both camelCase and snake_case from backend
     final startTime = json['start_time'] ?? json['startTime'];
     final endTime = json['end_time'] ?? json['endTime'];
     final imageUrls = json['image_urls'] ?? json['imageUrls'];
     final maxAttendees = json['max_attendees'] ?? json['maxAttendees'];
+
+    // Handle attendee_ids or attendees_count from backend
     final attendeeIds = json['attendee_ids'] ?? json['attendeeIds'];
+    final attendeesCount = json['attendees_count'] ?? json['attendeesCount'];
+
     final isFree = json['is_free'] ?? json['isFree'];
     final pendingRequests = json['pending_requests'] ?? json['pendingRequests'];
 
+    // REVIEW: NESTED VS FLAT STRUCTURE FALLBACK - Another sign of backend inconsistency
+    // Some endpoints return location:{name, address, lat, lng} while others return location_name, location_address, etc.
+    // Backend EventWithDetails returns flat fields (location_name, location_lat) but should normalize to nested Location object.
     // Parse location - support both nested object and flat fields
     EventLocationModel location;
     if (json['location'] != null) {
@@ -81,7 +94,12 @@ class EventModel extends Event {
       host: host,
       imageUrls: List<String>.from(imageUrls ?? []),
       maxAttendees: maxAttendees as int,
-      attendeeIds: List<String>.from(attendeeIds ?? []),
+      // Generate dummy attendee IDs based on count if available
+      attendeeIds: attendeeIds != null
+          ? List<String>.from(attendeeIds)
+          : (attendeesCount != null
+              ? List<String>.generate(attendeesCount as int, (i) => 'attendee_$i')
+              : <String>[]),
       price: json['price']?.toDouble(),
       isFree: isFree as bool? ?? true,
       status: EventStatus.values.firstWhere(

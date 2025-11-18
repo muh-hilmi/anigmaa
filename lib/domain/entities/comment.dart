@@ -37,10 +37,11 @@ class Comment extends Equatable {
   bool get isReply => parentCommentId != null;
 
   factory Comment.fromJson(Map<String, dynamic> json) {
-    return Comment(
-      id: json['id'] as String,
-      postId: json['postId'] as String,
-      author: User(
+    // Handle both nested author object and flat structure from backend
+    final User author;
+    if (json['author'] != null && json['author'] is Map) {
+      // Nested structure
+      author = User(
         id: json['author']['id'] as String,
         email: json['author']['email'] as String? ?? '',
         name: json['author']['name'] as String,
@@ -50,16 +51,36 @@ class Comment extends Equatable {
         settings: const UserSettings(),
         stats: const UserStats(),
         privacy: const UserPrivacy(),
-      ),
+      );
+    } else {
+      // Flat structure from backend API
+      author = User(
+        id: json['author_id'] as String,
+        email: '',
+        name: json['author_name'] as String,
+        bio: '',
+        avatar: json['author_avatar_url'] as String?,
+        isVerified: json['author_is_verified'] as bool? ?? false,
+        createdAt: DateTime.now(),
+        settings: const UserSettings(),
+        stats: const UserStats(),
+        privacy: const UserPrivacy(),
+      );
+    }
+
+    return Comment(
+      id: json['id'] as String,
+      postId: (json['postId'] ?? json['post_id']) as String,
+      author: author,
       content: json['content'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      editedAt: json['editedAt'] != null
-          ? DateTime.parse(json['editedAt'] as String)
+      createdAt: DateTime.parse(json['createdAt'] ?? json['created_at'] as String),
+      editedAt: (json['editedAt'] ?? json['updated_at']) != null
+          ? DateTime.parse((json['editedAt'] ?? json['updated_at']) as String)
           : null,
-      parentCommentId: json['parentCommentId'] as String?,
-      repliesCount: json['repliesCount'] as int? ?? 0,
-      likesCount: json['likesCount'] as int? ?? 0,
-      isLikedByCurrentUser: json['isLikedByCurrentUser'] as bool? ?? false,
+      parentCommentId: (json['parentCommentId'] ?? json['parent_comment_id']) as String?,
+      repliesCount: (json['repliesCount'] ?? json['replies_count']) as int? ?? 0,
+      likesCount: (json['likesCount'] ?? json['likes_count']) as int? ?? 0,
+      isLikedByCurrentUser: (json['isLikedByCurrentUser'] ?? json['is_liked_by_user']) as bool? ?? false,
       mentions: List<String>.from(json['mentions'] ?? []),
     );
   }

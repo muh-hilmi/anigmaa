@@ -78,7 +78,7 @@ class ModernPostCard extends StatefulWidget {
   final bool showCommentPreview;
   final bool showActionBar;
 
-  ModernPostCard({
+  const ModernPostCard({
     super.key,
     required this.post,
     this.showCommentPreview = true,
@@ -252,7 +252,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
         }
 
         return cardContent;
-        } catch (e, stackTrace) {
+        } catch (e) {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(
@@ -703,7 +703,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
 

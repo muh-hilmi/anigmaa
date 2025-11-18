@@ -64,8 +64,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
     // 4. Chill: Small intimate events (< 20 people)
     _chillEvents = events.where((event) {
-      return event.maxAttendees != null &&
-             event.maxAttendees! <= 20 &&
+      return event.maxAttendees <= 20 &&
              event.startTime.isAfter(now);
     }).toList();
   }

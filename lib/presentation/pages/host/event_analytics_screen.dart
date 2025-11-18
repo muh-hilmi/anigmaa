@@ -9,9 +9,9 @@ class EventAnalyticsScreen extends StatefulWidget {
   final String eventId;
 
   const EventAnalyticsScreen({
-    Key? key,
+    super.key,
     required this.eventId,
-  }) : super(key: key);
+  });
 
   @override
   State<EventAnalyticsScreen> createState() => _EventAnalyticsScreenState();
@@ -459,7 +459,7 @@ class _EventAnalyticsScreenState extends State<EventAnalyticsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

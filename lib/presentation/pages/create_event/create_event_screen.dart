@@ -35,7 +35,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   final _requirementsController = TextEditingController();
 
   // Form data
-  EventCategory _selectedCategory = EventCategory.meetup;
+  final EventCategory _selectedCategory = EventCategory.meetup;
   EventPrivacy _selectedPrivacy = EventPrivacy.public;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 19, minute: 0);

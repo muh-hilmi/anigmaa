@@ -101,8 +101,8 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
             // Get current user ID to filter out their posts
             final userState = context.read<UserBloc>().state;
             String? currentUserId;
-            if (userState is UserLoaded && userState.user != null) {
-              currentUserId = userState.user!.id;
+            if (userState is UserLoaded) {
+              currentUserId = userState.user.id;
             }
 
             // Filter out current user's posts (feed should only show others' posts)

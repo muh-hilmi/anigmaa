@@ -254,7 +254,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: state.selectedLocation,
+                  initialValue: state.selectedLocation,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.grey[100],

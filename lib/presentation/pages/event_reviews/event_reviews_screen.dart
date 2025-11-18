@@ -485,15 +485,15 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
               ),
               TextButton(
                 onPressed: () => _reportReview(review.id),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
                 child: Text(
                   'Laporin',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[500],
                   ),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 ),
               ),
             ],

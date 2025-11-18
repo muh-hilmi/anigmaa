@@ -651,7 +651,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              this.setState(() {});
+              setState(() {});
             },
             child: const Text('Terapkan'),
           ),

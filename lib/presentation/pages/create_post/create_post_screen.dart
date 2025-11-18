@@ -30,7 +30,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         User? currentUser;
-        if (userState is UserLoaded && userState.user != null) {
+        if (userState is UserLoaded) {
           currentUser = userState.user;
         }
 
@@ -367,17 +367,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
             Expanded(
-              child: BlocBuilder<EventsBloc, EventsState>(
-                builder: (context, state) {
-                  if (state is EventsLoading) {
-                    return const Center(child: CircularProgressIndicator());
+              child: BlocBuilder<UserBloc, UserState>(
+                builder: (context, userState) {
+                  User? currentUser;
+                  if (userState is UserLoaded) {
+                    currentUser = userState.user;
                   }
 
-                  if (state is EventsLoaded) {
-                    // Get user's events (hosted + joined)
-                    final userEvents = state.events.where((event) {
-                      return event.isHostedByCurrentUser || event.isJoinedByCurrentUser;
-                    }).toList();
+                  return BlocBuilder<EventsBloc, EventsState>(
+                    builder: (context, state) {
+                      if (state is EventsLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (state is EventsLoaded) {
+                        // Get user's events (hosted + joined)
+                        final userEvents = state.events.where((event) {
+                          final isHosted = currentUser != null && event.host.id == currentUser.id;
+                          final isJoined = currentUser != null && event.attendeeIds.contains(currentUser.id);
+                          return isHosted || isJoined;
+                        }).toList();
 
                     if (userEvents.isEmpty) {
                       return Center(
@@ -475,7 +484,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     );
                   }
 
-                  return const Center(child: Text('Failed to load events'));
+                      return const Center(child: Text('Failed to load events'));
+                    },
+                  );
                 },
               ),
             ),
@@ -488,7 +499,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _createPost() {
     final userState = context.read<UserBloc>().state;
     User? currentUser;
-    if (userState is UserLoaded && userState.user != null) {
+    if (userState is UserLoaded) {
       currentUser = userState.user;
     }
 

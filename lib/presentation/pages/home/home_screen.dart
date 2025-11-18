@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../feed/modern_feed_screen.dart';
-import '../discover/discover_screen.dart';
 import '../discover/swipeable_events_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../../bloc/user/user_bloc.dart';
@@ -51,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   BlocBuilder<UserBloc, UserState>(
                     builder: (context, state) {
                       String initials = 'U';
-                      if (state is UserLoaded && state.user != null) {
-                        initials = state.user!.name.isNotEmpty ? state.user!.name[0].toUpperCase() : 'U';
+                      if (state is UserLoaded) {
+                        initials = state.user.name.isNotEmpty ? state.user.name[0].toUpperCase() : 'U';
                       }
                       return Container(
                         width: 40,
