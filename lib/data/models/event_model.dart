@@ -152,6 +152,10 @@ class EventModel extends Event {
     );
   }
 
+  /// Convert EventModel to Event entity
+  /// Since EventModel extends Event, this just returns itself
+  Event toEntity() => this;
+
   /// Parse event status from backend string, handling both "ended" and "completed"
   static EventStatus _parseEventStatus(String? status) {
     if (status == null) return EventStatus.upcoming;

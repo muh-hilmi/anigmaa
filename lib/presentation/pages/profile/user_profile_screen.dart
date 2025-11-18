@@ -99,6 +99,16 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
       // Load user's posts and events
       if (_profileUser != null) {
+        // Log user data to verify API response
+        print('[UserProfileScreen] ===== USER DATA FROM API =====');
+        print('[UserProfileScreen] User ID: ${_profileUser!.id}');
+        print('[UserProfileScreen] Name: ${_profileUser!.name}');
+        print('[UserProfileScreen] Email: ${_profileUser!.email}');
+        print('[UserProfileScreen] Bio: ${_profileUser!.bio ?? "(null/empty)"}');
+        print('[UserProfileScreen] Avatar: ${_profileUser!.avatar ?? "(null)"}');
+        print('[UserProfileScreen] Interests: ${_profileUser!.interests}');
+        print('[UserProfileScreen] ================================');
+
         _loadUserPosts();
         _loadUserEvents();
       }
@@ -457,34 +467,35 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               height: 1.4,
             ),
           ),
-          if (_profileUser!.interests.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _profileUser!.interests.map((interest) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF8F5),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF84994F).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    interest,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF84994F),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+          // Hidden: Interests/Category section removed per user request
+          // if (_profileUser!.interests.isNotEmpty) ...[
+          //   const SizedBox(height: 12),
+          //   Wrap(
+          //     spacing: 8,
+          //     runSpacing: 8,
+          //     children: _profileUser!.interests.map((interest) {
+          //       return Container(
+          //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          //         decoration: BoxDecoration(
+          //           color: const Color(0xFFFAF8F5),
+          //           borderRadius: BorderRadius.circular(20),
+          //           border: Border.all(
+          //             color: const Color(0xFF84994F).withOpacity(0.3),
+          //             width: 1,
+          //           ),
+          //         ),
+          //         child: Text(
+          //           interest,
+          //           style: const TextStyle(
+          //             fontSize: 12,
+          //             color: Color(0xFF84994F),
+          //             fontWeight: FontWeight.w600,
+          //           ),
+          //         ),
+          //       );
+          //     }).toList(),
+          //   ),
+          // ],
         ],
       ),
     );

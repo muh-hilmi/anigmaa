@@ -608,19 +608,20 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to see all trending
-                  },
-                  child: const Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF84994F),
-                    ),
-                  ),
-                ),
+                // Hidden: See All button
+                // TextButton(
+                //   onPressed: () {
+                //     // Navigate to see all trending
+                //   },
+                //   child: const Text(
+                //     'Lihat Semua',
+                //     style: TextStyle(
+                //       fontSize: 13,
+                //       fontWeight: FontWeight.w600,
+                //       color: Color(0xFF84994F),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -801,19 +802,20 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to see all
-                  },
-                  child: const Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF84994F),
-                    ),
-                  ),
-                ),
+                // Hidden: See All button
+                // TextButton(
+                //   onPressed: () {
+                //     // Navigate to see all
+                //   },
+                //   child: const Text(
+                //     'Lihat Semua',
+                //     style: TextStyle(
+                //       fontSize: 13,
+                //       fontWeight: FontWeight.w600,
+                //       color: Color(0xFF84994F),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -1000,19 +1002,20 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to see all
-                  },
-                  child: const Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF84994F),
-                    ),
-                  ),
-                ),
+                // Hidden: See All button
+                // TextButton(
+                //   onPressed: () {
+                //     // Navigate to see all
+                //   },
+                //   child: const Text(
+                //     'Lihat Semua',
+                //     style: TextStyle(
+                //       fontSize: 13,
+                //       fontWeight: FontWeight.w600,
+                //       color: Color(0xFF84994F),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -1256,19 +1259,20 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to see all
-                  },
-                  child: const Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF84994F),
-                    ),
-                  ),
-                ),
+                // Hidden: See All button
+                // TextButton(
+                //   onPressed: () {
+                //     // Navigate to see all
+                //   },
+                //   child: const Text(
+                //     'Lihat Semua',
+                //     style: TextStyle(
+                //       fontSize: 13,
+                //       fontWeight: FontWeight.w600,
+                //       color: Color(0xFF84994F),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -1580,44 +1584,319 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
   // Helpers
   void _showSearchDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'Search Events',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.95,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Cari Event',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAF8F5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF8F5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF84994F).withOpacity(0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: TextField(
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Cari event, kategori, lokasi...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: Color(0xFF84994F),
+                        size: 22,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.tune_rounded,
+                          color: Colors.grey[700],
+                          size: 22,
+                        ),
+                        onPressed: () {
+                          // Show filter options
+                        },
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Quick Filters
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Filter Cepat',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip('Gratis', Icons.money_off_outlined),
+                        _buildFilterChip('Hari Ini', Icons.calendar_today),
+                        _buildFilterChip('Minggu Ini', Icons.date_range),
+                        _buildFilterChip('Terdekat', Icons.location_on_outlined),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Popular Categories
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Kategori Populer',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildCategoryChip('Music', Icons.music_note, Colors.purple),
+                        _buildCategoryChip('Food', Icons.restaurant, Colors.orange),
+                        _buildCategoryChip('Sports', Icons.sports_soccer, Colors.green),
+                        _buildCategoryChip('Tech', Icons.computer, Colors.blue),
+                        _buildCategoryChip('Art', Icons.palette, Colors.pink),
+                        _buildCategoryChip('Networking', Icons.people, Colors.teal),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Recent Searches
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Pencarian Terakhir',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Hapus Semua',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          children: [
+                            _buildRecentSearchItem('Music Festival Jaksel', Icons.music_note),
+                            _buildRecentSearchItem('Kopi Meetup', Icons.coffee),
+                            _buildRecentSearchItem('Workshop Design', Icons.design_services),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        content: TextField(
-          decoration: InputDecoration(
-            hintText: 'Cari event...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF84994F).withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF84994F)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Cari'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentSearchItem(String query, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAF8F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: const Color(0xFF84994F),
+          ),
+        ),
+        title: Text(
+          query,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        trailing: Icon(
+          Icons.north_west,
+          size: 18,
+          color: Colors.grey[400],
+        ),
+        onTap: () {
+          // Perform search with this query
+        },
       ),
     );
   }

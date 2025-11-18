@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../domain/entities/user.dart';
+import '../../bloc/user/user_bloc.dart';
+import '../../bloc/user/user_event.dart';
+import '../../bloc/user/user_state.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User? user;
@@ -670,45 +674,101 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    if (!_formKey.currentState!.validate()) return;
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+    setState(() => _isLoading = true);
 
-      setState(() {
-        _isLoading = false;
-      });
+    try {
+      // TODO: Upload image to cloud storage first if _selectedImageFile is not null
+      // For now, we'll use the file path or existing avatar URL
+      String? avatarToSave;
+      if (_selectedImageFile != null) {
+        // TODO: Upload to cloud storage and get URL
+        // avatarToSave = await _uploadImageToCloudStorage(_selectedImageFile!);
+        avatarToSave = _selectedImageFile!.path; // Temporary - will be replaced with cloud URL
+        print('[EditProfile] New avatar file selected: $avatarToSave');
+      } else if (_selectedAvatarUrl != null) {
+        avatarToSave = _selectedAvatarUrl;
+        print('[EditProfile] Keeping existing avatar: $avatarToSave');
+      }
+
+      // Update user profile via BLoC
+      context.read<UserBloc>().add(
+        UpdateUserProfile(
+          name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
+          bio: _bioController.text.trim().isNotEmpty ? _bioController.text.trim() : null,
+          avatar: avatarToSave,
+        ),
+      );
+
+      // Listen for the result
+      final userBloc = context.read<UserBloc>();
+      await for (final state in userBloc.stream) {
+        if (state is UserLoaded) {
+          setState(() => _isLoading = false);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle_rounded, color: Colors.white),
+                    SizedBox(width: 12),
+                    Text('Profil berhasil diupdate!'),
+                  ],
+                ),
+                backgroundColor: const Color(0xFF84994F),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+
+            // Go back to profile screen
+            Navigator.pop(context, true);
+          }
+          break;
+        } else if (state is UserError) {
+          setState(() => _isLoading = false);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(state.message)),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Profil berhasil diupdate!'),
-              ],
-            ),
-            backgroundColor: const Color(0xFF84994F),
+            content: Text('Waduh error nih: ${e.toString()}'),
+            backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            duration: const Duration(seconds: 2),
           ),
         );
-
-        // Return updated data
-        Navigator.pop(context, {
-          'name': _nameController.text,
-          'bio': _bioController.text,
-          'location': _locationController.text,
-          'website': _websiteController.text,
-          'avatar': _selectedImageFile?.path ?? _selectedAvatarUrl,
-        });
       }
     }
   }

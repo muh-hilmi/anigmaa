@@ -124,20 +124,53 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     UpdateUserProfile event,
     Emitter<UserState> emit,
   ) async {
-    if (state is UserLoaded) {
-      final currentState = state as UserLoaded;
+    if (state is! UserLoaded) return;
 
-      emit(UserLoading());
+    final currentState = state as UserLoaded;
+    emit(UserLoading());
 
-      await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      // Prepare update data - only include fields that are provided
+      final Map<String, dynamic> updateData = {};
+      if (event.name != null) updateData['name'] = event.name;
+      if (event.bio != null) updateData['bio'] = event.bio;
+      if (event.avatar != null) updateData['avatar'] = event.avatar;
+      if (event.interests != null) updateData['interests'] = event.interests;
 
-      final updatedUser = currentState.user.copyWith(
-        name: event.name,
-        bio: event.bio,
-        interests: event.interests,
-      );
+      print('[UserBloc] Updating user profile with data: $updateData');
 
-      emit(currentState.copyWith(user: updatedUser));
+      // Call API to update user
+      if (updateCurrentUser != null) {
+        final result = await updateCurrentUser!(updateData);
+
+        result.fold(
+          (failure) {
+            print('[UserBloc] Update failed: ${failure.message}');
+            emit(UserError('Gagal update profil: ${failure.message}'));
+            // Restore previous state
+            emit(currentState);
+          },
+          (updatedUser) {
+            print('[UserBloc] Update successful: ${updatedUser.name}, bio: ${updatedUser.bio}');
+            emit(currentState.copyWith(user: updatedUser));
+          },
+        );
+      } else {
+        // Fallback to local update if API not available
+        print('[UserBloc] API not available, doing local update');
+        final updatedUser = currentState.user.copyWith(
+          name: event.name ?? currentState.user.name,
+          bio: event.bio ?? currentState.user.bio,
+          avatar: event.avatar ?? currentState.user.avatar,
+          interests: event.interests ?? currentState.user.interests,
+        );
+        emit(currentState.copyWith(user: updatedUser));
+      }
+    } catch (e) {
+      print('[UserBloc] Update error: $e');
+      emit(UserError('Terjadi kesalahan: $e'));
+      // Restore previous state
+      emit(currentState);
     }
   }
 
