@@ -38,10 +38,9 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  String _selectedFilter = 'all';
-
   // REMOVED MOCK DATA - Ready for API integration
   // Once backend implements GET /notifications endpoint, integrate with NotificationsBloc
+  // All notifications are shown without filtering
   final List<domain.Notification> _notifications = [];
 
   @override
@@ -49,30 +48,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     // TODO: Call NotificationsBloc to load notifications from API
     // context.read<NotificationsBloc>().add(LoadNotifications());
-  }
-
-  List<domain.Notification> get _filteredNotifications {
-    switch (_selectedFilter) {
-      case 'unread':
-        return _notifications.where((n) => !n.isRead).toList();
-      case 'events':
-        return _notifications.where((n) =>
-          n.type == domain.NotificationType.eventReminder ||
-          n.type == domain.NotificationType.eventJoined
-        ).toList();
-      case 'social':
-        return _notifications.where((n) =>
-          n.type == domain.NotificationType.like ||
-          n.type == domain.NotificationType.comment ||
-          n.type == domain.NotificationType.follow
-        ).toList();
-      default:
-        return _notifications;
-    }
-  }
-
-  int get _unreadCount {
-    return _notifications.where((n) => !n.isRead).length;
+    // TODO: Mark all notifications as read when page is opened (like Instagram)
+    // context.read<NotificationsBloc>().add(MarkAllAsRead());
   }
 
   @override
@@ -82,68 +59,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Notifikasi',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF000000),
-              ),
-            ),
-            if (_unreadCount > 0)
-              Text(
-                '$_unreadCount belum dibaca',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-          ],
+        title: const Text(
+          'Notifikasi',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF000000),
+          ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF000000)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          if (_unreadCount > 0)
-            TextButton(
-              onPressed: () {
-                // TODO: Call API to mark all notifications as read
-                // context.read<NotificationsBloc>().add(MarkAllAsRead());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Fitur ini sedang dalam pengembangan'),
-                    backgroundColor: Color(0xFF84994F),
-                  ),
-                );
-              },
-              child: const Text(
-                'Tandai Semua',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF84994F),
-                ),
-              ),
-            ),
-        ],
       ),
       body: Column(
         children: [
           const SizedBox(height: 8),
-          _buildFilterChips(),
-          const SizedBox(height: 8),
           Expanded(
-            child: _filteredNotifications.isEmpty
+            child: _notifications.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    itemCount: _filteredNotifications.length,
+                    itemCount: _notifications.length,
                     itemBuilder: (context, index) {
-                      return _buildNotificationItem(_filteredNotifications[index]);
+                      return _buildNotificationItem(_notifications[index]);
                     },
                   ),
           ),
@@ -152,49 +90,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          _buildFilterChip('Semua', 'all'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Belum Dibaca', 'unread'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Event', 'events'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Sosial', 'social'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, String value) {
-    final isSelected = _selectedFilter == value;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-      backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF84994F),
-      labelStyle: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: isSelected ? Colors.white : Colors.grey[700],
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFF84994F) : Colors.grey[300]!,
-        ),
-      ),
-    );
-  }
 
   Widget _buildNotificationItem(domain.Notification notification) {
     return Container(
@@ -290,38 +185,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildEmptyState() {
-    String message;
-    String icon;
-
-    switch (_selectedFilter) {
-      case 'unread':
-        message = 'Semua notifikasi sudah dibaca';
-        icon = '✓';
-        break;
-      case 'events':
-        message = 'Belum ada notifikasi event';
-        icon = '🎉';
-        break;
-      case 'social':
-        message = 'Belum ada notifikasi sosial';
-        icon = '👥';
-        break;
-      default:
-        message = 'Belum ada notifikasi nih';
-        icon = '🔔';
-    }
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            icon,
-            style: const TextStyle(fontSize: 64),
+          const Text(
+            '🔔',
+            style: TextStyle(fontSize: 64),
           ),
           const SizedBox(height: 16),
           Text(
-            message,
+            'Belum ada notifikasi nih',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
