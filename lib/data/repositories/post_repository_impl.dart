@@ -182,9 +182,17 @@ class PostRepositoryImpl implements PostRepository {
 
   @override
   Future<Either<Failure, PaginatedResponse<Post>>> getBookmarkedPosts({int limit = 20, int offset = 0}) async {
-    // TODO: Implement bookmarks API endpoint
-    // When implemented, parse meta field from API response
-    return Right(PaginatedResponse(data: const [], meta: PaginationMeta.empty()));
+    try {
+      final posts = await remoteDataSource.getBookmarkedPosts(limit: limit, offset: offset);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: posts, meta: meta));
+    } catch (e) {
+      return Left(ServerFailure('Failed to get bookmarked posts: $e'));
+    }
   }
 
   @override
@@ -220,6 +228,19 @@ class PostRepositoryImpl implements PostRepository {
       return Right(newComment);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Comment>> updateComment(Comment comment) async {
+    try {
+      final commentData = {
+        'content': comment.content,
+      };
+      final updatedComment = await remoteDataSource.updateComment(comment.id, commentData);
+      return Right(updatedComment);
+    } catch (e) {
+      return Left(ServerFailure('Failed to update comment: $e'));
     }
   }
 
@@ -283,8 +304,12 @@ class PostRepositoryImpl implements PostRepository {
 
   @override
   Future<Either<Failure, void>> deleteComment(String commentId) async {
-    // TODO: Implement when backend API is ready
-    return Left(ServerFailure('Delete comment not implemented yet'));
+    try {
+      await remoteDataSource.deleteComment(commentId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure('Failed to delete comment: $e'));
+    }
   }
 
   @override

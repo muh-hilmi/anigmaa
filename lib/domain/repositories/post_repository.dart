@@ -28,6 +28,7 @@ abstract class PostRepository {
   // Comments
   Future<Either<Failure, PaginatedResponse<Comment>>> getComments(String postId, {int limit = 20, int offset = 0});
   Future<Either<Failure, Comment>> createComment(Comment comment);
+  Future<Either<Failure, Comment>> updateComment(Comment comment);
   Future<Either<Failure, Comment>> likeComment(String postId, String commentId);
   Future<Either<Failure, Comment>> unlikeComment(String postId, String commentId);
   Future<Either<Failure, void>> deleteComment(String commentId);

@@ -17,8 +17,11 @@ abstract class PostRemoteDataSource {
   Future<void> undoRepost(String postId);
   Future<void> bookmarkPost(String postId);
   Future<void> unbookmarkPost(String postId);
+  Future<List<PostModel>> getBookmarkedPosts({int limit = 20, int offset = 0});
   Future<List<Comment>> getPostComments(String postId, {int page = 1, int limit = 20});
   Future<Comment> createComment(String postId, Map<String, dynamic> commentData);
+  Future<Comment> updateComment(String commentId, Map<String, dynamic> commentData);
+  Future<void> deleteComment(String commentId);
   Future<void> likeComment(String postId, String commentId);
   Future<void> unlikeComment(String postId, String commentId);
   Future<void> voteOnPoll(String postId, String pollId, String optionId);
@@ -285,6 +288,40 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   }
 
   @override
+  Future<List<PostModel>> getBookmarkedPosts({int limit = 20, int offset = 0}) async {
+    try {
+      final response = await dioClient.get(
+        '/posts/bookmarks',
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? response.data;
+        print('[PostRemoteDataSource] Parsing ${data.length} bookmarked posts...');
+
+        final posts = <PostModel>[];
+        for (var i = 0; i < data.length; i++) {
+          try {
+            final post = PostModel.fromJson(data[i]);
+            posts.add(post);
+          } catch (e, stackTrace) {
+            print('[PostRemoteDataSource] Failed to parse bookmarked post $i: $e');
+            print('[PostRemoteDataSource] Stack trace: $stackTrace');
+            // Continue parsing other posts instead of failing completely
+          }
+        }
+
+        print('[PostRemoteDataSource] Successfully parsed ${posts.length} bookmarked posts');
+        return posts;
+      } else {
+        throw ServerFailure('Failed to fetch bookmarked posts');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
   Future<List<Comment>> getPostComments(String postId, {int page = 1, int limit = 20}) async {
     try {
       // Convert page to offset (page 1 = offset 0)
@@ -344,6 +381,38 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
         return Comment.fromJson(responseData);
       } else {
         throw ServerFailure('Failed to create comment');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<Comment> updateComment(String commentId, Map<String, dynamic> commentData) async {
+    try {
+      final response = await dioClient.put(
+        '/posts/comments/$commentId',
+        data: commentData,
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data['data'] ?? response.data;
+        return Comment.fromJson(responseData);
+      } else {
+        throw ServerFailure('Failed to update comment');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    try {
+      final response = await dioClient.delete('/posts/comments/$commentId');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw ServerFailure('Failed to delete comment');
       }
     } on DioException catch (e) {
       throw _handleDioException(e);
