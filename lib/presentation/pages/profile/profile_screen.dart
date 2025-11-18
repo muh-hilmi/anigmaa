@@ -11,6 +11,8 @@ import '../settings/settings_screen.dart';
 import '../tickets/my_tickets_screen.dart';
 import '../transactions/transaction_history_screen.dart';
 import '../social/followers_screen.dart';
+import '../saved/saved_items_screen.dart';
+import '../qr/qr_code_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -474,8 +476,11 @@ class ProfileScreen extends StatelessWidget {
                 color: Colors.blue[700]!,
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur ini sedang dalam pengembangan')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SavedItemsScreen(),
+                    ),
                   );
                 },
               ),
@@ -486,8 +491,11 @@ class ProfileScreen extends StatelessWidget {
                 color: Colors.purple[700]!,
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur QR Code lagi on progress nih!')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const QRCodeScreen(),
+                    ),
                   );
                 },
               ),
