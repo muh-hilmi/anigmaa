@@ -302,7 +302,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                   radius: 16,
                   backgroundColor: const Color(0xFFFAF8F5),
                   child: Text(
-                    comment.author.name[0].toUpperCase(),
+                    comment.author.name.isNotEmpty
+                        ? comment.author.name[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -721,7 +723,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                             radius: 20,
                             backgroundColor: const Color(0xFFFAF8F5),
                             child: Text(
-                              widget.post.author.name[0].toUpperCase(),
+                              widget.post.author.name.isNotEmpty
+                                  ? widget.post.author.name[0].toUpperCase()
+                                  : '?',
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

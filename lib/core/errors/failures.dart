@@ -47,3 +47,11 @@ class AuthenticationFailure extends Failure {
 class AuthorizationFailure extends Failure {
   const AuthorizationFailure(super.message);
 }
+
+class BadRequestFailure extends Failure {
+  const BadRequestFailure(super.message);
+}
+
+class ForbiddenFailure extends Failure {
+  const ForbiddenFailure(super.message);
+}
