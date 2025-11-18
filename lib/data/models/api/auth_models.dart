@@ -4,25 +4,20 @@ import 'user_model.dart';
 part 'auth_models.g.dart';
 
 // Register Request
-// REVIEW: CRITICAL FIELD NAME MISMATCH - Backend expects "name" not "full_name".
-// Backend RegisterRequest at backend_anigmaa/internal/domain/user/entity.go:79 uses json:"name".
-// This @JsonKey(name: 'full_name') will cause ALL registrations to fail because backend validation
-// will reject the request with "name is required" error. The frontend is sending the wrong field name.
-// FIX: Change to @JsonKey(name: 'name') and rename the Dart field to just "name" for consistency.
 @JsonSerializable()
 class RegisterRequest {
   final String email;
   final String username;
   final String password;
-  @JsonKey(name: 'full_name')
-  final String fullName;
+  @JsonKey(name: 'name')
+  final String name;
   final String? phone;
 
   RegisterRequest({
     required this.email,
     required this.username,
     required this.password,
-    required this.fullName,
+    required this.name,
     this.phone,
   });
 

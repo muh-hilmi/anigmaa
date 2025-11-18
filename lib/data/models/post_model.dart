@@ -29,37 +29,23 @@ class PostModel extends Post {
     super.visibility = PostVisibility.public,
   });
 
-  // REVIEW: MULTIPLE FALLBACK PATTERN INDICATES BACKEND INCONSISTENCY
-  // This code tries 3 different ways to parse author: 'author' object, 'author_data' object, or fallback to 'author_id'.
-  // This defensive programming is a RED FLAG that backend is returning different response shapes for the same endpoint.
-  // Backend PostResponse.Author is defined as AuthorSummary (nested object) at post/entity.go:138, so frontend should ONLY
-  // expect json['author'] as an object, never 'author_data' or flat 'author_id'. The existence of these fallbacks means
-  // backend has inconsistent serialization - likely some endpoints return PostWithDetails (flat) vs PostResponse (nested).
-  // SOLUTION: Backend must standardize on ALWAYS using ToResponse() method before sending posts to frontend.
-  // Remove these fallback branches once backend is fixed - they mask the real problem and allow bugs to persist.
   factory PostModel.fromJson(Map<String, dynamic> json) {
-    // Handle author - could be full object or just ID
+    // Backend should always send author as nested object via ToResponse()
+    // Temporary fallback for backward compatibility during backend migration
     UserModel author;
     if (json['author'] != null && json['author'] is Map) {
       author = UserModel.fromJson(json['author']);
-    } else if (json['author_data'] != null && json['author_data'] is Map) {
-      author = UserModel.fromJson(json['author_data']);
     } else {
-      // Fallback: create minimal user from author_id
-      print('[PostModel] No author object found, using fallback. Available keys: ${json.keys.toList()}');
-      final authorId = json['author_id'] ?? json['authorId'] ?? 'unknown';
-      print('[PostModel] Author ID: $authorId');
+      // Temporary fallback - backend should use ToResponse() to send nested author object
+      final authorId = json['author_id'] ?? 'unknown';
 
       // Extract short username from UUID or use as-is if not UUID
       String displayName;
       if (authorId.toString().contains('-') && authorId.toString().length > 20) {
-        // It's a UUID, take first 8 characters
         displayName = 'User ${authorId.toString().substring(0, 8)}';
       } else {
         displayName = 'User $authorId';
       }
-
-      print('[PostModel] Using display name: $displayName');
 
       author = UserModel(
         id: authorId as String,
@@ -80,30 +66,30 @@ class PostModel extends Post {
         (e) => e.toString().split('.').last == json['type'],
         orElse: () => PostType.text,
       ),
-      imageUrls: List<String>.from(json['image_urls'] ?? json['imageUrls'] ?? []),
+      imageUrls: List<String>.from(json['image_urls'] ?? []),
       attachedEvent: _parseAttachedEvent(json),
       poll: json['poll'] != null ? PollModel.fromJson(json['poll']) : null,
-      createdAt: (json['created_at'] ?? json['createdAt']) != null
-          ? DateTime.parse(json['created_at'] ?? json['createdAt'] as String)
-          : DateTime.now(), // Fallback to now if not provided
-      editedAt: (json['updated_at'] ?? json['editedAt']) != null
-          ? DateTime.parse(json['updated_at'] ?? json['editedAt'] as String)
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      editedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
           : null,
-      likesCount: json['likes_count'] ?? json['likesCount'] as int? ?? 0,
-      commentsCount: json['comments_count'] ?? json['commentsCount'] as int? ?? 0,
-      repostsCount: json['reposts_count'] ?? json['repostsCount'] as int? ?? 0,
-      sharesCount: json['shares_count'] ?? json['sharesCount'] as int? ?? 0,
-      isLikedByCurrentUser: json['is_liked_by_current_user'] ?? json['isLikedByCurrentUser'] as bool? ?? false,
-      isRepostedByCurrentUser: json['is_reposted_by_current_user'] ?? json['isRepostedByCurrentUser'] as bool? ?? false,
-      isBookmarked: json['is_bookmarked'] ?? json['isBookmarked'] as bool? ?? false,
-      originalPost: (json['original_post'] ?? json['originalPost']) != null
-          ? PostModel.fromJson(json['original_post'] ?? json['originalPost'])
+      likesCount: json['likes_count'] as int? ?? 0,
+      commentsCount: json['comments_count'] as int? ?? 0,
+      repostsCount: json['reposts_count'] as int? ?? 0,
+      sharesCount: json['shares_count'] as int? ?? 0,
+      isLikedByCurrentUser: json['is_liked_by_user'] as bool? ?? false,
+      isRepostedByCurrentUser: json['is_reposted_by_user'] as bool? ?? false,
+      isBookmarked: json['is_bookmarked'] as bool? ?? false,
+      originalPost: json['original_post'] != null
+          ? PostModel.fromJson(json['original_post'])
           : null,
-      repostAuthor: (json['repost_author'] ?? json['repostAuthor']) != null
-          ? UserModel.fromJson(json['repost_author'] ?? json['repostAuthor'])
+      repostAuthor: json['repost_author'] != null
+          ? UserModel.fromJson(json['repost_author'])
           : null,
-      repostedAt: (json['reposted_at'] ?? json['repostedAt']) != null
-          ? DateTime.parse(json['reposted_at'] ?? json['repostedAt'] as String)
+      repostedAt: json['reposted_at'] != null
+          ? DateTime.parse(json['reposted_at'] as String)
           : null,
       hashtags: List<String>.from(json['hashtags'] ?? []),
       mentions: List<String>.from(json['mentions'] ?? []),
@@ -174,22 +160,17 @@ class PostModel extends Post {
 
   static Event? _parseAttachedEvent(Map<String, dynamic> json) {
     try {
-      final eventData = json['attached_event'] ?? json['attachedEvent'];
+      final eventData = json['attached_event'];
       if (eventData == null) {
-        print('[PostModel] No attached_event found in post ${json['id']}');
         return null;
       }
 
-      print('[PostModel] Found attached event data in post ${json['id']}: ${eventData.runtimeType}');
-
-      // Try to parse as EventModel
+      // Parse as EventModel
       final event = EventModel.fromJson(eventData);
-      print('[PostModel] Successfully parsed attached event: ${event.id} - ${event.title}');
       return event;
     } catch (e, stackTrace) {
       print('[PostModel] Error parsing attached event: $e');
       print('[PostModel] Stack trace: $stackTrace');
-      print('[PostModel] Event data: ${json['attached_event'] ?? json['attachedEvent']}');
       return null;
     }
   }

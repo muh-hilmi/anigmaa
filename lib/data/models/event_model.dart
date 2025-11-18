@@ -25,50 +25,43 @@ class EventModel extends Event {
     super.requirements,
   });
 
-  // REVIEW: DUAL NAMING CONVENTION FALLBACKS INDICATE LACK OF STANDARDIZATION
-  // Frontend is doing ?? fallbacks for every field: snake_case ?? camelCase. This is a symptom of backend not having
-  // a clear serialization standard. Backend Event entity uses snake_case consistently (start_time, end_time, etc.),
-  // but frontend is hedging bets by accepting both. This is technical debt that will cause confusion.
-  // DECISION: Backend MUST use snake_case for all JSON fields (already mostly doing this). Remove camelCase fallbacks
-  // from frontend once backend is verified to be 100% snake_case. Document this as THE standard in API guidelines.
   factory EventModel.fromJson(Map<String, dynamic> json) {
-    // Support both camelCase and snake_case from backend
-    final startTime = json['start_time'] ?? json['startTime'];
-    final endTime = json['end_time'] ?? json['endTime'];
-    final imageUrls = json['image_urls'] ?? json['imageUrls'];
-    final maxAttendees = json['max_attendees'] ?? json['maxAttendees'];
+    // Backend uses snake_case consistently
+    final startTime = json['start_time'];
+    final endTime = json['end_time'];
+    final imageUrls = json['image_urls'];
+    final maxAttendees = json['max_attendees'];
 
     // Handle attendee_ids or attendees_count from backend
-    final attendeeIds = json['attendee_ids'] ?? json['attendeeIds'];
-    final attendeesCount = json['attendees_count'] ?? json['attendeesCount'];
+    final attendeeIds = json['attendee_ids'];
+    final attendeesCount = json['attendees_count'];
 
-    final isFree = json['is_free'] ?? json['isFree'];
-    final pendingRequests = json['pending_requests'] ?? json['pendingRequests'];
+    final isFree = json['is_free'];
+    final pendingRequests = json['pending_requests'];
 
-    // REVIEW: NESTED VS FLAT STRUCTURE FALLBACK - Another sign of backend inconsistency
-    // Some endpoints return location:{name, address, lat, lng} while others return location_name, location_address, etc.
-    // Backend EventWithDetails returns flat fields (location_name, location_lat) but should normalize to nested Location object.
-    // Parse location - support both nested object and flat fields
+    // Parse location - expect nested object (backend standard)
+    // Fallback to flat fields for backward compatibility (should be removed once backend is standardized)
     EventLocationModel location;
-    if (json['location'] != null) {
+    if (json['location'] != null && json['location'] is Map) {
       location = EventLocationModel.fromJson(json['location']);
     } else {
-      // Backend sends flat fields
+      // Temporary fallback for legacy flat fields - backend should use nested Location object
       location = EventLocationModel(
         name: json['location_name'] as String? ?? '',
         address: json['location_address'] as String? ?? '',
-        latitude: (json['location_lat'] ?? json['latitude'])?.toDouble() ?? 0.0,
-        longitude: (json['location_lng'] ?? json['longitude'])?.toDouble() ?? 0.0,
+        latitude: json['location_lat']?.toDouble() ?? 0.0,
+        longitude: json['location_lng']?.toDouble() ?? 0.0,
         venue: json['venue'] as String?,
       );
     }
 
-    // Parse host - support both nested object and flat fields
+    // Parse host - expect nested object (backend standard)
+    // Fallback to flat fields for backward compatibility (should be removed once backend is standardized)
     EventHostModel host;
-    if (json['host'] != null) {
+    if (json['host'] != null && json['host'] is Map) {
       host = EventHostModel.fromJson(json['host']);
     } else {
-      // Backend sends flat fields
+      // Temporary fallback for legacy flat fields - backend should use nested Host object
       host = EventHostModel(
         id: json['host_id'] as String? ?? '',
         name: json['host_name'] as String? ?? 'Unknown',
@@ -175,18 +168,15 @@ class EventHostModel extends EventHost {
   });
 
   factory EventHostModel.fromJson(Map<String, dynamic> json) {
-    // Support both camelCase and snake_case from backend
-    final isVerified = json['is_verified'] ?? json['isVerified'];
-    final eventsHosted = json['events_hosted'] ?? json['eventsHosted'];
-
+    // Backend uses snake_case consistently
     return EventHostModel(
       id: json['id'] as String,
       name: json['name'] as String,
       avatar: json['avatar'] as String,
       bio: json['bio'] as String? ?? '',
-      isVerified: isVerified as bool? ?? false,
+      isVerified: json['is_verified'] as bool? ?? false,
       rating: json['rating']?.toDouble() ?? 0.0,
-      eventsHosted: eventsHosted as int? ?? 0,
+      eventsHosted: json['events_hosted'] as int? ?? 0,
     );
   }
 

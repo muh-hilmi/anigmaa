@@ -37,23 +37,27 @@ class Comment extends Equatable {
   bool get isReply => parentCommentId != null;
 
   factory Comment.fromJson(Map<String, dynamic> json) {
-    // Handle both nested author object and flat structure from backend
+    // Backend should send author as nested object (snake_case fields)
+    // Temporary fallback for backward compatibility
     final User author;
     if (json['author'] != null && json['author'] is Map) {
-      // Nested structure
+      final authorData = json['author'] as Map<String, dynamic>;
       author = User(
-        id: json['author']['id'] as String,
-        email: json['author']['email'] as String? ?? '',
-        name: json['author']['name'] as String,
-        bio: json['author']['bio'] as String?,
-        avatar: json['author']['avatar'] as String?,
-        createdAt: DateTime.parse(json['author']['createdAt'] as String),
+        id: authorData['id'] as String,
+        email: authorData['email'] as String? ?? '',
+        name: authorData['name'] as String,
+        bio: authorData['bio'] as String?,
+        avatar: authorData['avatar_url'] as String?,
+        isVerified: authorData['is_verified'] as bool? ?? false,
+        createdAt: authorData['created_at'] != null
+            ? DateTime.parse(authorData['created_at'] as String)
+            : DateTime.now(),
         settings: const UserSettings(),
         stats: const UserStats(),
         privacy: const UserPrivacy(),
       );
     } else {
-      // Flat structure from backend API
+      // Temporary fallback for legacy flat structure
       author = User(
         id: json['author_id'] as String,
         email: '',
@@ -70,17 +74,17 @@ class Comment extends Equatable {
 
     return Comment(
       id: json['id'] as String,
-      postId: (json['postId'] ?? json['post_id']) as String,
+      postId: json['post_id'] as String,
       author: author,
       content: json['content'] as String,
-      createdAt: DateTime.parse(json['createdAt'] ?? json['created_at'] as String),
-      editedAt: (json['editedAt'] ?? json['updated_at']) != null
-          ? DateTime.parse((json['editedAt'] ?? json['updated_at']) as String)
+      createdAt: DateTime.parse(json['created_at'] as String),
+      editedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
           : null,
-      parentCommentId: (json['parentCommentId'] ?? json['parent_comment_id']) as String?,
-      repliesCount: (json['repliesCount'] ?? json['replies_count']) as int? ?? 0,
-      likesCount: (json['likesCount'] ?? json['likes_count']) as int? ?? 0,
-      isLikedByCurrentUser: (json['isLikedByCurrentUser'] ?? json['is_liked_by_user']) as bool? ?? false,
+      parentCommentId: json['parent_comment_id'] as String?,
+      repliesCount: json['replies_count'] as int? ?? 0,
+      likesCount: json['likes_count'] as int? ?? 0,
+      isLikedByCurrentUser: json['is_liked_by_user'] as bool? ?? false,
       mentions: List<String>.from(json['mentions'] ?? []),
     );
   }
