@@ -1,13 +1,14 @@
 import 'package:dartz/dartz.dart';
 import '../../core/errors/failures.dart';
+import '../../core/models/pagination.dart';
 import '../entities/event.dart';
 import '../entities/event_category.dart';
 
 abstract class EventRepository {
-  Future<Either<Failure, List<Event>>> getEvents();
-  Future<Either<Failure, List<Event>>> getEventsByCategory(EventCategory category);
-  Future<Either<Failure, List<Event>>> getNearbyEvents();
-  Future<Either<Failure, List<Event>>> getStartingSoonEvents();
+  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0});
+  Future<Either<Failure, PaginatedResponse<Event>>> getEventsByCategory(EventCategory category, {int limit = 20, int offset = 0});
+  Future<Either<Failure, PaginatedResponse<Event>>> getNearbyEvents({int limit = 20, int offset = 0});
+  Future<Either<Failure, PaginatedResponse<Event>>> getStartingSoonEvents({int limit = 20, int offset = 0});
   Future<Either<Failure, Event>> getEventById(String id);
   Future<Either<Failure, Event>> createEvent(Event event);
   Future<Either<Failure, Event>> updateEvent(Event event);

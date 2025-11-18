@@ -30,11 +30,12 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   ) async {
     emit(EventsLoading());
 
-    final result = await getEvents(const NoParams());
+    final result = await getEvents(const GetEventsParams(limit: 20, offset: 0));
 
     result.fold(
       (failure) => emit(EventsError(failure.message)),
-      (events) {
+      (paginatedResponse) {
+        final events = paginatedResponse.data;
         // Filter untuk hanya menampilkan event yang belum selesai
         final futureEvents = events.where((event) => !event.hasEnded).toList();
         final nearbyEvents = futureEvents.where((event) => event.isStartingSoon).toList();
@@ -42,6 +43,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
           events: events,
           filteredEvents: futureEvents,
           nearbyEvents: nearbyEvents,
+          paginationMeta: paginatedResponse.meta,
         ));
       },
     );
@@ -52,17 +54,18 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     Emitter<EventsState> emit,
   ) async {
     final result = await getEventsByCategory(
-      GetEventsByCategoryParams(category: event.category),
+      GetEventsByCategoryParams(category: event.category, limit: 20, offset: 0),
     );
 
     result.fold(
       (failure) => emit(EventsError(failure.message)),
-      (events) {
+      (paginatedResponse) {
         if (state is EventsLoaded) {
           final currentState = state as EventsLoaded;
           emit(currentState.copyWith(
-            filteredEvents: events,
+            filteredEvents: paginatedResponse.data,
             selectedCategory: event.category,
+            paginationMeta: paginatedResponse.meta,
           ));
         }
       },

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../core/models/pagination.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
 
@@ -17,6 +18,8 @@ class EventsLoaded extends EventsState {
   final List<Event> events;
   final List<Event> filteredEvents;
   final List<Event> nearbyEvents;
+  final PaginationMeta? paginationMeta;
+  final PaginationMeta? nearbyPaginationMeta;
   final EventCategory? selectedCategory;
   final bool isCreatingEvent;
   final String? createErrorMessage;
@@ -26,17 +29,25 @@ class EventsLoaded extends EventsState {
     required this.events,
     required this.filteredEvents,
     required this.nearbyEvents,
+    this.paginationMeta,
+    this.nearbyPaginationMeta,
     this.selectedCategory,
     this.isCreatingEvent = false,
     this.createErrorMessage,
     this.successMessage,
   });
 
+  // Computed properties for pagination
+  bool get hasMore => paginationMeta?.hasNext ?? false;
+  int get currentOffset => paginationMeta?.nextOffset ?? events.length;
+
   @override
   List<Object?> get props => [
         events,
         filteredEvents,
         nearbyEvents,
+        paginationMeta,
+        nearbyPaginationMeta,
         selectedCategory,
         isCreatingEvent,
         createErrorMessage,
@@ -47,6 +58,8 @@ class EventsLoaded extends EventsState {
     List<Event>? events,
     List<Event>? filteredEvents,
     List<Event>? nearbyEvents,
+    PaginationMeta? paginationMeta,
+    PaginationMeta? nearbyPaginationMeta,
     EventCategory? selectedCategory,
     bool? isCreatingEvent,
     String? createErrorMessage,
@@ -56,6 +69,8 @@ class EventsLoaded extends EventsState {
       events: events ?? this.events,
       filteredEvents: filteredEvents ?? this.filteredEvents,
       nearbyEvents: nearbyEvents ?? this.nearbyEvents,
+      paginationMeta: paginationMeta ?? this.paginationMeta,
+      nearbyPaginationMeta: nearbyPaginationMeta ?? this.nearbyPaginationMeta,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       isCreatingEvent: isCreatingEvent ?? this.isCreatingEvent,
       createErrorMessage: createErrorMessage,
@@ -68,6 +83,8 @@ class EventsLoaded extends EventsState {
       events: events,
       filteredEvents: filteredEvents,
       nearbyEvents: nearbyEvents,
+      paginationMeta: paginationMeta,
+      nearbyPaginationMeta: nearbyPaginationMeta,
       selectedCategory: selectedCategory,
       isCreatingEvent: isCreatingEvent,
       createErrorMessage: null,

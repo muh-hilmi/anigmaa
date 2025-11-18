@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../core/errors/failures.dart';
+import '../../core/models/pagination.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_category.dart';
 import '../../domain/repositories/event_repository.dart';
@@ -17,13 +18,18 @@ class EventRepositoryImpl implements EventRepository {
   });
 
   @override
-  Future<Either<Failure, List<Event>>> getEvents() async {
+  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0}) async {
     try {
       // Fetch from remote only - no fallback
       final events = await remoteDataSource.getEvents();
       // Cache the events locally for future use
       await localDataSource.cacheEvents(events);
-      return Right(events);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: events, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
@@ -32,14 +38,19 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Either<Failure, List<Event>>> getEventsByCategory(EventCategory category) async {
+  Future<Either<Failure, PaginatedResponse<Event>>> getEventsByCategory(EventCategory category, {int limit = 20, int offset = 0}) async {
     try {
       // Fetch from remote only - no fallback
       final categoryString = category.toString().split('.').last;
       final events = await remoteDataSource.getEventsByCategory(categoryString);
       // Cache the events locally
       await localDataSource.cacheEvents(events);
-      return Right(events);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: events, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
@@ -48,23 +59,33 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Either<Failure, List<Event>>> getNearbyEvents() async {
+  Future<Either<Failure, PaginatedResponse<Event>>> getNearbyEvents({int limit = 20, int offset = 0}) async {
     try {
       final events = await localDataSource.getEvents();
       // In real implementation, this would filter by location
-      final nearbyEvents = events.take(3).toList();
-      return Right(nearbyEvents);
+      final nearbyEvents = events.take(limit).toList();
+
+      // TODO: Use real backend endpoint GET /events/nearby with pagination
+      // For now, create empty meta
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: nearbyEvents, meta: meta));
     } catch (e) {
       return Left(CacheFailure('Failed to get nearby events: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, List<Event>>> getStartingSoonEvents() async {
+  Future<Either<Failure, PaginatedResponse<Event>>> getStartingSoonEvents({int limit = 20, int offset = 0}) async {
     try {
       final events = await localDataSource.getEvents();
-      final startingSoonEvents = events.where((event) => event.isStartingSoon).toList();
-      return Right(startingSoonEvents);
+      final startingSoonEvents = events.where((event) => event.isStartingSoon).take(limit).toList();
+
+      // TODO: Use real backend endpoint with pagination
+      // For now, create empty meta
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: startingSoonEvents, meta: meta));
     } catch (e) {
       return Left(CacheFailure('Failed to get starting soon events: $e'));
     }
