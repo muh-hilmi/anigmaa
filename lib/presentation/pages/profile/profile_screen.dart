@@ -273,7 +273,7 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) {
         final effectiveContext = context ?? ctx;
         return GestureDetector(
-          onTap: () => _handleStatClick(effectiveContext, label, userId),
+          onTap: () => _handleStatClick(effectiveContext, label, userId, value),
           child: Column(
             children: [
               Text(
@@ -300,7 +300,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _handleStatClick(BuildContext context, String label, String userId) {
+  void _handleStatClick(BuildContext context, String label, String userId, String value) {
     if (label == 'Pengikut') {
       Navigator.push(
         context,
