@@ -150,24 +150,40 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         }
 
         if (state is CommunitiesError) {
+          // Log error instead of showing to user
+          print('Communities Error: ${state.message}');
+
+          // Show empty state instead of error
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const Icon(
+                  Icons.groups_outlined,
+                  size: 80,
+                  color: Colors.grey,
+                ),
                 const SizedBox(height: 16),
                 Text(
-                  state.message,
-                  style: const TextStyle(
+                  'Kamu belum join community',
+                  style: TextStyle(
                     fontSize: 16,
+                    color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Explore dan join community sekarang!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<CommunitiesBloc>().add(LoadJoinedCommunities());
+                    _tabController.animateTo(0);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF84994F),
@@ -177,7 +193,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                     ),
                   ),
                   child: const Text(
-                    'Coba Lagi',
+                    'Jelajah Communities',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,

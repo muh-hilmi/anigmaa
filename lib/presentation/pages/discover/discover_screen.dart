@@ -43,29 +43,29 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   void _categorizeEvents(List<Event> events) {
     final now = DateTime.now();
 
-    // 1. Trending: Events with high attendees and happening soon
-    _trendingEvents = events.where((event) {
+    // Filter out past events
+    final upcomingEvents = events.where((event) => event.startTime.isAfter(now)).toList();
+
+    // 1. Trending: Events happening soon (within 48 hours) with some attendees
+    _trendingEvents = upcomingEvents.where((event) {
       final hoursUntilStart = event.startTime.difference(now).inHours;
       return hoursUntilStart > 0 &&
              hoursUntilStart <= 48 &&
-             event.currentAttendees >= 10;
+             event.currentAttendees >= 1; // Lowered from 10 to 1
     }).toList()
       ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees));
 
-    // 2. Most Joined: Events sorted by attendee count
-    _mostJoinedEvents = List<Event>.from(events)
-      ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees))
-      ..take(10).toList();
+    // 2. Most Joined: Events sorted by attendee count (take top 10)
+    _mostJoinedEvents = (List<Event>.from(upcomingEvents)
+      ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees)))
+      .take(10).toList();
 
     // 3. For You (FYP): Mix of different categories (personalized later)
-    _forYouEvents = events.where((event) {
-      return event.startTime.isAfter(now);
-    }).toList();
+    _forYouEvents = upcomingEvents;
 
-    // 4. Chill: Small intimate events (< 20 people)
-    _chillEvents = events.where((event) {
-      return event.maxAttendees <= 20 &&
-             event.startTime.isAfter(now);
+    // 4. Chill: Small intimate events (<= 50 people, increased from 20)
+    _chillEvents = upcomingEvents.where((event) {
+      return event.maxAttendees <= 50;
     }).toList();
   }
 
