@@ -17,6 +17,9 @@ class UserModel extends User {
     required super.privacy,
   });
 
+  // REVIEW: DUAL NAMING CONVENTION FALLBACKS - This is technical debt from backend inconsistency
+  // Backend SHOULD always use snake_case (avatar_url, created_at, is_verified) but this code hedges with both formats.
+  // Once backend is confirmed 100% snake_case, remove camelCase fallbacks to catch future regressions early.
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // Support both camelCase and snake_case from backend
     final avatarUrl = json['avatar'] ?? json['avatar_url'];
@@ -101,6 +104,12 @@ class UserSettingsModel extends UserSettings {
     super.showOnlineStatus = true,
   });
 
+  // REVIEW: CRITICAL FIELD NAME MISMATCH - Backend returns snake_case but frontend expects camelCase
+  // Backend UserSettings uses: push_notifications, email_notifications, dark_mode, show_online_status
+  // This code expects: pushNotifications, emailNotifications, darkMode, showOnlineStatus
+  // IMPACT: User settings will ALWAYS show default values, never persisted preferences from backend
+  // Users change dark mode to true, it saves to backend as dark_mode=true, but frontend reads darkMode (null) and shows false
+  // FIX: Change all json keys to snake_case: json['push_notifications'], json['email_notifications'], etc.
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
     return UserSettingsModel(
       pushNotifications: json['pushNotifications'] as bool? ?? true,
@@ -134,6 +143,13 @@ class UserStatsModel extends UserStats {
     super.averageRating = 0.0,
   });
 
+  // REVIEW: CRITICAL FIELD NAME MISMATCH - Backend returns snake_case but frontend expects camelCase
+  // Backend UserStats uses: events_attended, events_created, followers_count, following_count
+  // This code expects: eventsAttended, eventsCreated, followersCount, followingCount
+  // IMPACT: Profile screens show 0 for all stats even when user has events/followers/etc
+  // User creates 10 events, backend stores events_created=10, frontend reads eventsCreated (null) and shows 0
+  // This makes profiles look empty and inactive, severely degrading perceived user engagement
+  // FIX: Change all json keys to snake_case: json['events_attended'], json['events_created'], etc.
   factory UserStatsModel.fromJson(Map<String, dynamic> json) {
     return UserStatsModel(
       eventsAttended: json['eventsAttended'] as int? ?? 0,
