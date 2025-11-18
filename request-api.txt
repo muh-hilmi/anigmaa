@@ -203,7 +203,18 @@ Semua request (kecuali login/register) harus include:
 **Endpoint:** GET /events
 **Query Params:**
 - category: string (optional) "meetup|sports|workshop|music|food|gaming"
+- mode: string (optional) "for_you|trending|chill" (untuk Discover page filtering)
 - limit, offset
+
+**Mode Parameter Explanation:**
+- **trending**: Return events sorted by popularity (high attendance) and starting soon
+- **for_you**: Return personalized mix of events based on user preferences
+- **chill**: Return relaxed events (meetup, food, music categories) and free events
+
+**CATATAN IMPLEMENTASI:**
+- ⚠️ Backend belum support parameter `mode` - saat ini frontend melakukan filtering di client-side
+- ✅ Frontend sudah kirim parameter `mode` ke API
+- 🚀 TODO Backend: Implementasi filtering berdasarkan `mode` di backend untuk performa lebih baik
 
 **Response:**
 ```json

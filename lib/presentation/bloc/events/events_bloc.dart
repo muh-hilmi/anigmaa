@@ -55,21 +55,112 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
   ) async {
     emit(EventsLoading());
 
+    // Note: Backend doesn't support mode parameter yet, so we filter on client-side
     final result = await getEvents(GetEventsParams(limit: 50, offset: 0, mode: event.mode));
 
     result.fold(
       (failure) => emit(EventsError(failure.message)),
       (paginatedResponse) {
         final allEvents = paginatedResponse.data;
-        final nearbyEvents = allEvents.where((event) => event.isStartingSoon).toList();
+
+        // Apply client-side filtering based on mode
+        final filteredByMode = _filterEventsByMode(allEvents, event.mode);
+
+        final nearbyEvents = filteredByMode.where((event) => event.isStartingSoon).toList();
         emit(EventsLoaded(
-          events: allEvents,
-          filteredEvents: allEvents,
+          events: filteredByMode,
+          filteredEvents: filteredByMode,
           nearbyEvents: nearbyEvents,
           paginationMeta: paginatedResponse.meta,
         ));
       },
     );
+  }
+
+  /// Filter and sort events based on discovery mode
+  List<Event> _filterEventsByMode(List<Event> events, String mode) {
+    final now = DateTime.now();
+
+    switch (mode) {
+      case 'trending':
+        // Trending: Most popular events (high attendance) and starting soon
+        final sortedEvents = List<Event>.from(events);
+        sortedEvents.sort((a, b) {
+          // First priority: events starting within next 7 days
+          final aStartingSoon = a.startTime.difference(now).inDays <= 7;
+          final bStartingSoon = b.startTime.difference(now).inDays <= 7;
+
+          if (aStartingSoon && !bStartingSoon) return -1;
+          if (!aStartingSoon && bStartingSoon) return 1;
+
+          // Second priority: number of attendees (popularity)
+          final attendeeDiff = b.currentAttendees.compareTo(a.currentAttendees);
+          if (attendeeDiff != 0) return attendeeDiff;
+
+          // Third priority: closer start time
+          return a.startTime.compareTo(b.startTime);
+        });
+        return sortedEvents;
+
+      case 'chill':
+        // Chill: Relaxed events (meetup, food, music) and free events
+        final chillCategories = ['meetup', 'food', 'music'];
+        final chillEvents = events.where((event) {
+          final categoryStr = event.category.toString().split('.').last.toLowerCase();
+          return event.isFree || chillCategories.contains(categoryStr);
+        }).toList();
+
+        // Sort by start time (upcoming first)
+        chillEvents.sort((a, b) {
+          // Prioritize free events
+          if (a.isFree && !b.isFree) return -1;
+          if (!a.isFree && b.isFree) return 1;
+
+          // Then by start time
+          return a.startTime.compareTo(b.startTime);
+        });
+
+        return chillEvents.isNotEmpty ? chillEvents : events;
+
+      case 'for_you':
+      default:
+        // For You: Diverse mix of categories, balanced recommendation
+        final sortedEvents = List<Event>.from(events);
+
+        // Create a balanced mix: some popular, some upcoming, some diverse categories
+        sortedEvents.sort((a, b) {
+          final now = DateTime.now();
+
+          // Score based on multiple factors
+          int scoreA = 0;
+          int scoreB = 0;
+
+          // Factor 1: Starting within next 14 days (+3 points)
+          if (a.startTime.difference(now).inDays <= 14 && a.startTime.isAfter(now)) {
+            scoreA += 3;
+          }
+          if (b.startTime.difference(now).inDays <= 14 && b.startTime.isAfter(now)) {
+            scoreB += 3;
+          }
+
+          // Factor 2: Good attendance (+2 points if > 10 people)
+          if (a.currentAttendees > 10) scoreA += 2;
+          if (b.currentAttendees > 10) scoreB += 2;
+
+          // Factor 3: Free events (+1 point)
+          if (a.isFree) scoreA += 1;
+          if (b.isFree) scoreB += 1;
+
+          // Compare scores
+          final scoreDiff = scoreB.compareTo(scoreA);
+          if (scoreDiff != 0) return scoreDiff;
+
+          // If equal scores, sort by start time
+          return a.startTime.compareTo(b.startTime);
+        });
+
+        return sortedEvents;
+    }
   }
 
   Future<void> _onLoadEventsByCategory(
