@@ -5,7 +5,7 @@ import '../models/event_model.dart';
 import '../models/user_model.dart';
 
 abstract class EventRemoteDataSource {
-  Future<List<EventModel>> getEvents();
+  Future<List<EventModel>> getEvents({String? mode});
   Future<List<EventModel>> getEventsByCategory(String category);
   Future<EventModel> getEventById(String id);
   Future<EventModel> createEvent(Map<String, dynamic> eventData);
@@ -26,10 +26,11 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   EventRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<EventModel>> getEvents() async {
+  Future<List<EventModel>> getEvents({String? mode}) async {
     try {
-      print('[EventRemoteDataSource] Fetching events...');
-      final response = await dioClient.get('/events');
+      print('[EventRemoteDataSource] Fetching events with mode: $mode');
+      final queryParams = mode != null ? {'mode': mode} : null;
+      final response = await dioClient.get('/events', queryParameters: queryParams);
       print('[EventRemoteDataSource] Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {

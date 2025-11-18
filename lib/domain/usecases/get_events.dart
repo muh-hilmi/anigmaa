@@ -15,6 +15,7 @@ class GetEvents implements UseCase<PaginatedResponse<Event>, GetEventsParams> {
     return await repository.getEvents(
       limit: params.limit,
       offset: params.offset,
+      mode: params.mode,
     );
   }
 }
@@ -22,9 +23,11 @@ class GetEvents implements UseCase<PaginatedResponse<Event>, GetEventsParams> {
 class GetEventsParams {
   final int limit;
   final int offset;
+  final String? mode; // 'trending', 'for_you', 'chill'
 
   const GetEventsParams({
     this.limit = 20,
     this.offset = 0,
+    this.mode,
   });
 }

@@ -11,6 +11,15 @@ abstract class EventsEvent extends Equatable {
 
 class LoadEvents extends EventsEvent {}
 
+class LoadEventsByMode extends EventsEvent {
+  final String? mode; // 'trending', 'for_you', 'chill'
+
+  const LoadEventsByMode({this.mode});
+
+  @override
+  List<Object?> get props => [mode];
+}
+
 class LoadEventsByCategory extends EventsEvent {
   final EventCategory category;
 

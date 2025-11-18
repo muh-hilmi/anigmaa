@@ -5,7 +5,7 @@ import '../entities/event.dart';
 import '../entities/event_category.dart';
 
 abstract class EventRepository {
-  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0});
+  Future<Either<Failure, PaginatedResponse<Event>>> getEvents({int limit = 20, int offset = 0, String? mode});
   Future<Either<Failure, PaginatedResponse<Event>>> getEventsByCategory(EventCategory category, {int limit = 20, int offset = 0});
   Future<Either<Failure, PaginatedResponse<Event>>> getNearbyEvents({int limit = 20, int offset = 0});
   Future<Either<Failure, PaginatedResponse<Event>>> getStartingSoonEvents({int limit = 20, int offset = 0});

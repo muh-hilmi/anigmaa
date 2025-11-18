@@ -17,6 +17,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     required this.createEvent,
   }) : super(EventsInitial()) {
     on<LoadEvents>(_onLoadEvents);
+    on<LoadEventsByMode>(_onLoadEventsByMode);
     on<LoadEventsByCategory>(_onLoadEventsByCategory);
     on<FilterEventsByCategory>(_onFilterEventsByCategory);
     on<CreateEventRequested>(_onCreateEvent);
@@ -37,6 +38,29 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
       (paginatedResponse) {
         final allEvents = paginatedResponse.data;
         // No longer filtering past events - let UI handle display
+        final nearbyEvents = allEvents.where((event) => event.isStartingSoon).toList();
+        emit(EventsLoaded(
+          events: allEvents,
+          filteredEvents: allEvents,
+          nearbyEvents: nearbyEvents,
+          paginationMeta: paginatedResponse.meta,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onLoadEventsByMode(
+    LoadEventsByMode event,
+    Emitter<EventsState> emit,
+  ) async {
+    emit(EventsLoading());
+
+    final result = await getEvents(GetEventsParams(limit: 50, offset: 0, mode: event.mode));
+
+    result.fold(
+      (failure) => emit(EventsError(failure.message)),
+      (paginatedResponse) {
+        final allEvents = paginatedResponse.data;
         final nearbyEvents = allEvents.where((event) => event.isStartingSoon).toList();
         emit(EventsLoaded(
           events: allEvents,
