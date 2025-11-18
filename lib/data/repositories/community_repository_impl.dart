@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../core/errors/failures.dart';
+import '../../core/models/pagination.dart';
 import '../../domain/entities/community.dart';
 import '../../domain/entities/community_category.dart';
 import '../../domain/repositories/community_repository.dart';
@@ -16,7 +17,7 @@ class CommunityRepositoryImpl implements CommunityRepository {
   });
 
   @override
-  Future<Either<Failure, List<Community>>> getCommunities() async {
+  Future<Either<Failure, PaginatedResponse<Community>>> getCommunities({int limit = 20, int offset = 0}) async {
     try {
       // Fetch from API
       final communityModels = await remoteDataSource.getCommunities();
@@ -25,14 +26,19 @@ class CommunityRepositoryImpl implements CommunityRepository {
       // Cache locally
       await localDataSource.cacheCommunities(communities);
 
-      return Right(communities);
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: communities, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
       // If API fails, try to get from cache
       try {
         final communities = await localDataSource.getCommunities();
-        return Right(communities);
+        final meta = PaginationMeta.empty();
+        return Right(PaginatedResponse(data: communities, meta: meta));
       } catch (cacheError) {
         return Left(ServerFailure('Failed to get communities: $e'));
       }
@@ -40,12 +46,17 @@ class CommunityRepositoryImpl implements CommunityRepository {
   }
 
   @override
-  Future<Either<Failure, List<Community>>> getCommunitiesByLocation(String location) async {
+  Future<Either<Failure, PaginatedResponse<Community>>> getCommunitiesByLocation(String location, {int limit = 20, int offset = 0}) async {
     try {
       // Search communities by location using search parameter
       final communityModels = await remoteDataSource.getCommunities(search: location);
       final communities = communityModels.map((model) => model.toEntity()).toList();
-      return Right(communities);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: communities, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
@@ -54,7 +65,7 @@ class CommunityRepositoryImpl implements CommunityRepository {
   }
 
   @override
-  Future<Either<Failure, List<Community>>> getCommunitiesByCategory(CommunityCategory category) async {
+  Future<Either<Failure, PaginatedResponse<Community>>> getCommunitiesByCategory(CommunityCategory category, {int limit = 20, int offset = 0}) async {
     try {
       // Get all communities and filter by category
       final communityModels = await remoteDataSource.getCommunities();
@@ -62,7 +73,12 @@ class CommunityRepositoryImpl implements CommunityRepository {
           .map((model) => model.toEntity())
           .where((community) => community.category == category)
           .toList();
-      return Right(communities);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: communities, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
@@ -71,12 +87,17 @@ class CommunityRepositoryImpl implements CommunityRepository {
   }
 
   @override
-  Future<Either<Failure, List<Community>>> getJoinedCommunities(String userId) async {
+  Future<Either<Failure, PaginatedResponse<Community>>> getJoinedCommunities(String userId, {int limit = 20, int offset = 0}) async {
     try {
       // Get user's joined communities from API
       final communityModels = await remoteDataSource.getMyCommunities();
       final communities = communityModels.map((model) => model.toEntity()).toList();
-      return Right(communities);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: communities, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
