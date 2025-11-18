@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
@@ -105,7 +106,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: BlocBuilder<EventsBloc, EventsState>(
+      body: BlocConsumer<EventsBloc, EventsState>(
+        listener: (context, state) {
+          // Log errors instead of showing to user
+          if (state is EventsError) {
+            AppLogger().error('Explore screen error: ${state.message}');
+          }
+
+          // Log success/error messages from EventsLoaded state
+          if (state is EventsLoaded) {
+            if (state.successMessage != null) {
+              AppLogger().info('Explore screen: ${state.successMessage}');
+            }
+            if (state.createErrorMessage != null) {
+              AppLogger().error('Explore screen error: ${state.createErrorMessage}');
+            }
+          }
+        },
         builder: (context, state) {
           if (state is EventsLoading) {
             return const Center(child: CircularProgressIndicator());
