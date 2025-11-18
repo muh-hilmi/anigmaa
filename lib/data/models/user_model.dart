@@ -104,20 +104,14 @@ class UserSettingsModel extends UserSettings {
     super.showOnlineStatus = true,
   });
 
-  // REVIEW: CRITICAL FIELD NAME MISMATCH - Backend returns snake_case but frontend expects camelCase
-  // Backend UserSettings uses: push_notifications, email_notifications, dark_mode, show_online_status
-  // This code expects: pushNotifications, emailNotifications, darkMode, showOnlineStatus
-  // IMPACT: User settings will ALWAYS show default values, never persisted preferences from backend
-  // Users change dark mode to true, it saves to backend as dark_mode=true, but frontend reads darkMode (null) and shows false
-  // FIX: Change all json keys to snake_case: json['push_notifications'], json['email_notifications'], etc.
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
     return UserSettingsModel(
-      pushNotifications: json['pushNotifications'] as bool? ?? true,
-      emailNotifications: json['emailNotifications'] as bool? ?? true,
-      darkMode: json['darkMode'] as bool? ?? false,
+      pushNotifications: json['push_notifications'] as bool? ?? true,
+      emailNotifications: json['email_notifications'] as bool? ?? true,
+      darkMode: json['dark_mode'] as bool? ?? false,
       language: json['language'] as String? ?? 'en',
-      locationEnabled: json['locationEnabled'] as bool? ?? true,
-      showOnlineStatus: json['showOnlineStatus'] as bool? ?? true,
+      locationEnabled: json['location_enabled'] as bool? ?? true,
+      showOnlineStatus: json['show_online_status'] as bool? ?? true,
     );
   }
 
@@ -143,21 +137,14 @@ class UserStatsModel extends UserStats {
     super.averageRating = 0.0,
   });
 
-  // REVIEW: CRITICAL FIELD NAME MISMATCH - Backend returns snake_case but frontend expects camelCase
-  // Backend UserStats uses: events_attended, events_created, followers_count, following_count
-  // This code expects: eventsAttended, eventsCreated, followersCount, followingCount
-  // IMPACT: Profile screens show 0 for all stats even when user has events/followers/etc
-  // User creates 10 events, backend stores events_created=10, frontend reads eventsCreated (null) and shows 0
-  // This makes profiles look empty and inactive, severely degrading perceived user engagement
-  // FIX: Change all json keys to snake_case: json['events_attended'], json['events_created'], etc.
   factory UserStatsModel.fromJson(Map<String, dynamic> json) {
     return UserStatsModel(
-      eventsAttended: json['eventsAttended'] as int? ?? 0,
-      eventsCreated: json['eventsCreated'] as int? ?? 0,
-      followersCount: json['followersCount'] as int? ?? 0,
-      followingCount: json['followingCount'] as int? ?? 0,
-      reviewsGiven: json['reviewsGiven'] as int? ?? 0,
-      averageRating: json['averageRating']?.toDouble() ?? 0.0,
+      eventsAttended: json['events_attended'] as int? ?? 0,
+      eventsCreated: json['events_created'] as int? ?? 0,
+      followersCount: json['followers_count'] as int? ?? 0,
+      followingCount: json['following_count'] as int? ?? 0,
+      reviewsGiven: json['reviews_given'] as int? ?? 0,
+      averageRating: json['average_rating']?.toDouble() ?? 0.0,
     );
   }
 
@@ -184,11 +171,11 @@ class UserPrivacyModel extends UserPrivacy {
 
   factory UserPrivacyModel.fromJson(Map<String, dynamic> json) {
     return UserPrivacyModel(
-      profileVisible: json['profileVisible'] as bool? ?? true,
-      eventsVisible: json['eventsVisible'] as bool? ?? true,
-      allowFollowers: json['allowFollowers'] as bool? ?? true,
-      showEmail: json['showEmail'] as bool? ?? false,
-      showLocation: json['showLocation'] as bool? ?? true,
+      profileVisible: json['profile_visible'] as bool? ?? true,
+      eventsVisible: json['events_visible'] as bool? ?? true,
+      allowFollowers: json['allow_followers'] as bool? ?? true,
+      showEmail: json['show_email'] as bool? ?? false,
+      showLocation: json['show_location'] as bool? ?? true,
     );
   }
 

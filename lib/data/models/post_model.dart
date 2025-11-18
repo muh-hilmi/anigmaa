@@ -194,10 +194,10 @@ class PollModel extends Poll {
       options: (json['options'] as List<dynamic>)
           .map((option) => PollOptionModel.fromJson(option))
           .toList(),
-      endsAt: DateTime.parse(json['endsAt'] as String),
-      totalVotes: json['totalVotes'] as int? ?? 0,
-      hasVoted: json['hasVoted'] as bool? ?? false,
-      votedOptionId: json['votedOptionId'] as String?,
+      endsAt: DateTime.parse(json['ends_at'] as String),
+      totalVotes: json['total_votes'] as int? ?? 0,
+      hasVoted: json['has_voted'] as bool? ?? false,
+      votedOptionId: json['voted_option_id'] as String?,
     );
   }
 

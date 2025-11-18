@@ -23,23 +23,23 @@ class TransactionModel extends Transaction {
   /// Create from JSON
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
-      id: json['id'] ?? json['_id'] ?? '',
-      userId: json['user_id'] ?? json['userId'] ?? '',
-      ticketId: json['ticket_id'] ?? json['ticketId'] ?? '',
-      eventId: json['event_id'] ?? json['eventId'] ?? '',
-      eventName: json['event_name'] ?? json['eventName'] ?? 'Unknown Event',
+      id: json['id'] ?? '',
+      userId: json['user_id'] ?? '',
+      ticketId: json['ticket_id'] ?? '',
+      eventId: json['event_id'] ?? '',
+      eventName: json['event_name'] ?? 'Unknown Event',
       amount: (json['amount'] ?? 0).toDouble(),
-      adminFee: (json['admin_fee'] ?? json['adminFee'] ?? 0).toDouble(),
+      adminFee: (json['admin_fee'] ?? 0).toDouble(),
       status: _parseStatus(json['status']),
-      paymentMethod: _parsePaymentMethod(json['payment_method'] ?? json['paymentMethod']),
-      paymentProof: json['payment_proof'] ?? json['paymentProof'],
-      virtualAccountNumber: json['virtual_account_number'] ?? json['virtualAccountNumber'],
-      createdAt: DateTime.parse(json['created_at'] ?? json['createdAt'] ?? DateTime.now().toIso8601String()),
-      paidAt: json['paid_at'] != null || json['paidAt'] != null
-          ? DateTime.parse(json['paid_at'] ?? json['paidAt'])
+      paymentMethod: _parsePaymentMethod(json['payment_method']),
+      paymentProof: json['payment_proof'],
+      virtualAccountNumber: json['virtual_account_number'],
+      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
+      paidAt: json['paid_at'] != null
+          ? DateTime.parse(json['paid_at'])
           : null,
-      expiredAt: json['expired_at'] != null || json['expiredAt'] != null
-          ? DateTime.parse(json['expired_at'] ?? json['expiredAt'])
+      expiredAt: json['expired_at'] != null
+          ? DateTime.parse(json['expired_at'])
           : null,
       metadata: json['metadata'],
     );
