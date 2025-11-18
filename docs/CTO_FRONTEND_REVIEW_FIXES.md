@@ -8,7 +8,7 @@
 
 ## ✅ COMPLETED FIXES
 
-### 1. JSON Field Naming Standardization (BLOCKER 3 - Partial)
+### 1. JSON Field Naming Standardization (BLOCKER 3)
 
 **Issue:** Frontend models were using camelCase for JSON field names while backend returns snake_case, causing data to always fall back to default values.
 
@@ -68,6 +68,63 @@ static EventStatus _parseEventStatus(String? status) {
 **Impact:**
 - Events correctly show as "ended" when backend sends "completed"
 - Prevents events from incorrectly showing as "upcoming" when they've ended
+
+---
+
+### 4. Mock Data Removal (BLOCKER 5 - Partial)
+
+**Completed Screens:**
+
+#### NotificationsScreen ✅
+**Status:** Mock data removed, ready for API integration
+**Changes:**
+- Created `Notification` entity (lib/domain/entities/notification.dart)
+- Created `NotificationModel` with proper snake_case field parsing
+- Removed all hardcoded mock data (75+ lines of mock notifications)
+- Added comprehensive TODO comments with required API format
+- Updated UI to show empty state when no notifications
+
+**Required Backend API:**
+```
+GET /notifications
+Response: { success, data: [notifications], meta: { total, hasNext } }
+```
+
+---
+
+#### TransactionHistoryScreen ✅
+**Status:** Mock data removed, ready for API integration
+**Changes:**
+- Removed 150+ lines of hardcoded mock transactions
+- Added comprehensive TODO comments documenting 3 required endpoints
+- Preserved filter/tab UI logic
+- Ready for TransactionsBloc integration
+
+**Required Backend APIs:**
+```
+GET /transactions (user's purchase transactions)
+GET /transactions/hosted (revenue from events user hosts)
+GET /events/{id}/transactions (transactions for specific event)
+```
+
+---
+
+#### My Tickets Screen ✅
+**Status:** ✅ **ALREADY USING REAL API!**
+**Verification:**
+- Uses TicketsBloc for state management
+- Connected to TicketRemoteDataSource
+- Makes actual API calls to `GET /tickets/my-tickets`
+- Properly handles loading, error, and empty states
+
+**No changes needed** - this screen is production-ready!
+
+---
+
+**BLOCKER 5 Summary:**
+- ✅ 2 screens cleaned of mock data (Notifications, Transactions)
+- ✅ 1 screen verified using real API (My Tickets)
+- ⏳ 2 screens remaining (Profile Posts/Events, Host Dashboard)
 
 ---
 

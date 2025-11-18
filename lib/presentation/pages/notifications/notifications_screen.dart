@@ -1,5 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../../domain/entities/notification.dart';
+
+// TODO: Implement NotificationsBloc for state management
+// TODO: Create NotificationRepository with API datasource
+// TODO: Backend must implement GET /notifications endpoint
+//
+// Required API Response Format:
+// {
+//   "success": true,
+//   "data": [
+//     {
+//       "id": "notif123",
+//       "type": "like",
+//       "title": "Andi dan 12 lainnya",
+//       "message": "menyukai postingan lo",
+//       "timestamp": "2025-11-18T10:30:00Z",
+//       "is_read": false,
+//       "avatar_url": "https://...",
+//       "action_url": "/post/123",
+//       "metadata": {"post_id": "123", "user_ids": ["user1", "user2"]}
+//     }
+//   ],
+//   "meta": {
+//     "total": 50,
+//     "limit": 20,
+//     "offset": 0,
+//     "hasNext": true
+//   }
+// }
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -11,92 +40,39 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _selectedFilter = 'all';
 
-  // TODO: Replace with real data from BLoC/Repository
-  final List<NotificationItem> _mockNotifications = [];
+  // REMOVED MOCK DATA - Ready for API integration
+  // Once backend implements GET /notifications endpoint, integrate with NotificationsBloc
+  final List<Notification> _notifications = [];
 
   @override
   void initState() {
     super.initState();
-    _initializeMockData();
+    // TODO: Call NotificationsBloc to load notifications from API
+    // context.read<NotificationsBloc>().add(LoadNotifications());
   }
 
-  void _initializeMockData() {
-    _mockNotifications.addAll([
-      NotificationItem(
-        id: 'notif1',
-        type: NotificationType.like,
-        title: 'Andi dan 12 lainnya',
-        message: 'menyukai postingan lo',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        isRead: false,
-        avatarUrl: null,
-        actionUrl: '/post/123',
-      ),
-      NotificationItem(
-        id: 'notif2',
-        type: NotificationType.comment,
-        title: 'Budi',
-        message: 'berkomentar di postingan lo: "Setuju banget nih!"',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: false,
-        avatarUrl: null,
-        actionUrl: '/post/124',
-      ),
-      NotificationItem(
-        id: 'notif3',
-        type: NotificationType.eventReminder,
-        title: 'Weekend Music Fest',
-        message: 'Event dimulai besok pukul 14:00',
-        timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-        isRead: true,
-        avatarUrl: null,
-        actionUrl: '/event/001',
-      ),
-      NotificationItem(
-        id: 'notif4',
-        type: NotificationType.follow,
-        title: 'Sarah',
-        message: 'mulai mengikuti lo',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        isRead: true,
-        avatarUrl: null,
-        actionUrl: '/profile/sarah',
-      ),
-      NotificationItem(
-        id: 'notif5',
-        type: NotificationType.eventJoined,
-        title: 'Tech Conference 2025',
-        message: 'Lo udah berhasil join event ini. Cari temen yuk!',
-        timestamp: DateTime.now().subtract(const Duration(days: 2)),
-        isRead: true,
-        avatarUrl: null,
-        actionUrl: '/event/002',
-      ),
-    ]);
-  }
-
-  List<NotificationItem> get _filteredNotifications {
+  List<Notification> get _filteredNotifications {
     switch (_selectedFilter) {
       case 'unread':
-        return _mockNotifications.where((n) => !n.isRead).toList();
+        return _notifications.where((n) => !n.isRead).toList();
       case 'events':
-        return _mockNotifications.where((n) =>
+        return _notifications.where((n) =>
           n.type == NotificationType.eventReminder ||
           n.type == NotificationType.eventJoined
         ).toList();
       case 'social':
-        return _mockNotifications.where((n) =>
+        return _notifications.where((n) =>
           n.type == NotificationType.like ||
           n.type == NotificationType.comment ||
           n.type == NotificationType.follow
         ).toList();
       default:
-        return _mockNotifications;
+        return _notifications;
     }
   }
 
   int get _unreadCount {
-    return _mockNotifications.where((n) => !n.isRead).length;
+    return _notifications.where((n) => !n.isRead).length;
   }
 
   @override
@@ -136,14 +112,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (_unreadCount > 0)
             TextButton(
               onPressed: () {
-                setState(() {
-                  for (var notification in _mockNotifications) {
-                    notification.isRead = true;
-                  }
-                });
+                // TODO: Call API to mark all notifications as read
+                // context.read<NotificationsBloc>().add(MarkAllAsRead());
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Semua notifikasi ditandai sudah dibaca'),
+                    content: Text('Fitur akan tersedia setelah integrasi backend'),
                     backgroundColor: Color(0xFF84994F),
                   ),
                 );
@@ -223,17 +196,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationItem(NotificationItem notification) {
+  Widget _buildNotificationItem(Notification notification) {
     return Container(
       color: notification.isRead ? Colors.white : const Color(0xFFFAF8F5),
       child: InkWell(
         onTap: () {
-          setState(() {
-            notification.isRead = true;
-          });
+          // TODO: Mark notification as read via API
+          // context.read<NotificationsBloc>().add(MarkAsRead(notification.id));
+
+          // TODO: Navigate to actionUrl
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Navigasi ke ${notification.actionUrl}'),
+              content: Text('Navigasi ke ${notification.actionUrl ?? "detail"}'),
               backgroundColor: const Color(0xFF84994F),
             ),
           );
@@ -394,34 +368,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
-// Models
-class NotificationItem {
-  final String id;
-  final NotificationType type;
-  final String title;
-  final String message;
-  final DateTime timestamp;
-  bool isRead;
-  final String? avatarUrl;
-  final String actionUrl;
-
-  NotificationItem({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.message,
-    required this.timestamp,
-    required this.isRead,
-    this.avatarUrl,
-    required this.actionUrl,
-  });
-}
-
-enum NotificationType {
-  like,
-  comment,
-  follow,
-  eventReminder,
-  eventJoined,
-  eventInvite,
-}
+// NOTE: Notification entity and NotificationType enum are now in domain layer
+// See: lib/domain/entities/notification.dart
+// See: lib/data/models/notification_model.dart

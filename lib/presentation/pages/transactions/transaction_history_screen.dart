@@ -2,6 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../domain/entities/transaction.dart';
 
+// TODO: Implement TransactionsBloc for state management
+// TODO: Create TransactionRepository with API datasource
+// TODO: Backend must implement the following endpoints:
+//   - GET /transactions (user's purchase transactions)
+//   - GET /transactions/hosted (revenue from events user hosts)
+//   - GET /events/{id}/transactions (transactions for specific event)
+//
+// Required API Response Format:
+// {
+//   "success": true,
+//   "data": [
+//     {
+//       "id": "tx123",
+//       "user_id": "user123",
+//       "ticket_id": "ticket123",
+//       "event_id": "event123",
+//       "event_name": "Weekend Music Fest",
+//       "amount": 150000,
+//       "admin_fee": 15000,
+//       "status": "success",
+//       "payment_method": "virtual_account",
+//       "payment_proof": "https://...",
+//       "virtual_account_number": "1234567890",
+//       "created_at": "2025-11-18T10:30:00Z",
+//       "paid_at": "2025-11-18T11:00:00Z",
+//       "expired_at": null,
+//       "metadata": {}
+//     }
+//   ],
+//   "meta": {
+//     "total": 150,
+//     "limit": 20,
+//     "offset": 0,
+//     "hasNext": true,
+//     "total_revenue": 4500000,  // For hosted events tab
+//     "total_platform_fee": 450000
+//   }
+// }
+
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
@@ -14,14 +53,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
   String _selectedEventFilter = 'all';
   late TabController _tabController;
 
-  // TODO: Replace with real data from BLoC/Repository
-  final List<Transaction> _mockTransactions = [];
+  // REMOVED MOCK DATA - Ready for API integration
+  // Once backend implements transaction endpoints, integrate with TransactionsBloc
+  final List<Transaction> _transactions = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _initializeMockData();
+    // TODO: Load transactions from API
+    // context.read<TransactionsBloc>().add(LoadUserTransactions());
+    // context.read<TransactionsBloc>().add(LoadHostedEventTransactions());
   }
 
   @override
@@ -30,134 +72,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
     super.dispose();
   }
 
-  void _initializeMockData() {
-    // Mock transactions as event organizer (incoming revenue from ticket sales)
-    _mockTransactions.addAll([
-      // Weekend Music Fest - Your Event
-      Transaction(
-        id: 'tx001',
-        userId: 'user123',
-        ticketId: 'ticket001',
-        eventId: 'event001',
-        eventName: 'Weekend Music Fest',
-        amount: 150000,
-        adminFee: 15000, // 10% platform fee
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.virtualAccount,
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
-        paidAt: DateTime.now().subtract(const Duration(days: 2, hours: 1)),
-      ),
-      Transaction(
-        id: 'tx002',
-        userId: 'user456',
-        ticketId: 'ticket002',
-        eventId: 'event001',
-        eventName: 'Weekend Music Fest',
-        amount: 150000,
-        adminFee: 15000,
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.ewallet,
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        paidAt: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-      Transaction(
-        id: 'tx003',
-        userId: 'user789',
-        ticketId: 'ticket003',
-        eventId: 'event001',
-        eventName: 'Weekend Music Fest',
-        amount: 150000,
-        adminFee: 15000,
-        status: TransactionStatus.pending,
-        paymentMethod: PaymentMethod.virtualAccount,
-        createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-        expiredAt: DateTime.now().add(const Duration(hours: 19)),
-      ),
-
-      // Tech Conference 2025 - Your Event
-      Transaction(
-        id: 'tx004',
-        userId: 'user111',
-        ticketId: 'ticket004',
-        eventId: 'event002',
-        eventName: 'Tech Conference 2025',
-        amount: 300000,
-        adminFee: 30000,
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.creditCard,
-        createdAt: DateTime.now().subtract(const Duration(days: 7)),
-        paidAt: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-      Transaction(
-        id: 'tx005',
-        userId: 'user222',
-        ticketId: 'ticket005',
-        eventId: 'event002',
-        eventName: 'Tech Conference 2025',
-        amount: 300000,
-        adminFee: 30000,
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.virtualAccount,
-        createdAt: DateTime.now().subtract(const Duration(days: 8)),
-        paidAt: DateTime.now().subtract(const Duration(days: 8)),
-      ),
-      Transaction(
-        id: 'tx006',
-        userId: 'user333',
-        ticketId: 'ticket006',
-        eventId: 'event002',
-        eventName: 'Tech Conference 2025',
-        amount: 300000,
-        adminFee: 30000,
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.ewallet,
-        createdAt: DateTime.now().subtract(const Duration(days: 9)),
-        paidAt: DateTime.now().subtract(const Duration(days: 9)),
-      ),
-      Transaction(
-        id: 'tx007',
-        userId: 'user444',
-        ticketId: 'ticket007',
-        eventId: 'event002',
-        eventName: 'Tech Conference 2025',
-        amount: 300000,
-        adminFee: 30000,
-        status: TransactionStatus.failed,
-        paymentMethod: PaymentMethod.virtualAccount,
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-      ),
-
-      // Food Festival 2025 - Your Event
-      Transaction(
-        id: 'tx008',
-        userId: 'user555',
-        ticketId: 'ticket008',
-        eventId: 'event003',
-        eventName: 'Food Festival 2025',
-        amount: 75000,
-        adminFee: 7500,
-        status: TransactionStatus.success,
-        paymentMethod: PaymentMethod.ewallet,
-        createdAt: DateTime.now().subtract(const Duration(hours: 12)),
-        paidAt: DateTime.now().subtract(const Duration(hours: 12)),
-      ),
-      Transaction(
-        id: 'tx009',
-        userId: 'user666',
-        ticketId: 'ticket009',
-        eventId: 'event003',
-        eventName: 'Food Festival 2025',
-        amount: 75000,
-        adminFee: 7500,
-        status: TransactionStatus.processing,
-        paymentMethod: PaymentMethod.virtualAccount,
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-    ]);
-  }
-
   List<Transaction> get _filteredTransactions {
-    var transactions = _mockTransactions;
+    var transactions = _transactions;
 
     // Filter by event
     if (_selectedEventFilter != 'all') {
