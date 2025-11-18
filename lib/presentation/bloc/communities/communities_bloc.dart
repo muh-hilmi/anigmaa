@@ -39,14 +39,14 @@ class CommunitiesBloc extends Bloc<CommunitiesEvent, CommunitiesState> {
   ) async {
     emit(CommunitiesLoading());
 
-    final result = await getCommunities(const NoParams());
+    final result = await getCommunities(const GetCommunitiesParams());
 
     result.fold(
       (failure) => emit(CommunitiesError(failure.message)),
-      (communities) {
+      (response) {
         emit(CommunitiesLoaded(
-          allCommunities: communities,
-          filteredCommunities: communities,
+          allCommunities: response.data,
+          filteredCommunities: response.data,
           joinedCommunities: const [],
           selectedLocation: 'Jakarta',
         ));

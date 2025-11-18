@@ -12,7 +12,11 @@ class GetJoinedCommunities implements UseCase<List<Community>, GetJoinedCommunit
 
   @override
   Future<Either<Failure, List<Community>>> call(GetJoinedCommunitiesParams params) async {
-    return await repository.getJoinedCommunities(params.userId);
+    final result = await repository.getJoinedCommunities(params.userId);
+    return result.fold(
+      (failure) => Left(failure),
+      (response) => Right(response.data),
+    );
   }
 }
 
