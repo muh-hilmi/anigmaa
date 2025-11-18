@@ -121,10 +121,55 @@ GET /events/{id}/transactions (transactions for specific event)
 
 ---
 
+#### ProfileScreen ✅
+**Status:** Mock data removed, ready for API integration
+**Changes:**
+- Removed `_generateMockPosts()` method (35 lines of mock post data)
+- Removed `_generateMockEvents()` method (45 lines of mock event data)
+- Updated `_buildPostsGrid()` to show empty state with API TODO
+- Updated `_buildEventsGrid()` to show empty state with API TODO
+
+**Required Backend APIs:**
+```
+GET /users/{id}/posts (user's posts)
+GET /users/{id}/events (events created by user)
+```
+
+---
+
+#### UserProfileScreen ✅
+**Status:** Mock data removed, ready for API integration
+**Changes:**
+- Removed `_loadMockEventsForUser()` method (35 lines of mock event data)
+- Updated to use EventsBloc pattern for loading user events
+- Preserved all UI logic and styling
+
+**Required Backend API:**
+```
+GET /users/{id}/events (events created by specific user)
+```
+
+---
+
+#### Host Dashboard Screen ✅
+**Status:** ✅ **ALREADY USING REAL API!**
+**Verification:**
+- Uses AnalyticsService with actual API calls
+- Connected to `/analytics/host/revenue` endpoint
+- Properly handles loading, error, and empty states
+- Implements period filtering (all, this_month, last_month, this_year)
+
+**No changes needed** - this screen is production-ready!
+
+---
+
 **BLOCKER 5 Summary:**
-- ✅ 2 screens cleaned of mock data (Notifications, Transactions)
-- ✅ 1 screen verified using real API (My Tickets)
-- ⏳ 2 screens remaining (Profile Posts/Events, Host Dashboard)
+- ✅ **5 of 5 screens complete! (100%)**
+- ✅ Notifications - Mock data removed
+- ✅ Transactions - Mock data removed
+- ✅ My Tickets - Already using real API
+- ✅ Profile Posts/Events - Mock data removed
+- ✅ Host Dashboard - Already using real API
 
 ---
 
