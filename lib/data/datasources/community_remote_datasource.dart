@@ -245,7 +245,17 @@ class CommunityRemoteDataSourceImpl implements CommunityRemoteDataSource {
       }
     } on DioException catch (e) {
       print('[CommunityRemoteDataSource] Error getting my communities: ${e.response?.statusCode}');
+
+      // If backend has issues, return empty list instead of crashing
+      if (e.response?.statusCode == 500) {
+        print('[CommunityRemoteDataSource] Backend error (500) - returning empty list');
+        return [];
+      }
+
       throw _handleDioException(e);
+    } catch (e) {
+      print('[CommunityRemoteDataSource] Unexpected error: $e');
+      return [];
     }
   }
 

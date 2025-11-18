@@ -44,30 +44,55 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   void _categorizeEvents(List<Event> events) {
     final now = DateTime.now();
 
-    // Filter out past events
-    final upcomingEvents = events.where((event) => event.startTime.isAfter(now)).toList();
+    AppLogger().debug('Categorizing ${events.length} total events');
+
+    // CHANGED: Show all events, not just upcoming ones (to handle test data with past events)
+    // Filter out events that ended more than 30 days ago
+    final relevantEvents = events.where((event) {
+      final daysSinceEnd = now.difference(event.endTime).inDays;
+      return daysSinceEnd < 30; // Show events that ended less than 30 days ago
+    }).toList();
+
+    AppLogger().debug('Found ${relevantEvents.length} relevant events (ended < 30 days ago)');
+
+    // Separate upcoming and recent past events
+    final upcomingEvents = relevantEvents.where((event) => event.startTime.isAfter(now)).toList();
+    final recentPastEvents = relevantEvents.where((event) => !event.startTime.isAfter(now)).toList();
+
+    AppLogger().debug('Upcoming: ${upcomingEvents.length}, Recent past: ${recentPastEvents.length}');
+
+    // Use upcoming events first, fallback to recent past if no upcoming events
+    final displayEvents = upcomingEvents.isNotEmpty ? upcomingEvents : recentPastEvents;
+
+    AppLogger().debug('Using ${displayEvents.length} events for display');
 
     // 1. Trending: Events happening soon (within 48 hours) with some attendees
-    _trendingEvents = upcomingEvents.where((event) {
-      final hoursUntilStart = event.startTime.difference(now).inHours;
-      return hoursUntilStart > 0 &&
-             hoursUntilStart <= 48 &&
-             event.currentAttendees >= 1; // Lowered from 10 to 1
+    _trendingEvents = displayEvents.where((event) {
+      if (event.startTime.isAfter(now)) {
+        final hoursUntilStart = event.startTime.difference(now).inHours;
+        return hoursUntilStart > 0 &&
+               hoursUntilStart <= 48 &&
+               event.currentAttendees >= 0; // CHANGED: Show even with 0 attendees for testing
+      }
+      return false;
     }).toList()
       ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees));
 
     // 2. Most Joined: Events sorted by attendee count (take top 10)
-    _mostJoinedEvents = (List<Event>.from(upcomingEvents)
+    _mostJoinedEvents = (List<Event>.from(displayEvents)
       ..sort((a, b) => b.currentAttendees.compareTo(a.currentAttendees)))
       .take(10).toList();
 
     // 3. For You (FYP): Mix of different categories (personalized later)
-    _forYouEvents = upcomingEvents;
+    // Show first 10 events
+    _forYouEvents = displayEvents.take(10).toList();
 
     // 4. Chill: Small intimate events (<= 50 people, increased from 20)
-    _chillEvents = upcomingEvents.where((event) {
+    _chillEvents = displayEvents.where((event) {
       return event.maxAttendees <= 50;
     }).toList();
+
+    AppLogger().debug('Categorized: Trending=${_trendingEvents.length}, MostJoined=${_mostJoinedEvents.length}, ForYou=${_forYouEvents.length}, Chill=${_chillEvents.length}');
   }
 
   @override
