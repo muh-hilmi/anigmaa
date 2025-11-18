@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../../domain/entities/notification.dart';
+import '../../../domain/entities/notification.dart' as domain;
 
 // TODO: Implement NotificationsBloc for state management
 // TODO: Create NotificationRepository with API datasource
@@ -42,7 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // REMOVED MOCK DATA - Ready for API integration
   // Once backend implements GET /notifications endpoint, integrate with NotificationsBloc
-  final List<Notification> _notifications = [];
+  final List<domain.Notification> _notifications = [];
 
   @override
   void initState() {
@@ -51,20 +51,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     // context.read<NotificationsBloc>().add(LoadNotifications());
   }
 
-  List<Notification> get _filteredNotifications {
+  List<domain.Notification> get _filteredNotifications {
     switch (_selectedFilter) {
       case 'unread':
         return _notifications.where((n) => !n.isRead).toList();
       case 'events':
         return _notifications.where((n) =>
-          n.type == NotificationType.eventReminder ||
-          n.type == NotificationType.eventJoined
+          n.type == domain.NotificationType.eventReminder ||
+          n.type == domain.NotificationType.eventJoined
         ).toList();
       case 'social':
         return _notifications.where((n) =>
-          n.type == NotificationType.like ||
-          n.type == NotificationType.comment ||
-          n.type == NotificationType.follow
+          n.type == domain.NotificationType.like ||
+          n.type == domain.NotificationType.comment ||
+          n.type == domain.NotificationType.follow
         ).toList();
       default:
         return _notifications;
@@ -333,37 +333,45 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  IconData _getNotificationIcon(NotificationType type) {
+  IconData _getNotificationIcon(domain.NotificationType type) {
     switch (type) {
-      case NotificationType.like:
+      case domain.NotificationType.like:
         return Icons.favorite;
-      case NotificationType.comment:
+      case domain.NotificationType.comment:
         return Icons.chat_bubble;
-      case NotificationType.follow:
+      case domain.NotificationType.follow:
         return Icons.person_add;
-      case NotificationType.eventReminder:
+      case domain.NotificationType.eventReminder:
         return Icons.event;
-      case NotificationType.eventJoined:
+      case domain.NotificationType.eventJoined:
         return Icons.check_circle;
-      case NotificationType.eventInvite:
+      case domain.NotificationType.eventInvite:
         return Icons.mail;
+      case domain.NotificationType.repost:
+        return Icons.repeat;
+      case domain.NotificationType.mention:
+        return Icons.alternate_email;
     }
   }
 
-  Color _getNotificationColor(NotificationType type) {
+  Color _getNotificationColor(domain.NotificationType type) {
     switch (type) {
-      case NotificationType.like:
+      case domain.NotificationType.like:
         return Colors.red;
-      case NotificationType.comment:
+      case domain.NotificationType.comment:
         return Colors.blue;
-      case NotificationType.follow:
+      case domain.NotificationType.follow:
         return const Color(0xFF84994F);
-      case NotificationType.eventReminder:
+      case domain.NotificationType.eventReminder:
         return Colors.orange;
-      case NotificationType.eventJoined:
+      case domain.NotificationType.eventJoined:
         return const Color(0xFF84994F);
-      case NotificationType.eventInvite:
+      case domain.NotificationType.eventInvite:
         return Colors.purple;
+      case domain.NotificationType.repost:
+        return const Color(0xFF84994F);
+      case domain.NotificationType.mention:
+        return Colors.deepPurple;
     }
   }
 }

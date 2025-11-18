@@ -102,35 +102,35 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
 
   // Total revenue earned (after platform fee deduction)
   double get _totalRevenue {
-    return _mockTransactions
+    return _transactions
         .where((tx) => tx.status == TransactionStatus.success)
         .fold(0.0, (sum, tx) => sum + (tx.amount - tx.adminFee));
   }
 
   // Gross revenue (before platform fee)
   double get _grossRevenue {
-    return _mockTransactions
+    return _transactions
         .where((tx) => tx.status == TransactionStatus.success)
         .fold(0.0, (sum, tx) => sum + tx.amount);
   }
 
   // Total platform fees
   double get _totalFees {
-    return _mockTransactions
+    return _transactions
         .where((tx) => tx.status == TransactionStatus.success)
         .fold(0.0, (sum, tx) => sum + tx.adminFee);
   }
 
   // Total tickets sold
   int get _totalTicketsSold {
-    return _mockTransactions
+    return _transactions
         .where((tx) => tx.status == TransactionStatus.success)
         .length;
   }
 
   // Total pending transactions
   int get _pendingCount {
-    return _mockTransactions
+    return _transactions
         .where((tx) =>
           tx.status == TransactionStatus.pending ||
           tx.status == TransactionStatus.processing
@@ -141,7 +141,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
   // This month revenue
   double get _thisMonthRevenue {
     final now = DateTime.now();
-    return _mockTransactions
+    return _transactions
         .where((tx) =>
           tx.status == TransactionStatus.success &&
           tx.paidAt != null &&
@@ -153,18 +153,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
 
   // Unique events with transactions
   List<String> get _uniqueEvents {
-    return _mockTransactions.map((tx) => tx.eventId).toSet().toList();
+    return _transactions.map((tx) => tx.eventId).toSet().toList();
   }
 
   // Get event name by ID
   String _getEventName(String eventId) {
-    final tx = _mockTransactions.firstWhere((tx) => tx.eventId == eventId);
+    final tx = _transactions.firstWhere((tx) => tx.eventId == eventId);
     return tx.eventName;
   }
 
   // Get stats by event
   Map<String, dynamic> _getEventStats(String eventId) {
-    final eventTransactions = _mockTransactions.where((tx) => tx.eventId == eventId).toList();
+    final eventTransactions = _transactions.where((tx) => tx.eventId == eventId).toList();
     final successTransactions = eventTransactions.where((tx) => tx.status == TransactionStatus.success).toList();
 
     return {
