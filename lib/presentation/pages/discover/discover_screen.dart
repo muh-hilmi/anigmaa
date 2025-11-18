@@ -101,6 +101,10 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             ));
           }
 
+          if (state is EventsError) {
+            return _buildErrorState(state.message);
+          }
+
           if (state is EventsLoaded) {
             _allEvents = state.events;
             _categorizeEvents(_allEvents);
@@ -1300,6 +1304,82 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Error State
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(60),
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Colors.red.shade400,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Oops! Ada Masalah',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coba cek koneksi internet atau backend API',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<EventsBloc>().add(LoadEvents());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF84994F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.refresh, size: 20),
+              label: const Text(
+                'Coba Lagi',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
