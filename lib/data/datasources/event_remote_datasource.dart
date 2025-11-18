@@ -48,6 +48,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
           } catch (e) {
             print('[EventRemoteDataSource] Error parsing event $i: $e');
             print('[EventRemoteDataSource] Event data: ${data[i]}');
+            // Skip malformed events but continue parsing others
           }
         }
 
@@ -57,18 +58,13 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         throw ServerFailure('Failed to fetch events');
       }
     } on DioException catch (e) {
-      print('[EventRemoteDataSource] Error fetching events: ${e.response?.statusCode} - ${e.response?.data}');
-
-      // If backend has database issues (500), return empty list instead of crashing
-      if (e.response?.statusCode == 500) {
-        print('[EventRemoteDataSource] Backend error (500) - returning empty list');
-        return [];
-      }
-
+      print('[EventRemoteDataSource] DioException: ${e.response?.statusCode} - ${e.message}');
+      print('[EventRemoteDataSource] Response data: ${e.response?.data}');
       throw _handleDioException(e);
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('[EventRemoteDataSource] Unexpected error: $e');
-      return [];
+      print('[EventRemoteDataSource] Stack trace: $stackTrace');
+      throw ServerFailure('Unexpected error while fetching events: $e');
     }
   }
 
@@ -89,18 +85,12 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         throw ServerFailure('Failed to fetch events by category');
       }
     } on DioException catch (e) {
-      print('[EventRemoteDataSource] Error fetching events by category: ${e.response?.statusCode}');
-
-      // If backend has database issues (500), return empty list instead of crashing
-      if (e.response?.statusCode == 500) {
-        print('[EventRemoteDataSource] Backend error (500) - returning empty list');
-        return [];
-      }
-
+      print('[EventRemoteDataSource] DioException category: ${e.response?.statusCode} - ${e.message}');
       throw _handleDioException(e);
-    } catch (e) {
-      print('[EventRemoteDataSource] Unexpected error: $e');
-      return [];
+    } catch (e, stackTrace) {
+      print('[EventRemoteDataSource] Unexpected error in getEventsByCategory: $e');
+      print('[EventRemoteDataSource] Stack trace: $stackTrace');
+      throw ServerFailure('Unexpected error while fetching events by category: $e');
     }
   }
 
