@@ -66,8 +66,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
           if (state is UserLoaded && state.user.id == widget.userId) {
             _user = state.user;
-            // TODO: Load user events from API
-            _loadMockEventsForUser();
+            // TODO: Load user events from EventsBloc
+            // context.read<EventsBloc>().add(LoadUserEvents(widget.userId));
           }
 
           if (_user == null) {
@@ -109,41 +109,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     );
   }
 
-  void _loadMockEventsForUser() {
-    // TODO: Replace with real API call to get user's events
-    if (_userEvents.isEmpty) {
-      _userEvents = [
-        Event(
-          id: 'event1',
-          title: 'Street Photography Workshop',
-          description: 'Learn the art of street photography with professional tips',
-          category: EventCategory.creative,
-          startTime: DateTime.now().add(const Duration(days: 5)),
-          endTime: DateTime.now().add(const Duration(days: 5, hours: 3)),
-          location: const EventLocation(
-            name: 'Kota Tua Jakarta',
-            address: 'Jakarta Barat',
-            latitude: -6.1352,
-            longitude: 106.8133,
-          ),
-          host: EventHost(
-            id: widget.userId,
-            name: _user?.name ?? widget.userName ?? 'User',
-            bio: 'Photography enthusiast',
-            avatar: _user?.avatar ?? '',
-            rating: 4.6,
-            eventsHosted: 12,
-            isVerified: _user?.isVerified ?? false,
-          ),
-          maxAttendees: 15,
-          attendeeIds: ['user1', 'user2', 'user3'],
-          price: 75000,
-          isFree: false,
-          imageUrls: ['https://picsum.photos/600/400?random=101'],
-        ),
-      ];
-    }
-  }
+  // REMOVED: _loadMockEventsForUser() - no longer needed, ready for API integration
+  // TODO: Backend must implement GET /users/{id}/events endpoint
+  // This will be handled by EventsBloc once backend API is ready
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(

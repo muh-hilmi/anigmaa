@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../core/errors/failures.dart';
+import '../../core/models/pagination.dart';
 import '../../domain/entities/post.dart';
 import '../../domain/entities/comment.dart';
 import '../../domain/entities/user.dart';
@@ -14,13 +15,18 @@ class PostRepositoryImpl implements PostRepository {
   });
 
   @override
-  Future<Either<Failure, List<Post>>> getPosts({int limit = 20, int offset = 0}) async {
+  Future<Either<Failure, PaginatedResponse<Post>>> getPosts({int limit = 20, int offset = 0}) async {
     try {
       print('[PostRepository] Fetching posts from remote (limit: $limit, offset: $offset)...');
       // Fetch from remote only - no fallback
       final posts = await remoteDataSource.getPosts(limit: limit, offset: offset);
       print('[PostRepository] Successfully fetched ${posts.length} posts');
-      return Right(posts);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: posts, meta: meta));
     } on Failure catch (e) {
       print('[PostRepository] Failure fetching posts: $e');
       return Left(e);
@@ -175,17 +181,26 @@ class PostRepositoryImpl implements PostRepository {
   }
 
   @override
-  Future<Either<Failure, List<Post>>> getBookmarkedPosts() async {
-    // TODO: Implement bookmarks
-    return const Right([]);
+  Future<Either<Failure, PaginatedResponse<Post>>> getBookmarkedPosts({int limit = 20, int offset = 0}) async {
+    // TODO: Implement bookmarks API endpoint
+    // When implemented, parse meta field from API response
+    return Right(PaginatedResponse(data: const [], meta: PaginationMeta.empty()));
   }
 
   @override
-  Future<Either<Failure, List<Comment>>> getComments(String postId, {int page = 1, int limit = 20}) async {
+  Future<Either<Failure, PaginatedResponse<Comment>>> getComments(String postId, {int limit = 20, int offset = 0}) async {
     try {
+      // Convert offset to page for now (until backend supports offset)
+      final page = (offset ~/ limit) + 1;
+
       // Fetch from remote only - no fallback
       final comments = await remoteDataSource.getPostComments(postId, page: page, limit: limit);
-      return Right(comments);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: comments, meta: meta));
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
@@ -273,21 +288,31 @@ class PostRepositoryImpl implements PostRepository {
   }
 
   @override
-  Future<Either<Failure, List<Post>>> getFeedPosts({int limit = 20, String? cursor}) async {
+  Future<Either<Failure, PaginatedResponse<Post>>> getFeedPosts({int limit = 20, int offset = 0}) async {
     try {
-      final posts = await remoteDataSource.getPosts();
-      return Right(posts.take(limit).toList());
+      final posts = await remoteDataSource.getPosts(limit: limit, offset: offset);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: posts, meta: meta));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Post>>> getUserPosts(String userId) async {
+  Future<Either<Failure, PaginatedResponse<Post>>> getUserPosts(String userId, {int limit = 20, int offset = 0}) async {
     try {
-      final allPosts = await remoteDataSource.getPosts();
-      final userPosts = allPosts.where((post) => post.author.id == userId).toList();
-      return Right(userPosts);
+      // TODO: Use proper backend endpoint GET /users/{id}/posts instead of filtering
+      final posts = await remoteDataSource.getPostsByUser(userId, page: (offset ~/ limit) + 1, limit: limit);
+
+      // TODO: Parse meta field from API response when backend implements it
+      // For now, create empty meta for backward compatibility
+      final meta = PaginationMeta.empty();
+
+      return Right(PaginatedResponse(data: posts, meta: meta));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

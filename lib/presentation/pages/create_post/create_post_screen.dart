@@ -515,7 +515,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     // Determine post type
     PostType type = PostType.text;
-    if (_selectedImages.isNotEmpty) {
+    if (_selectedEvent != null) {
+      // Event tagging takes precedence - can have event with or without images
+      type = PostType.textWithEvent;
+    } else if (_selectedImages.isNotEmpty) {
       type = PostType.textWithImages;
     }
 

@@ -59,14 +59,14 @@ class TicketModel {
   factory TicketModel.fromJson(Map<String, dynamic> json) {
     return TicketModel(
       id: json['id'] as String,
-      userId: json['userId'] as String,
-      eventId: json['eventId'] as String,
-      attendanceCode: json['attendanceCode'] as String,
-      pricePaid: (json['pricePaid'] as num).toDouble(),
-      purchasedAt: DateTime.parse(json['purchasedAt'] as String),
-      isCheckedIn: json['isCheckedIn'] as bool? ?? false,
-      checkedInAt: json['checkedInAt'] != null
-          ? DateTime.parse(json['checkedInAt'] as String)
+      userId: json['user_id'] as String,
+      eventId: json['event_id'] as String,
+      attendanceCode: json['attendance_code'] as String,
+      pricePaid: (json['price_paid'] as num).toDouble(),
+      purchasedAt: DateTime.parse(json['purchased_at'] as String),
+      isCheckedIn: json['is_checked_in'] as bool? ?? false,
+      checkedInAt: json['checked_in_at'] != null
+          ? DateTime.parse(json['checked_in_at'] as String)
           : null,
       status: json['status'] as String? ?? 'active',
     );

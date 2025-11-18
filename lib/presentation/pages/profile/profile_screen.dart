@@ -475,32 +475,25 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildPostsGrid() {
-    // TODO: Replace with actual posts data
-    final mockPosts = _generateMockPosts();
+    // TODO: Load posts from PostsBloc
+    // TODO: Backend must implement GET /users/{id}/posts endpoint
+    // context.read<PostsBloc>().add(LoadUserPosts(userId));
 
-    if (mockPosts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.event_note_outlined, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Belum ada postingan nih',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      );
-    }
+    final posts = <Map<String, dynamic>>[]; // Empty - ready for API integration
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: mockPosts.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        return _buildPostCard(mockPosts[index]);
-      },
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.event_note_outlined, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Postingan akan muncul setelah integrasi API',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -684,70 +677,28 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _generateMockPosts() {
-    return [
-      {
-        'text': 'Yuk ikutan workshop photography bareng kita! Bakal seru banget nih belajar teknik foto jalanan dari para profesional. Limited seats!',
-        'image': 'https://picsum.photos/600/400?random=1',
-        'eventTitle': 'Street Photography Workshop',
-        'eventDate': '15 Jan 2025',
-        'attendees': 45,
-        'likes': 128,
-        'comments': 23,
-        'shares': 12,
-        'time': '2h',
-      },
-      {
-        'text': 'Besok ada meetup Flutter developer nih! Siapa aja yang mau ikutan? Free entrance dan ada snack juga loh~',
-        'eventTitle': 'Flutter Developer Meetup',
-        'eventDate': '20 Jan 2025',
-        'attendees': 67,
-        'likes': 89,
-        'comments': 34,
-        'shares': 8,
-        'time': '5h',
-      },
-      {
-        'text': 'Gue baru aja join event food festival kemarin dan it was AMAZING! Makanannya enak-enak semua. Next time lo pada harus ikutan!',
-        'image': 'https://picsum.photos/600/400?random=2',
-        'eventTitle': 'Jakarta Food Festival 2025',
-        'eventDate': '28 Jan 2025',
-        'attendees': 234,
-        'likes': 245,
-        'comments': 67,
-        'shares': 45,
-        'time': '1d',
-      },
-    ];
-  }
+  // REMOVED: _generateMockPosts() - no longer needed, ready for API integration
 
   Widget _buildEventsGrid() {
-    // TODO: Replace with actual events data
-    final mockEvents = _generateMockEvents();
+    // TODO: Load events from EventsBloc
+    // TODO: Backend must implement GET /users/{id}/events endpoint
+    // context.read<EventsBloc>().add(LoadUserEvents(userId));
 
-    if (mockEvents.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.event_busy_outlined, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Belum ada event nih',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      );
-    }
+    final events = <Map<String, dynamic>>[]; // Empty - ready for API integration
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      itemCount: mockEvents.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        return _buildEventCard(mockEvents[index]);
-      },
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.event_busy_outlined, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Event akan muncul setelah integrasi API',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -918,48 +869,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _generateMockEvents() {
-    return [
-      {
-        'title': 'Street Photography Workshop',
-        'category': 'Workshop',
-        'date': '15 Jan 2025, 14:00',
-        'location': 'Kota Tua Jakarta',
-        'attendees': 45,
-        'image': 'https://picsum.photos/600/400?random=101',
-        'isFree': false,
-        'price': '75K',
-      },
-      {
-        'title': 'Flutter Developer Meetup',
-        'category': 'Meetup',
-        'date': '20 Jan 2025, 18:00',
-        'location': 'Tech Hub, Sudirman',
-        'attendees': 67,
-        'image': 'https://picsum.photos/600/400?random=102',
-        'isFree': true,
-      },
-      {
-        'title': 'Jakarta Food Festival 2025',
-        'category': 'Festival',
-        'date': '28 Jan 2025, 10:00',
-        'location': 'GBK Senayan',
-        'attendees': 234,
-        'image': 'https://picsum.photos/600/400?random=103',
-        'isFree': false,
-        'price': '50K',
-      },
-      {
-        'title': 'Yoga in the Park',
-        'category': 'Health',
-        'date': '5 Feb 2025, 06:00',
-        'location': 'Taman Menteng',
-        'attendees': 28,
-        'image': 'https://picsum.photos/600/400?random=104',
-        'isFree': true,
-      },
-    ];
-  }
+  // REMOVED: _generateMockEvents() - no longer needed, ready for API integration
 
   Widget _buildErrorState(BuildContext context) {
     return Center(
