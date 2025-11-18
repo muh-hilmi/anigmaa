@@ -10,6 +10,7 @@ import 'edit_profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tickets/my_tickets_screen.dart';
 import '../transactions/transaction_history_screen.dart';
+import '../social/followers_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -231,37 +232,98 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatColumn('${state.connections}', 'Pengikut'),
-          _buildStatColumn('${state.eventsHosted}', 'Event'),
-          _buildStatColumn('${state.postsCount}', 'Postingan'),
-          _buildStatColumn('${state.totalInvitedAttendees}', 'Diajak'),
+          _buildStatColumn(
+            context: null, // Will be passed from builder
+            value: '${state.connections}',
+            label: 'Pengikut',
+            userId: state.user.id,
+          ),
+          _buildStatColumn(
+            context: null,
+            value: '${state.eventsHosted}',
+            label: 'Event',
+            userId: state.user.id,
+          ),
+          _buildStatColumn(
+            context: null,
+            value: '${state.postsCount}',
+            label: 'Postingan',
+            userId: state.user.id,
+          ),
+          _buildStatColumn(
+            context: null,
+            value: '${state.totalInvitedAttendees}',
+            label: 'Diajak',
+            userId: state.user.id,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatColumn(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
+  Widget _buildStatColumn({
+    required BuildContext? context,
+    required String value,
+    required String label,
+    required String userId,
+  }) {
+    return Builder(
+      builder: (ctx) {
+        final effectiveContext = context ?? ctx;
+        return GestureDetector(
+          onTap: () => _handleStatClick(effectiveContext, label, userId),
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  void _handleStatClick(BuildContext context, String label, String userId) {
+    if (label == 'Pengikut') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FollowersScreen(
+            userId: userId,
+            title: 'Pengikut',
+            isFollowers: true,
+          ),
+        ),
+      );
+    } else if (label == 'Event') {
+      // Switch to Events tab
+      DefaultTabController.of(context).animateTo(1);
+    } else if (label == 'Postingan') {
+      // Switch to Posts tab
+      DefaultTabController.of(context).animateTo(0);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$label: $value'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   // Removed old Edit Profil button - now integrated in header
