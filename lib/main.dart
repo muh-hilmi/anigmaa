@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/utils/app_logger.dart';
+import 'core/observers/navigation_observer.dart';
 import 'injection_container.dart' as di;
 import 'presentation/pages/discover/discover_screen.dart';
 import 'presentation/pages/home/home_screen.dart';
@@ -99,6 +100,7 @@ class NotionSocialApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Anigmaa',
         debugShowCheckedModeBanner: false,
+        navigatorObservers: [AppNavigationObserver()],
         theme: ThemeData(
           useMaterial3: true,
           textTheme: GoogleFonts.plusJakartaSansTextTheme(),
@@ -144,6 +146,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   bool _isSpeedDialOpen = false;
 
   void _onHomeTabChanged(int tabIndex) {
+    final oldTab = _homeTabIndex == 0 ? 'Feed' : 'Events';
+    final newTab = tabIndex == 0 ? 'Feed' : 'Events';
+    AppLogger().info('Home sub-tab changed: $oldTab -> $newTab');
     setState(() {
       _homeTabIndex = tabIndex;
     });
@@ -159,6 +164,21 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     setState(() {
       _isSpeedDialOpen = false;
     });
+  }
+
+  String _getTabName(int index) {
+    switch (index) {
+      case 0:
+        return 'Home';
+      case 1:
+        return 'Discover';
+      case 2:
+        return 'Communities';
+      case 3:
+        return 'Profile';
+      default:
+        return 'Unknown';
+    }
   }
 
   @override
@@ -367,6 +387,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     final isActive = _currentIndex == index;
     return InkWell(
       onTap: () {
+        AppLogger().info('Tab changed: ${_getTabName(_currentIndex)} -> ${_getTabName(index)}');
         setState(() {
           _currentIndex = index;
         });

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 // import '../../../domain/entities/event_category.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_event.dart';
@@ -76,39 +77,18 @@ class DiscoverScreenState extends State<DiscoverScreen> {
       body: BlocConsumer<EventsBloc, EventsState>(
         listener: (context, state) {
           if (state is EventsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red[600],
-                duration: const Duration(seconds: 3),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppLogger().error('Discover screen error: ${state.message}');
           }
 
-          // Show snackbar for success/error messages from EventsLoaded state
+          // Log success/error messages from EventsLoaded state
           if (state is EventsLoaded) {
             if (state.successMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.successMessage!),
-                  backgroundColor: Colors.green[600],
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppLogger().info('Discover screen: ${state.successMessage}');
               // Clear the message after showing
               context.read<EventsBloc>().emit(state.clearMessages());
             }
             if (state.createErrorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.createErrorMessage!),
-                  backgroundColor: Colors.red[600],
-                  duration: const Duration(seconds: 3),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppLogger().error('Discover screen error: ${state.createErrorMessage}');
               // Clear the message after showing
               context.read<EventsBloc>().emit(state.clearMessages());
             }

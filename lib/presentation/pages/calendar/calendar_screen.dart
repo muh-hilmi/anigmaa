@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../domain/entities/event.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
@@ -42,9 +43,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: BlocConsumer<EventsBloc, EventsState>(
         listener: (context, state) {
           if (state is EventsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            AppLogger().error('Calendar screen error: ${state.message}');
           }
         },
         builder: (context, state) {
