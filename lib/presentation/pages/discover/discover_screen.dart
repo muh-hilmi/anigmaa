@@ -37,18 +37,8 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   void _filterEvents() {
-    setState(() {
-      if (_searchController.text.isEmpty) {
-        _filteredEvents = _allEvents;
-      } else {
-        final query = _searchController.text.toLowerCase();
-        _filteredEvents = _allEvents.where((event) {
-          return event.title.toLowerCase().contains(query) ||
-                 event.description.toLowerCase().contains(query) ||
-                 event.location.name.toLowerCase().contains(query);
-        }).toList();
-      }
-    });
+    // When search changes, reapply mode filter (which includes search)
+    _applyModeFilter();
   }
 
   @override
@@ -66,7 +56,56 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     setState(() {
       _selectedMode = mode;
     });
-    context.read<EventsBloc>().add(LoadEventsByMode(mode: mode));
+    // API consumption nanti - untuk sekarang semua client-side filtering
+    _applyModeFilter();
+  }
+
+  void _applyModeFilter() {
+    setState(() {
+      List<Event> baseEvents = _allEvents;
+
+      // Apply search filter first if exists
+      if (_searchController.text.isNotEmpty) {
+        final query = _searchController.text.toLowerCase();
+        baseEvents = baseEvents.where((event) {
+          return event.title.toLowerCase().contains(query) ||
+                 event.description.toLowerCase().contains(query) ||
+                 event.location.name.toLowerCase().contains(query);
+        }).toList();
+      }
+
+      // Apply mode-specific filter
+      switch (_selectedMode) {
+        case 'today':
+          final now = DateTime.now();
+          _filteredEvents = baseEvents.where((event) {
+            return event.startTime.year == now.year &&
+                   event.startTime.month == now.month &&
+                   event.startTime.day == now.day;
+          }).toList();
+          break;
+
+        case 'free':
+          _filteredEvents = baseEvents.where((event) => event.isFree).toList();
+          break;
+
+        case 'paid':
+          _filteredEvents = baseEvents.where((event) => !event.isFree).toList();
+          break;
+
+        case 'nearby':
+          // Sort by distance (TODO: implement distance calculation with user location)
+          _filteredEvents = baseEvents.toList();
+          break;
+
+        case 'trending':
+        case 'for_you':
+        case 'chill':
+        default:
+          // TODO: API integration untuk trending/for_you/chill modes
+          _filteredEvents = baseEvents;
+      }
+    });
   }
 
   @override
@@ -107,7 +146,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           if (state is EventsLoaded) {
             _allEvents = state.events;
             if (_filteredEvents.isEmpty && _searchController.text.isEmpty) {
-              _filteredEvents = _allEvents;
+              _applyModeFilter();
             }
 
             return _allEvents.isEmpty
@@ -249,8 +288,10 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildModeSwitcher() {
     return Container(
       margin: const EdgeInsets.only(top: 8, bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+      height: 46,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           _buildModeChip(
             mode: 'trending',
@@ -272,6 +313,34 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             icon: Icons.nightlight_round,
             color: Colors.blue,
           ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'nearby',
+            label: 'Terdekat',
+            icon: Icons.near_me_rounded,
+            color: const Color(0xFF84994F),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'today',
+            label: 'Hari Ini',
+            icon: Icons.calendar_today_rounded,
+            color: const Color(0xFFFF9500),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'free',
+            label: 'Gratis',
+            icon: Icons.money_off_rounded,
+            color: const Color(0xFF34C759),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'paid',
+            label: 'Berbayar',
+            icon: Icons.attach_money_rounded,
+            color: const Color(0xFF6366F1),
+          ),
         ],
       ),
     );
@@ -284,42 +353,37 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     required Color color,
   }) {
     final isSelected = _selectedMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _changeMode(mode),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? color : Colors.grey[300]!,
-              width: isSelected ? 2 : 1,
+    return GestureDetector(
+      onTap: () => _changeMode(mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? color : Colors.grey[600],
+              size: 18,
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? color : Colors.grey[600],
-                size: 18,
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? color : Colors.grey[700],
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? color : Colors.grey[700],
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
