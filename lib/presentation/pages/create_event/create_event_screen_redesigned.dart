@@ -325,7 +325,7 @@ class _CreateEventScreenRedesignedState extends State<CreateEventScreenRedesigne
               Expanded(
                 child: _buildModernTextField(
                   controller: _maxAttendeesController,
-                  label: 'Kapasitas',
+                  label: 'Kapasitas (Maks 100)',
                   hint: '50',
                   icon: Icons.people_outline,
                   keyboardType: TextInputType.number,
@@ -1226,8 +1226,8 @@ class _CreateEventScreenRedesignedState extends State<CreateEventScreenRedesigne
         final number = int.tryParse(value);
         if (number == null || number < 1) {
           _maxAttendeesError = 'Harus angka dan lebih dari 0';
-        } else if (number > 1000) {
-          _maxAttendeesError = 'Maksimal 1000 orang';
+        } else if (number > 100) {
+          _maxAttendeesError = 'Maksimal 100 orang untuk v1';
         } else {
           _maxAttendeesError = null;
         }
