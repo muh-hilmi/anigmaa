@@ -14,6 +14,7 @@ import 'domain/repositories/post_repository.dart';
 import 'domain/repositories/ticket_repository.dart';
 import 'domain/repositories/community_repository.dart';
 import 'domain/repositories/user_repository.dart';
+import 'domain/repositories/ranking_repository.dart';
 import 'domain/usecases/get_events.dart';
 import 'domain/usecases/get_events_by_category.dart';
 import 'domain/usecases/create_event.dart';
@@ -45,6 +46,7 @@ import 'domain/usecases/follow_user.dart';
 import 'domain/usecases/unfollow_user.dart';
 import 'domain/usecases/get_user_followers.dart';
 import 'domain/usecases/get_user_following.dart';
+import 'domain/usecases/get_ranked_feed.dart';
 
 // Data
 import 'data/datasources/event_local_datasource.dart';
@@ -57,12 +59,14 @@ import 'data/datasources/user_remote_datasource.dart';
 import 'data/datasources/community_local_datasource.dart';
 import 'data/datasources/community_remote_datasource.dart';
 import 'data/datasources/qna_remote_datasource.dart';
+import 'data/datasources/ranking_remote_datasource.dart';
 import 'data/repositories/event_repository_impl.dart';
 import 'data/repositories/post_repository_impl.dart';
 import 'data/repositories/ticket_repository_impl.dart';
 import 'data/repositories/community_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
 import 'data/repositories/qna_repository_impl.dart';
+import 'data/repositories/ranking_repository_impl.dart';
 import 'domain/repositories/qna_repository.dart';
 import 'data/services/analytics_service.dart';
 
@@ -73,6 +77,7 @@ import 'presentation/bloc/posts/posts_bloc.dart';
 import 'presentation/bloc/tickets/tickets_bloc.dart';
 import 'presentation/bloc/communities/communities_bloc.dart';
 import 'presentation/bloc/qna/qna_bloc.dart';
+import 'presentation/bloc/ranked_feed/ranked_feed_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -181,6 +186,15 @@ Future<void> init() async {
     ),
   );
 
+  // Features - Ranked Feed
+  // Bloc
+  sl.registerFactory(
+    () => RankedFeedBloc(
+      getRankedFeed: sl(),
+      getCurrentUser: sl(),
+    ),
+  );
+
   // Use cases - Events
   sl.registerLazySingleton(() => GetEvents(sl()));
   sl.registerLazySingleton(() => GetEventsByCategory(sl()));
@@ -226,6 +240,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetUserFollowers(sl()));
   sl.registerLazySingleton(() => GetUserFollowing(sl()));
 
+  // Use cases - Ranking
+  sl.registerLazySingleton(() => GetRankedFeed(sl()));
+
   // Data sources - Remote
   sl.registerLazySingleton<EventRemoteDataSource>(
     () => EventRemoteDataSourceImpl(dioClient: sl()),
@@ -253,6 +270,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<CommunityRemoteDataSource>(
     () => CommunityRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<RankingRemoteDataSource>(
+    () => RankingRemoteDataSourceImpl(dioClient: sl()),
   );
 
   // Data sources - Local
@@ -310,6 +331,13 @@ Future<void> init() async {
   // Repository - QnA
   sl.registerLazySingleton<QnARepository>(
     () => QnARepositoryImpl(
+      remoteDataSource: sl(),
+    ),
+  );
+
+  // Repository - Ranking
+  sl.registerLazySingleton<RankingRepository>(
+    () => RankingRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
