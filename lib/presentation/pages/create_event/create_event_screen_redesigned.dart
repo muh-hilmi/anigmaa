@@ -8,6 +8,7 @@ import '../../../domain/entities/event_category.dart';
 import '../../../data/models/event_model.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
 import '../../widgets/location_picker.dart';
@@ -325,7 +326,7 @@ class _CreateEventScreenRedesignedState extends State<CreateEventScreenRedesigne
               Expanded(
                 child: _buildModernTextField(
                   controller: _maxAttendeesController,
-                  label: 'Kapasitas',
+                  label: 'Kapasitas (Maks 100)',
                   hint: '50',
                   icon: Icons.people_outline,
                   keyboardType: TextInputType.number,
@@ -925,11 +926,11 @@ class _CreateEventScreenRedesignedState extends State<CreateEventScreenRedesigne
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  _isFree ? 'GRATIS' : 'Rp ${_price.toStringAsFixed(0)}',
+                  _isFree ? 'GRATIS' : CurrencyFormatter.formatToCompact(_price),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: _isFree ? const Color(0xFF84994F) : Colors.amber[800],
+                    color: _isFree ? const Color(0xFF84994F) : const Color(0xFF6366F1),
                   ),
                 ),
               ),
@@ -1226,8 +1227,8 @@ class _CreateEventScreenRedesignedState extends State<CreateEventScreenRedesigne
         final number = int.tryParse(value);
         if (number == null || number < 1) {
           _maxAttendeesError = 'Harus angka dan lebih dari 0';
-        } else if (number > 1000) {
-          _maxAttendeesError = 'Maksimal 1000 orang';
+        } else if (number > 100) {
+          _maxAttendeesError = 'Maksimal 100 orang untuk v1';
         } else {
           _maxAttendeesError = null;
         }

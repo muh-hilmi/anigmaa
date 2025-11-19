@@ -3,12 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/event_category_utils.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../event_reviews/event_reviews_screen.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
 import '../../bloc/tickets/tickets_bloc.dart';
 import '../../bloc/tickets/tickets_event.dart';
 import '../../bloc/tickets/tickets_state.dart';
+import '../../bloc/qna/qna_bloc.dart';
+import '../../bloc/qna/qna_event.dart';
+import '../../bloc/qna/qna_state.dart';
 import '../../../injection_container.dart' as di;
 import '../tickets/my_tickets_screen.dart';
 import '../tickets/host_checkin_screen.dart';
@@ -65,6 +69,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     super.initState();
     // Check if current user has already RSVP'd or has pending request
     _checkUserStatus();
+    // Load Q&A for this event
+    context.read<QnABloc>().add(LoadEventQnA(widget.event.id));
   }
 
   void _checkUserStatus() {
@@ -77,8 +83,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => di.sl<TicketsBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => di.sl<TicketsBloc>()),
+        BlocProvider(create: (_) => di.sl<QnABloc>()..add(LoadEventQnA(widget.event.id))),
+      ],
       child: BlocListener<TicketsBloc, TicketsState>(
         listener: (context, state) {
           if (state is TicketPurchased) {
@@ -168,24 +177,48 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               left: 0,
               right: 0,
               bottom: 140,
-              child: Image.network(
-                widget.event.imageUrls.isNotEmpty
-                  ? widget.event.imageUrls.first
-                  : 'https://doodleipsum.com/600x400/abstract',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
+              child: widget.event.imageUrls.isNotEmpty
+                ? Image.network(
+                    widget.event.imageUrls.first,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFFAF8F5),
+                        child: Center(
+                          child: Icon(
+                            Icons.event_rounded,
+                            size: 140,
+                            color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: const Color(0xFFFAF8F5),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: const Color(0xFF84994F),
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : Container(
                     color: const Color(0xFFFAF8F5),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
-                        Icons.image_not_supported_rounded,
-                        size: 80,
-                        color: Color(0xFFB8AFA0),
+                        Icons.event_rounded,
+                        size: 140,
+                        color: const Color(0xFF84994F).withValues(alpha: 0.08),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
             ),
             // Gradient overlay bottom untuk transisi smooth
             Positioned(
@@ -232,7 +265,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           decoration: BoxDecoration(
                             color: widget.event.isFree
                               ? const Color(0xFF84994F)
-                              : const Color(0xFFFFD700),
+                              : const Color(0xFF6366F1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
@@ -247,7 +280,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               Text(
                                 widget.event.isFree
                                   ? 'GRATIS'
-                                  : 'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                                  : CurrencyFormatter.formatToCompact(widget.event.price!),
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
@@ -582,108 +615,130 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _buildQnACard() {
-    // Dummy Q&A data - nanti bisa diganti dari API
-    final qnaList = [
-      {
-        'question': 'Ada parkir ga di venue-nya?',
-        'answer': 'Ada dong! Parkir gratis untuk semua peserta di basement gedung. Gas aja!',
-        'askedBy': 'Michael',
-        'answeredBy': widget.event.host.name,
-      },
-      {
-        'question': 'Boleh bawa temen yang ga daftar?',
-        'answer': 'Waduh ga bisa ya say, cuma yang udah daftar aja. Tapi temen lo bisa daftar sendiri kok!',
-        'askedBy': 'Amanda',
-        'answeredBy': widget.event.host.name,
-      },
-      {
-        'question': 'Harus bawa apa nih ke eventnya?',
-        'answer': 'Bawa diri lo aja udah cukup! Semua bahan bakal gue siapin. Santuy!',
-        'askedBy': 'David',
-        'answeredBy': widget.event.host.name,
-      },
-    ];
+    return BlocBuilder<QnABloc, QnAState>(
+      builder: (context, state) {
+        final qnaList = state is QnALoaded ? state.questions : [];
+        final hasQnA = qnaList.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFAF8F5),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Q&A',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
-                  letterSpacing: -0.3,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Q&A',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  if (hasQnA)
+                    TextButton(
+                      onPressed: _showAllQnA,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Liat semua',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF84994F),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  // Navigate to full Q&A screen
-                  _showAllQnA();
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              const SizedBox(height: 12),
+              // Display Q&A items
+              if (state is QnALoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF84994F),
+                    ),
+                  ),
+                )
+              else if (hasQnA)
+                ...qnaList.take(2).map((qna) => _buildQnAItem(
+                  question: qna.question,
+                  answer: qna.answer ?? 'Menunggu jawaban dari organizer...',
+                  askedBy: qna.askedBy.name,
+                  isAnswered: qna.isAnswered,
+                ))
+              else
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.question_answer_outlined,
+                        size: 24,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Belum ada pertanyaan nih.\nJadi yang pertama nanya yuk!',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Text(
-                  'Liat semua',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+              // Ask question button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _askQuestion,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    side: const BorderSide(color: Color(0xFF84994F), width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.help_outline,
+                    size: 18,
                     color: Color(0xFF84994F),
+                  ),
+                  label: const Text(
+                    'Tanya Dong 💬',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF84994F),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Display first 2 Q&A items
-          ...qnaList.take(2).map((qna) => _buildQnAItem(
-            question: qna['question']!,
-            answer: qna['answer']!,
-            askedBy: qna['askedBy']!,
-          )),
-          const SizedBox(height: 8),
-          // Ask question button
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _askQuestion,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                side: const BorderSide(color: Color(0xFF84994F), width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              icon: const Icon(
-                Icons.help_outline,
-                size: 18,
-                color: Color(0xFF84994F),
-              ),
-              label: const Text(
-                'Tanya Dong 💬',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF84994F),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -691,6 +746,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     required String question,
     required String answer,
     required String askedBy,
+    bool isAnswered = true,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -751,38 +807,66 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ),
           const SizedBox(height: 8),
           // Answer
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'A',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF84994F),
+          if (isAnswered)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'A',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF84994F),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  answer,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[700],
-                    height: 1.4,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    answer,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
                 ),
+              ],
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
               ),
-            ],
-          ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    size: 12,
+                    color: Colors.orange[700],
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Menunggu jawaban',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -801,11 +885,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   void _askQuestion() {
+    final questionController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
+      builder: (modalContext) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -853,6 +939,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 20),
                   // Question input
                   TextField(
+                    controller: questionController,
                     autofocus: true,
                     maxLines: 4,
                     decoration: InputDecoration(
@@ -876,7 +963,27 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        final question = questionController.text.trim();
+                        if (question.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Pertanyaan ga boleh kosong!'),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // Submit question using QnABloc
+                        context.read<QnABloc>().add(
+                          AskQuestionRequested(widget.event.id, question),
+                        );
+
+                        Navigator.pop(modalContext);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: const Row(
@@ -886,7 +993,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 Text('Pertanyaan terkirim! ✅'),
                               ],
                             ),
-                            backgroundColor: Colors.green[600],
+                            backgroundColor: const Color(0xFF84994F),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1373,7 +1480,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                       ),
                       Text(
-                        'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                        CurrencyFormatter.formatToRupiah(widget.event.price!),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -1536,7 +1643,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     const SizedBox(height: 8),
                     if (!widget.event.isFree)
                       Text(
-                        'Total: Rp ${widget.event.price!.toStringAsFixed(0)}',
+                        'Total: ${CurrencyFormatter.formatToRupiah(widget.event.price!)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2405,7 +2512,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               ),
                             ),
                             Text(
-                              'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                              CurrencyFormatter.formatToRupiah(widget.event.price!),
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
