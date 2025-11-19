@@ -45,10 +45,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       parent: _likeAnimationController,
       curve: Curves.easeInOut,
     ));
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load comments when screen is displayed (works on both first visit and return visits)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PostsBloc>().add(LoadComments(widget.post.id));
+        final state = context.read<PostsBloc>().state;
+        // Only load if comments don't exist yet for this post
+        if (state is PostsLoaded) {
+          final hasComments = state.commentsByPostId.containsKey(widget.post.id);
+          if (!hasComments) {
+            context.read<PostsBloc>().add(LoadComments(widget.post.id));
+          }
+        } else {
+          // State not loaded yet, trigger load
+          context.read<PostsBloc>().add(LoadComments(widget.post.id));
+        }
       }
     });
   }
