@@ -23,16 +23,24 @@ class UpdateUserProfile extends UserEvent {
   final String? bio;
   final String? avatar;
   final List<String>? interests;
+  final String? phone;
+  final DateTime? dateOfBirth;
+  final String? gender;
+  final String? location;
 
   const UpdateUserProfile({
     this.name,
     this.bio,
     this.avatar,
     this.interests,
+    this.phone,
+    this.dateOfBirth,
+    this.gender,
+    this.location,
   });
 
   @override
-  List<Object?> get props => [name, bio, avatar, interests];
+  List<Object?> get props => [name, bio, avatar, interests, phone, dateOfBirth, gender, location];
 }
 
 class TogglePremium extends UserEvent {}
