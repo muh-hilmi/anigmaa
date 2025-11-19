@@ -34,15 +34,21 @@ class UserModel extends User {
     final dateOfBirth = json['dateOfBirth'] ?? json['date_of_birth'];
 
     // Validate required fields
-    if (json['id'] == null || (json['id'] as String).isEmpty) {
+    if (json['id'] == null) {
       throw Exception('Missing user id in response');
     }
     if (json['name'] == null || (json['name'] as String).isEmpty) {
       throw Exception('Missing user name in response');
     }
 
+    // Handle both integer and string IDs from backend
+    final userId = json['id'] is int ? json['id'].toString() : json['id'] as String;
+    if (userId.isEmpty) {
+      throw Exception('Missing user id in response');
+    }
+
     return UserModel(
-      id: json['id'] as String,
+      id: userId,
       email: json['email'] as String?,
       name: json['name'] as String,
       bio: json['bio'] as String?,
