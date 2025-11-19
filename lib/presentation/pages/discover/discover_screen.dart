@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
-// import '../../../domain/entities/event_category.dart';
+import '../../../domain/entities/event_category.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
@@ -297,12 +297,10 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
   // Events List
   Widget _buildEventsList() {
-    final now = DateTime.now();
-
-    // Filter out events that ended more than 30 days ago
+    // Filter to only show upcoming and live events (hide completed/cancelled events)
     final displayEvents = _allEvents.where((event) {
-      final daysSinceEnd = now.difference(event.endTime).inDays;
-      return daysSinceEnd < 30;
+      return event.status == EventStatus.upcoming ||
+             event.status == EventStatus.live;
     }).toList();
 
     return SliverPadding(

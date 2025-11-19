@@ -38,6 +38,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void _applyFilters() {
     setState(() {
       _filteredEvents = _allEvents.where((event) {
+        // Status filter - only show upcoming and live events (hide completed/cancelled)
+        if (event.status != EventStatus.upcoming &&
+            event.status != EventStatus.live) {
+          return false;
+        }
+
         // Search filter
         if (_searchController.text.isNotEmpty) {
           final query = _searchController.text.toLowerCase();
