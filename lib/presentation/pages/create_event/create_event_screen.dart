@@ -36,7 +36,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
   final _requirementsController = TextEditingController();
 
   // Form data
-  final EventCategory _selectedCategory = EventCategory.meetup;
+  EventCategory _selectedCategory = EventCategory.meetup;
   EventPrivacy _selectedPrivacy = EventPrivacy.public;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 19, minute: 0);
@@ -255,6 +255,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
             errorText: _descriptionError,
             onChanged: _validateDescription,
           ),
+          const SizedBox(height: 24),
+
+          // Category Selector
+          _buildSectionTitle('Kategori Event', required: true),
+          const SizedBox(height: 8),
+          _buildCategorySelector(),
           const SizedBox(height: 24),
 
           // Date & Time
@@ -525,6 +531,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
 
   // Compact Preview Card
   Widget _buildPreviewCard() {
+    final categoryColor = AppColors.getCategoryColor(_selectedCategory);
+    final categoryName = EventCategoryUtils.getCategoryName(_selectedCategory);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -541,28 +550,76 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Category and Price badges
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: categoryColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_getCategoryIcon(_selectedCategory), size: 12, color: categoryColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          categoryName,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: categoryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _isFree ? const Color(0xFF84994F) : const Color(0xFF6366F1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      _isFree ? 'GRATIS' : 'Rp ${_price.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               Text(
                 _titleController.text.isNotEmpty
                     ? _titleController.text
                     : 'Nama Acara',
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF000000),
                   letterSpacing: -0.5,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                   const SizedBox(width: 6),
-                  Text(
-                    _formatDateTime(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      _formatDateTime(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -578,7 +635,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
                           ? _selectedLocationData!.name
                           : 'Lokasi acara',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         color: Colors.grey[700],
                         fontWeight: FontWeight.w500,
                       ),
@@ -602,18 +659,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
                   Text(
                     _selectedPrivacy == EventPrivacy.public ? 'Publik' : 'Privat',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       color: Colors.grey[700],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const Spacer(),
                   Text(
-                    _isFree ? 'GRATIS' : 'Rp ${_price.toStringAsFixed(0)}',
+                    '${_maxAttendeesController.text.isNotEmpty ? _maxAttendeesController.text : "0"} orang',
                     style: TextStyle(
-                      fontSize: 13,
-                      color: _isFree ? const Color(0xFF84994F) : Colors.grey[700],
-                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -1233,6 +1290,78 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
         ] : null,
       ),
     );
+  }
+
+  Widget _buildCategorySelector() {
+    final categories = EventCategory.values;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: categories.map((category) {
+        final isSelected = _selectedCategory == category;
+        final categoryColor = AppColors.getCategoryColor(category);
+        final categoryName = EventCategoryUtils.getCategoryName(category);
+
+        return GestureDetector(
+          onTap: () => setState(() => _selectedCategory = category),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? categoryColor.withValues(alpha: 0.15) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? categoryColor : Colors.grey[300]!,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _getCategoryIcon(category),
+                  size: 18,
+                  color: isSelected ? categoryColor : Colors.grey[600],
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  categoryName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color: isSelected ? categoryColor : Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  IconData _getCategoryIcon(EventCategory category) {
+    switch (category) {
+      case EventCategory.meetup:
+        return Icons.people;
+      case EventCategory.sports:
+        return Icons.sports_soccer;
+      case EventCategory.workshop:
+        return Icons.school;
+      case EventCategory.networking:
+        return Icons.handshake;
+      case EventCategory.music:
+        return Icons.music_note;
+      case EventCategory.gaming:
+        return Icons.sports_esports;
+      case EventCategory.food:
+        return Icons.restaurant;
+      case EventCategory.outdoors:
+        return Icons.terrain;
+      default:
+        return Icons.event;
+    }
   }
 
   Widget _buildPrivacySelector() {

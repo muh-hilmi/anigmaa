@@ -443,14 +443,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
           ),
         ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: SafeArea(
         child: Row(
           children: [
@@ -461,22 +460,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
               onTap: _pickImages,
               isActive: _selectedImages.isNotEmpty,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             _buildActionButton(
               icon: Icons.event_rounded,
               label: 'Event',
               color: const Color(0xFF84994F),
               onTap: _showEventSelector,
               isActive: _selectedEvent != null,
-            ),
-            const SizedBox(width: 8),
-            _buildActionButton(
-              icon: Icons.gif_box_rounded,
-              label: 'GIF',
-              color: const Color(0xFFEC4899),
-              onTap: () {
-                // TODO: Add GIF picker
-              },
             ),
             const Spacer(),
             // Quick emoji reactions
@@ -498,12 +488,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.15) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
+          color: isActive ? color.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isActive ? color : Colors.transparent,
+            color: isActive ? color.withValues(alpha: 0.4) : Colors.grey[300]!,
             width: 1.5,
           ),
         ),
@@ -513,14 +503,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
             Icon(
               icon,
               color: isActive ? color : Colors.grey[600],
-              size: 20,
+              size: 19,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: isActive ? color : Colors.grey[700],
               ),
             ),
@@ -537,18 +527,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
         onTap: () {
           setState(() {
             _textController.text += emoji;
+            _textController.selection = TextSelection.fromPosition(
+              TextPosition(offset: _textController.text.length),
+            );
           });
         },
         child: Container(
-          margin: const EdgeInsets.only(left: 8),
-          padding: const EdgeInsets.all(8),
+          margin: const EdgeInsets.only(left: 6),
+          padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Colors.grey[50],
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey[200]!, width: 1),
           ),
           child: Text(
             emoji,
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 18),
           ),
         ),
       );
