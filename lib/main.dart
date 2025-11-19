@@ -198,7 +198,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         currentScreen = const NewCommunityScreen();
         break;
       case 3:
-        currentScreen = const ProfileScreen();
+        currentScreen = ProfileScreen(); // Removed const to allow refresh
         break;
       default:
         currentScreen = HomeScreen(onTabChanged: _onHomeTabChanged);

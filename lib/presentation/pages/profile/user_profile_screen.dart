@@ -535,7 +535,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditProfileScreen(),
+                          builder: (context) => EditProfileScreen(user: _profileUser),
                         ),
                       );
                       // Reload profile after edit

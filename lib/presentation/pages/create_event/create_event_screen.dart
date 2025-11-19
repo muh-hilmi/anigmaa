@@ -1351,14 +1351,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> with TickerProvid
         return Icons.school;
       case EventCategory.networking:
         return Icons.handshake;
-      case EventCategory.music:
-        return Icons.music_note;
-      case EventCategory.gaming:
-        return Icons.sports_esports;
       case EventCategory.food:
         return Icons.restaurant;
-      case EventCategory.outdoors:
+      case EventCategory.creative:
+        return Icons.palette;
+      case EventCategory.outdoor:
         return Icons.terrain;
+      case EventCategory.fitness:
+        return Icons.fitness_center;
+      case EventCategory.learning:
+        return Icons.school;
+      case EventCategory.social:
+        return Icons.group;
       default:
         return Icons.event;
     }

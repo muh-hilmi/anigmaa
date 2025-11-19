@@ -122,13 +122,9 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           if (state is EventsLoaded) {
             if (state.successMessage != null) {
               AppLogger().info('Discover screen: ${state.successMessage}');
-              // Clear the message after showing
-              context.read<EventsBloc>().emit(state.clearMessages());
             }
             if (state.createErrorMessage != null) {
               AppLogger().error('Discover screen error: ${state.createErrorMessage}');
-              // Clear the message after showing
-              context.read<EventsBloc>().emit(state.clearMessages());
             }
           }
         },
@@ -146,7 +142,9 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           if (state is EventsLoaded) {
             _allEvents = state.events;
             if (_filteredEvents.isEmpty && _searchController.text.isEmpty) {
-              _applyModeFilter();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _applyModeFilter();
+              });
             }
 
             return _allEvents.isEmpty

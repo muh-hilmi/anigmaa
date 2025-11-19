@@ -28,8 +28,10 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final response = await dioClient.get('/users/me');
 
       if (response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
+        // Backend returns: { data: { user: {...} } }
+        final data = response.data['data']?['user'] ?? response.data['data'] ?? response.data;
         print('[UserRemoteDataSource] Current user retrieved successfully');
+        print('[UserRemoteDataSource] Parsing user data: ${data.toString().substring(0, 100)}...');
         return UserModel.fromJson(data);
       } else {
         throw ServerFailure('Failed to get current user');
@@ -47,7 +49,8 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final response = await dioClient.get('/users/$userId');
 
       if (response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
+        // Backend returns: { data: { user: {...} } }
+        final data = response.data['data']?['user'] ?? response.data['data'] ?? response.data;
         print('[UserRemoteDataSource] User retrieved successfully');
         return UserModel.fromJson(data);
       } else {
@@ -62,14 +65,15 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<UserModel> updateCurrentUser(Map<String, dynamic> userData) async {
     try {
-      print('[UserRemoteDataSource] Updating current user...');
-      final response = await dioClient.put(
+      print('[UserRemoteDataSource] Updating current user with PATCH...');
+      final response = await dioClient.patch(
         '/users/me',
         data: userData,
       );
 
       if (response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
+        // Backend returns: { data: { user: {...} } }
+        final data = response.data['data']?['user'] ?? response.data['data'] ?? response.data;
         print('[UserRemoteDataSource] User updated successfully');
         return UserModel.fromJson(data);
       } else {

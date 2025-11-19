@@ -263,13 +263,20 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   @override
   Future<List<EventModel>> getUserEventsByUsername(String username, {int limit = 20, int offset = 0}) async {
     try {
+      print('[EventRemoteDataSource] Fetching events for user: $username');
       final response = await dioClient.get(
         '/profile/$username/events',
         queryParameters: {'limit': limit, 'offset': offset},
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? response.data;
+        print('[EventRemoteDataSource] Response type: ${response.data['data'].runtimeType}');
+        // Backend might return: { data: { events: [...] } } or { data: [...] }
+        final responseData = response.data['data'];
+        final List<dynamic> data = responseData is List
+            ? responseData
+            : (responseData?['events'] ?? []);
+        print('[EventRemoteDataSource] Found ${data.length} events');
         return data.map((json) => EventModel.fromJson(json)).toList();
       } else {
         throw ServerFailure('Failed to fetch user events');

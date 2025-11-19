@@ -57,14 +57,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     try {
       // Try to use API if available
       if (getCurrentUser != null) {
+        print('[UserBloc] Calling getCurrentUser API...');
         final result = await getCurrentUser!(NoParams());
 
         result.fold(
           (failure) {
             // Fallback to mock data if API fails
+            print('[UserBloc] API failed with: ${failure.message}');
+            print('[UserBloc] Falling back to mock data');
             _loadMockUserProfile(emit);
           },
           (user) {
+            print('[UserBloc] API success! User ID: ${user.id}, Name: ${user.name}, Email: ${user.email}');
             emit(UserLoaded(
               user: user,
               eventsHosted: user.stats.eventsCreated,
@@ -77,9 +81,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         );
       } else {
         // No API available, use mock data
+        print('[UserBloc] getCurrentUser use case not available, using mock data');
         _loadMockUserProfile(emit);
       }
     } catch (e) {
+      print('[UserBloc] Exception caught: $e');
       emit(UserError('Failed to load user profile: $e'));
     }
   }
@@ -89,27 +95,27 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     final email = authService.userEmail ?? 'user@anigmaa.com';
     final name = authService.userName ?? 'Anigmaa User';
 
-    // Mock user data
+    // Mock user data - MINIMAL DATA (no dummy bio/avatar)
     final user = User(
       id: '1',
       name: name,
       email: email,
-      avatar: 'https://i.pravatar.cc/300?img=12',
-      bio: 'Passionate about connecting with people through amazing events! 🎉',
-      interests: const ['Music', 'Sports', 'Technology', 'Food', 'Travel'],
+      avatar: null, // No dummy avatar
+      bio: null, // No dummy bio
+      interests: const [],
       createdAt: DateTime.now().subtract(const Duration(days: 180)),
       lastLoginAt: DateTime.now(),
       settings: const UserSettings(),
       stats: const UserStats(
-        eventsAttended: 48,
-        eventsCreated: 12,
-        followersCount: 156,
-        followingCount: 89,
-        reviewsGiven: 24,
-        averageRating: 4.8,
+        eventsAttended: 0,
+        eventsCreated: 0,
+        followersCount: 0, // Fixed: no dummy follower count
+        followingCount: 0,
+        reviewsGiven: 0,
+        averageRating: 0.0,
       ),
       privacy: const UserPrivacy(),
-      isVerified: true,
+      isVerified: false,
       isEmailVerified: true,
     );
 
@@ -118,8 +124,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       eventsHosted: user.stats.eventsCreated,
       eventsAttended: user.stats.eventsAttended,
       connections: user.stats.followersCount,
-      postsCount: 24,
-      totalInvitedAttendees: 342,
+      postsCount: 0,
+      totalInvitedAttendees: 0,
     ));
   }
 
