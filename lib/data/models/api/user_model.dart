@@ -7,7 +7,6 @@ part 'user_model.g.dart';
 class UserModel {
   final String id;
   final String? email;
-  final String? username;
   // Backend uses 'name' field
   final String? name;
   final String? bio;
@@ -33,7 +32,6 @@ class UserModel {
   UserModel({
     required this.id,
     this.email,
-    this.username,
     this.name,
     this.bio,
     this.avatarUrl,
@@ -58,7 +56,7 @@ class UserModel {
     return User(
       id: id,
       email: email,
-      name: name ?? username ?? 'User',
+      name: name ?? 'User',
       bio: bio,
       avatar: avatarUrl,
       createdAt: createdAt != null
@@ -80,7 +78,6 @@ class UserModel {
       id: user.id,
       email: user.email,
       name: user.name,
-      username: user.name,
       bio: user.bio,
       avatarUrl: user.avatar,
       isVerified: user.isVerified,

@@ -1,7 +1,6 @@
 class User {
   final String id;
   final String? email;
-  final String? username;  // Added username field
   final String name;
   final String? bio;
   final String? avatar;
@@ -17,7 +16,6 @@ class User {
   const User({
     required this.id,
     this.email,
-    this.username,  // Added to constructor
     required this.name,
     this.bio,
     this.avatar,
@@ -34,7 +32,6 @@ class User {
   User copyWith({
     String? id,
     String? email,
-    String? username,  // Added username parameter
     String? name,
     String? bio,
     String? avatar,
@@ -50,7 +47,6 @@ class User {
     return User(
       id: id ?? this.id,
       email: email ?? this.email,
-      username: username ?? this.username,  // Added username field
       name: name ?? this.name,
       bio: bio ?? this.bio,
       avatar: avatar ?? this.avatar,

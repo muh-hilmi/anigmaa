@@ -127,11 +127,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     try {
       final postRepo = di.sl<PostRepository>();
-      // Use widget.userId (username) if available, otherwise use user's username field
-      final userIdentifier = widget.userId ??
-                              _profileUser!.username ??
-                              _profileUser!.email?.split('@').first ??
-                              _profileUser!.id;
+      // Use widget.userId if available, otherwise use user's id
+      final userIdentifier = widget.userId ?? _profileUser!.id;
       final result = await postRepo.getUserPosts(userIdentifier, limit: 20, offset: 0);
 
       result.fold(
@@ -162,14 +159,11 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     setState(() => _isLoadingEvents = true);
 
     try {
-      // Use widget.userId (username) if available, otherwise use user's username field
-      final username = widget.userId ??
-                       _profileUser!.username ??
-                       _profileUser!.email?.split('@').first ??
-                       _profileUser!.id;
+      // Use widget.userId if available, otherwise use user's id
+      final userId = widget.userId ?? _profileUser!.id;
 
       final eventDataSource = di.sl<EventRemoteDataSource>();
-      final eventModels = await eventDataSource.getUserEventsByUsername(username, limit: 20, offset: 0);
+      final eventModels = await eventDataSource.getUserEventsByUsername(userId, limit: 20, offset: 0);
 
       // Convert models to entities
       final events = eventModels.map((model) => (model as dynamic).toEntity() as Event).toList();
