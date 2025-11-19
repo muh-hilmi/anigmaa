@@ -425,7 +425,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: stats.map((stat) {
-          final index = int.parse(stat['index']! as String);
+          final index = stat['index']! as int;
           return InkWell(
             onTap: () {
               if (index >= 0) {
