@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../domain/entities/event.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_event.dart';
 import '../../bloc/events/events_state.dart';
@@ -394,7 +395,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                               decoration: BoxDecoration(
                                 color: widget.event.isFree
                                   ? const Color(0xFF84994F)
-                                  : const Color(0xFFFFD700),
+                                  : const Color(0xFF6366F1),
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
@@ -416,7 +417,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                   Text(
                                     widget.event.isFree
                                       ? 'GRATIS'
-                                      : 'Rp ${(widget.event.price ?? 0).toStringAsFixed(0)}',
+                                      : CurrencyFormatter.formatToCompact(widget.event.price ?? 0),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
@@ -839,7 +840,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Biaya: Rp ${widget.event.price!.toStringAsFixed(0)}',
+                      'Biaya: ${CurrencyFormatter.formatToRupiah(widget.event.price!)}',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -903,7 +904,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -923,7 +924,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                           borderRadius: BorderRadius.circular(12),
                           child: Center(
                             child: Text(
-                              'Bayar (Rp ${widget.event.price!.toStringAsFixed(0)})',
+                              'Bayar (${CurrencyFormatter.formatToCompact(widget.event.price!)})',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,

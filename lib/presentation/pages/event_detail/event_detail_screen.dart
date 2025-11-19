@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/event_category_utils.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../event_reviews/event_reviews_screen.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_state.dart';
@@ -264,7 +265,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           decoration: BoxDecoration(
                             color: widget.event.isFree
                               ? const Color(0xFF84994F)
-                              : const Color(0xFFFFD700),
+                              : const Color(0xFF6366F1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
@@ -279,7 +280,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               Text(
                                 widget.event.isFree
                                   ? 'GRATIS'
-                                  : 'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                                  : CurrencyFormatter.formatToCompact(widget.event.price!),
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
@@ -1479,7 +1480,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                       ),
                       Text(
-                        'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                        CurrencyFormatter.formatToRupiah(widget.event.price!),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -1642,7 +1643,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     const SizedBox(height: 8),
                     if (!widget.event.isFree)
                       Text(
-                        'Total: Rp ${widget.event.price!.toStringAsFixed(0)}',
+                        'Total: ${CurrencyFormatter.formatToRupiah(widget.event.price!)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2511,7 +2512,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               ),
                             ),
                             Text(
-                              'Rp ${widget.event.price!.toStringAsFixed(0)}',
+                              CurrencyFormatter.formatToRupiah(widget.event.price!),
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
