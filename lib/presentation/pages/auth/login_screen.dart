@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/google_auth_service.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../injection_container.dart' as di;
+import '../../bloc/user/user_bloc.dart';
+import '../../bloc/user/user_event.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -184,6 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final authDataSource = di.sl<AuthRemoteDataSource>();
       final authResponse = await authDataSource.loginWithGoogle(idToken);
 
+      // DEBUG: Log the response from backend
+      AppLogger().info('Backend returned user: ${authResponse.user.email} (ID: ${authResponse.user.id})');
+
       // Save complete auth data using AuthService
       final authService = di.sl<AuthService>();
       await authService.saveAuthData(
@@ -194,24 +201,37 @@ class _LoginScreenState extends State<LoginScreen> {
         refreshToken: authResponse.refreshToken,
       );
 
+      // DEBUG: Verify what was saved
+      final savedUserId = authService.userId;
+      final savedEmail = authService.userEmail;
+      AppLogger().info('Saved to storage: $savedEmail (ID: $savedUserId)');
+
+      // Trigger UserBloc to load current user
+      if (mounted) {
+        context.read<UserBloc>().add(LoadUserProfile());
+        AppLogger().info('Triggered UserBloc.LoadUserProfile()');
+      }
+
       setState(() {
         _isLoading = false;
       });
 
       if (mounted) {
-        // Check if user needs to complete profile (first-time user)
-        final needsProfileCompletion = authResponse.user.dateOfBirth == null ||
-                                        authResponse.user.location == null;
+        // Check if this is a new user (account just created)
+        // New users have no dateOfBirth AND createdAt is very recent (within last minute)
+        final accountAge = DateTime.now().difference(authResponse.user.createdAt);
+        final isNewUser = authResponse.user.dateOfBirth == null &&
+                          accountAge.inMinutes < 1;
 
-        if (needsProfileCompletion) {
-          // New user - go to complete profile
+        if (isNewUser) {
+          // First-time user - show complete profile screen once
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/complete-profile',
             (route) => false,
           );
         } else {
-          // Returning user - go to home
+          // Returning user - go directly to home
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/home',
