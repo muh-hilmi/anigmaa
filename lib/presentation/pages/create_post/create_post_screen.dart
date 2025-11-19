@@ -17,13 +17,28 @@ class CreatePostScreen extends StatefulWidget {
   State<CreatePostScreen> createState() => _CreatePostScreenState();
 }
 
-class _CreatePostScreenState extends State<CreatePostScreen> {
+class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
   final List<String> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
-  Event? _selectedEvent; // For event tagging
+  Event? _selectedEvent;
+  late AnimationController _fabController;
+  late Animation<double> _fabAnimation;
 
   bool get canPost => _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _fabController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fabAnimation = CurvedAnimation(
+      parent: _fabController,
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,227 +50,517 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         }
 
         return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Bikin Post',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: canPost ? _createPost : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+          backgroundColor: const Color(0xFFFAF8F5),
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                disabledBackgroundColor: Colors.grey.shade300,
+                child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
               ),
-              child: const Text('Posting'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Bikin Post 📝',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+                fontSize: 22,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundImage: currentUser?.avatar != null
-                            ? NetworkImage(currentUser!.avatar!)
-                            : null,
-                        child: currentUser?.avatar == null
-                            ? Text(
-                                currentUser?.name.isNotEmpty == true
-                                    ? currentUser!.name[0].toUpperCase()
-                                    : 'U',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          decoration: const InputDecoration(
-                            hintText: "Lagi ngapain nih?",
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 18),
-                          maxLines: null,
-                          autofocus: true,
-                          textCapitalization: TextCapitalization.sentences,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
+          body: Stack(
+            children: [
+              // Gradient Background
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFFFAF8F5),
+                      const Color(0xFF84994F).withValues(alpha: 0.05),
                     ],
                   ),
-                  if (_selectedImages.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _buildImageGrid(),
-                  ],
-                  if (_selectedEvent != null) ...[
-                    const SizedBox(height: 16),
-                    _buildEventChip(),
-                  ],
-                ],
+                ),
               ),
-            ),
-          ),
-          _buildBottomBar(),
-        ],
-      ),
-    );
-      },
-    );
-  }
 
-  Widget _buildImageGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: _selectedImages.length,
-      itemBuilder: (context, index) {
-        return Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                File(_selectedImages[index]),
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
+              // Main Content
+              SafeArea(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+
+                            // User Info & Text Input
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Avatar with ring
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF84994F), Color(0xFFA8B968)],
+                                    ),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 26,
+                                    backgroundColor: Colors.white,
+                                    child: CircleAvatar(
+                                      radius: 24,
+                                      backgroundImage: currentUser?.avatar != null
+                                          ? NetworkImage(currentUser!.avatar!)
+                                          : null,
+                                      child: currentUser?.avatar == null
+                                          ? Text(
+                                              currentUser?.name.isNotEmpty == true
+                                                  ? currentUser!.name[0].toUpperCase()
+                                                  : 'U',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        currentUser?.name ?? 'User',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.public,
+                                              size: 12,
+                                              color: Colors.grey[700],
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Publik',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Text Input with modern styling
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: TextField(
+                                controller: _textController,
+                                decoration: const InputDecoration(
+                                  hintText: "Lagi ngapain nih? Ceritain dong! ✨",
+                                  border: InputBorder.none,
+                                  hintStyle: TextStyle(
+                                    fontSize: 17,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  height: 1.5,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: null,
+                                minLines: 4,
+                                autofocus: true,
+                                textCapitalization: TextCapitalization.sentences,
+                                onChanged: (_) => setState(() {
+                                  if (canPost) {
+                                    _fabController.forward();
+                                  } else {
+                                    _fabController.reverse();
+                                  }
+                                }),
+                              ),
+                            ),
+
+                            // Character Counter
+                            if (_textController.text.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _buildCharacterCounter(),
+                            ],
+
+                            // Event Tag
+                            if (_selectedEvent != null) ...[
+                              const SizedBox(height: 16),
+                              _buildEventChipModern(),
+                            ],
+
+                            // Image Preview
+                            if (_selectedImages.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _buildImageGridModern(),
+                            ],
+
+                            const SizedBox(height: 100),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildBottomBarModern(),
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedImages.removeAt(index);
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 20,
+
+              // Floating Post Button
+              Positioned(
+                bottom: 100,
+                right: 20,
+                child: ScaleTransition(
+                  scale: _fabAnimation,
+                  child: FloatingActionButton.extended(
+                    onPressed: canPost ? _createPost : null,
+                    backgroundColor: const Color(0xFF84994F),
+                    elevation: 8,
+                    icon: const Icon(Icons.send_rounded, size: 20),
+                    label: const Text(
+                      'Posting',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildCharacterCounter() {
+    final length = _textController.text.length;
+    final color = _getCharCountColor();
+    final percentage = (length / 500).clamp(0.0, 1.0);
+
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: percentage,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 6,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '$length',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageGridModern() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _selectedImages.length == 1 ? 1 : 2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: _selectedImages.length == 1 ? 16 / 9 : 1,
+          ),
+          itemCount: _selectedImages.length,
+          itemBuilder: (context, index) {
+            return Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(
+                    File(_selectedImages[index]),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+                // Gradient overlay
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.0),
+                        Colors.black.withValues(alpha: 0.3),
+                      ],
+                    ),
+                  ),
+                ),
+                // Remove button
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedImages.removeAt(index);
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                // Image number badge
+                if (_selectedImages.length > 1)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${index + 1}/${_selectedImages.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBarModern() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              onPressed: _pickImages,
-              icon: Icon(Icons.image_outlined, color: Colors.grey.shade700),
-              tooltip: 'Tambahin foto',
+            _buildActionButton(
+              icon: Icons.image_rounded,
+              label: 'Foto',
+              color: const Color(0xFF6366F1),
+              onTap: _pickImages,
+              isActive: _selectedImages.isNotEmpty,
             ),
-            IconButton(
-              onPressed: () {
+            const SizedBox(width: 8),
+            _buildActionButton(
+              icon: Icons.event_rounded,
+              label: 'Event',
+              color: const Color(0xFF84994F),
+              onTap: _showEventSelector,
+              isActive: _selectedEvent != null,
+            ),
+            const SizedBox(width: 8),
+            _buildActionButton(
+              icon: Icons.gif_box_rounded,
+              label: 'GIF',
+              color: const Color(0xFFEC4899),
+              onTap: () {
                 // TODO: Add GIF picker
               },
-              icon: Icon(Icons.gif_box_outlined, color: Colors.grey.shade700),
-              tooltip: 'Tambahin GIF',
-            ),
-            IconButton(
-              onPressed: () {
-                // TODO: Add poll
-              },
-              icon: Icon(Icons.poll_outlined, color: Colors.grey.shade700),
-              tooltip: 'Tambahin polling',
-            ),
-            IconButton(
-              onPressed: _showEventSelector,
-              icon: Icon(
-                Icons.event_outlined,
-                color: _selectedEvent != null ? const Color(0xFF84994F) : Colors.grey.shade700,
-              ),
-              tooltip: 'Tag event',
             ),
             const Spacer(),
-            if (_textController.text.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getCharCountColor().withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_textController.text.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _getCharCountColor(),
-                  ),
-                ),
-              ),
+            // Quick emoji reactions
+            ..._buildQuickEmojis(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool isActive = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? color.withValues(alpha: 0.15) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive ? color : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isActive ? color : Colors.grey[600],
+              size: 20,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isActive ? color : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildQuickEmojis() {
+    final emojis = ['😊', '🔥', '❤️'];
+    return emojis.map((emoji) {
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            _textController.text += emoji;
+          });
+        },
+        child: Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            emoji,
+            style: const TextStyle(fontSize: 20),
+          ),
+        ),
+      );
+    }).toList();
   }
 
   Color _getCharCountColor() {
     final length = _textController.text.length;
     if (length > 500) return Colors.red;
     if (length > 400) return Colors.orange;
-    return Colors.grey.shade700;
+    if (length > 300) return Colors.amber;
+    return const Color(0xFF84994F);
   }
 
   Future<void> _pickImages() async {
@@ -264,39 +569,63 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (images.isNotEmpty && _selectedImages.length + images.length <= 4) {
         setState(() {
           _selectedImages.addAll(images.map((img) => img.path).toList());
+          _fabController.forward();
         });
       } else if (_selectedImages.length + images.length > 4) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Maksimal 4 foto aja yaa!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        _showSnackBar('Maksimal 4 foto aja yaa! 📸', isError: true);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Waduh... gagal pilih foto nih'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _showSnackBar('Waduh... gagal pilih foto nih 😅', isError: true);
     }
   }
 
-  Widget _buildEventChip() {
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red[600] : const Color(0xFF84994F),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  Widget _buildEventChipModern() {
     if (_selectedEvent == null) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF84994F).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF84994F), width: 1.5),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF84994F).withValues(alpha: 0.1),
+            const Color(0xFF84994F).withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF84994F).withValues(alpha: 0.3),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.event, color: Color(0xFF84994F), size: 20),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF84994F).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.event_rounded,
+              color: Color(0xFF84994F),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,30 +633,46 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 Text(
                   _selectedEvent!.title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: Colors.black87,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _selectedEvent!.location.name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        _selectedEvent!.location.name,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           IconButton(
             onPressed: () => setState(() => _selectedEvent = null),
-            icon: const Icon(Icons.close, size: 18),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            icon: Icon(Icons.close_rounded, size: 20, color: Colors.grey[600]),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.all(8),
+            ),
           ),
         ],
       ),
@@ -342,30 +687,61 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          color: Color(0xFFFAF8F5),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           children: [
+            // Handle bar
             Container(
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.event_rounded,
+                      color: Color(0xFF84994F),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   const Text(
                     'Pilih Event',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
+
+            // Events list
             Expanded(
               child: BlocBuilder<UserBloc, UserState>(
                 builder: (context, userState) {
@@ -377,112 +753,148 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   return BlocBuilder<EventsBloc, EventsState>(
                     builder: (context, state) {
                       if (state is EventsLoading) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF84994F),
+                          ),
+                        );
                       }
 
                       if (state is EventsLoaded) {
-                        // Get user's events (hosted + joined)
                         final userEvents = state.events.where((event) {
-                          final isHosted = currentUser != null && event.host.id == currentUser.id;
-                          final isJoined = currentUser != null && event.attendeeIds.contains(currentUser.id);
+                          final isHosted =
+                              currentUser != null && event.host.id == currentUser.id;
+                          final isJoined = currentUser != null &&
+                              event.attendeeIds.contains(currentUser.id);
                           return isHosted || isJoined;
                         }).toList();
 
-                    if (userEvents.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Belum ada event nih',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Bikin atau join event dulu yaa!',
-                              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: userEvents.length,
-                      itemBuilder: (context, index) {
-                        final event = userEvents[index];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() => _selectedEvent = event);
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
+                        if (userEvents.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  width: 60,
-                                  height: 60,
+                                  padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: NetworkImage(
+                                    color: Colors.grey[200],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.event_busy_rounded,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  'Belum ada event nih',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Bikin atau join event dulu yaa!',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          itemCount: userEvents.length,
+                          itemBuilder: (context, index) {
+                            final event = userEvents[index];
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() => _selectedEvent = event);
+                                Navigator.pop(context);
+                                _fabController.forward();
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
                                         event.imageUrls.isNotEmpty
                                             ? event.imageUrls.first
                                             : 'https://doodleipsum.com/200x200/abstract',
+                                        width: 64,
+                                        height: 64,
+                                        fit: BoxFit.cover,
                                       ),
-                                      fit: BoxFit.cover,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        event.title,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            event.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.location_on_outlined,
+                                                size: 14,
+                                                color: Colors.grey[600],
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  event.location.name,
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        event.location.name,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Colors.grey[400],
+                                    ),
+                                  ],
                                 ),
-                                Icon(Icons.chevron_right, color: Colors.grey[400]),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         );
-                      },
-                    );
-                  }
+                      }
 
                       return const Center(child: Text('Failed to load events'));
                     },
@@ -504,33 +916,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
 
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Waduh... user belum dimuat. Coba lagi yaa!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _showSnackBar('Waduh... user belum dimuat. Coba lagi yaa!', isError: true);
       return;
     }
 
-    // Determine post type
     PostType type = PostType.text;
     if (_selectedEvent != null) {
-      // Event tagging takes precedence - can have event with or without images
       type = PostType.textWithEvent;
     } else if (_selectedImages.isNotEmpty) {
       type = PostType.textWithImages;
     }
 
-    // Convert local image paths to network URLs (in real app, upload to server first)
     final imageUrls = _selectedImages.map((path) {
-      // For now, use placeholder. In production, upload to cloud storage
       return 'https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/800/600';
     }).toList();
 
-    // IMPORTANT: This ID is temporary and will be replaced by backend
-    // The repository layer does NOT send this ID to backend - backend generates its own ID
-    // This is only needed because Post entity requires an ID field
     final post = Post(
       id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
       author: currentUser,
@@ -538,15 +938,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       type: type,
       imageUrls: imageUrls,
       createdAt: DateTime.now(),
-      attachedEvent: _selectedEvent, // Event tagging feature
+      attachedEvent: _selectedEvent,
     );
 
     Navigator.pop(context, post);
+    _showSnackBar('Post lo udah live! 🎉');
   }
 
   @override
   void dispose() {
     _textController.dispose();
+    _fabController.dispose();
     super.dispose();
   }
 }
