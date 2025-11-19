@@ -138,6 +138,21 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
               ),
+              _buildQuickAccessItem(
+                context: context,
+                icon: Icons.settings_outlined,
+                label: 'Pengaturan',
+                color: Colors.grey[700]!,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 8),
             ],
           ),

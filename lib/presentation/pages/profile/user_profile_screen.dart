@@ -127,7 +127,12 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     try {
       final postRepo = di.sl<PostRepository>();
-      final result = await postRepo.getUserPosts(_profileUser!.id, limit: 20, offset: 0);
+      // Use widget.userId (username) if available, otherwise use user's username field
+      final userIdentifier = widget.userId ??
+                              _profileUser!.username ??
+                              _profileUser!.email?.split('@').first ??
+                              _profileUser!.id;
+      final result = await postRepo.getUserPosts(userIdentifier, limit: 20, offset: 0);
 
       result.fold(
         (failure) {
@@ -157,8 +162,11 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     setState(() => _isLoadingEvents = true);
 
     try {
-      // Get username from email
-      final username = _profileUser!.email?.split('@').first ?? _profileUser!.id;
+      // Use widget.userId (username) if available, otherwise use user's username field
+      final username = widget.userId ??
+                       _profileUser!.username ??
+                       _profileUser!.email?.split('@').first ??
+                       _profileUser!.id;
 
       final eventDataSource = di.sl<EventRemoteDataSource>();
       final eventModels = await eventDataSource.getUserEventsByUsername(username, limit: 20, offset: 0);
@@ -413,9 +421,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   Widget _buildStatsRow() {
     // TODO: Get actual stats from API
     final stats = [
-      {'label': 'Pengikut', 'value': '0'},
-      {'label': 'Event', 'value': '${_userEvents.length}'},
-      {'label': 'Postingan', 'value': '${_userPosts.length}'},
+      {'label': 'Pengikut', 'value': '${_profileUser?.stats.followersCount ?? 0}', 'index': -1},
+      {'label': 'Event', 'value': '${_userEvents.length}', 'index': 1},
+      {'label': 'Postingan', 'value': '${_userPosts.length}', 'index': 0},
     ];
 
     return Padding(
@@ -423,26 +431,45 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: stats.map((stat) {
-          return Column(
-            children: [
-              Text(
-                stat['value']!,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
-                ),
+          final index = int.parse(stat['index']! as String);
+          return InkWell(
+            onTap: () {
+              if (index >= 0) {
+                // Switch to the tab (0 = Posts, 1 = Events)
+                _tabController.animateTo(index);
+              } else {
+                // Navigate to followers screen (index -1 = Pengikut)
+                // TODO: Implement followers screen navigation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fitur followers coming soon!')),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  Text(
+                    stat['value']! as String,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    stat['label']! as String,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                stat['label']!,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+            ),
           );
         }).toList(),
       ),

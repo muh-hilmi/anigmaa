@@ -4,6 +4,7 @@ class UserModel extends User {
   const UserModel({
     required super.id,
     super.email,
+    super.username,  // Added username
     required super.name,
     super.bio,
     super.avatar,
@@ -39,6 +40,7 @@ class UserModel extends User {
     return UserModel(
       id: json['id'] as String,
       email: json['email'] as String?,
+      username: json['username'] as String?,  // Added username mapping
       name: json['name'] as String,
       bio: json['bio'] as String?,
       avatar: avatarUrl as String?,
@@ -61,6 +63,7 @@ class UserModel extends User {
     return {
       'id': id,
       'email': email,
+      'username': username,  // Added username
       'name': name,
       'bio': bio,
       'avatar': avatar,
@@ -79,6 +82,7 @@ class UserModel extends User {
     return UserModel(
       id: user.id,
       email: user.email,
+      username: user.username,  // Added username
       name: user.name,
       bio: user.bio,
       avatar: user.avatar,
