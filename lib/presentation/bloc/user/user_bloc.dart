@@ -139,6 +139,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       if (event.bio != null) updateData['bio'] = event.bio;
       if (event.avatar != null) updateData['avatar'] = event.avatar;
       if (event.interests != null) updateData['interests'] = event.interests;
+      if (event.phone != null) updateData['phone'] = event.phone;
+      if (event.dateOfBirth != null) updateData['date_of_birth'] = event.dateOfBirth!.toIso8601String();
+      if (event.gender != null) updateData['gender'] = event.gender;
+      if (event.location != null) updateData['location'] = event.location;
 
       print('[UserBloc] Updating user profile with data: $updateData');
 
@@ -168,6 +172,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           bio: event.bio ?? currentState.user.bio,
           avatar: event.avatar ?? currentState.user.avatar,
           interests: event.interests ?? currentState.user.interests,
+          phone: event.phone ?? currentState.user.phone,
+          dateOfBirth: event.dateOfBirth ?? currentState.user.dateOfBirth,
+          gender: event.gender ?? currentState.user.gender,
+          location: event.location ?? currentState.user.location,
         );
         emit(currentState.copyWith(user: updatedUser));
       }

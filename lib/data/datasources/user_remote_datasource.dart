@@ -6,7 +6,6 @@ import '../models/user_model.dart';
 abstract class UserRemoteDataSource {
   Future<UserModel> getCurrentUser();
   Future<UserModel> getUserById(String userId);
-  Future<UserModel> getUserByUsername(String username);
   Future<UserModel> updateCurrentUser(Map<String, dynamic> userData);
   Future<void> updateUserSettings(Map<String, dynamic> settings);
   Future<List<UserModel>> searchUsers(String query, {int limit = 20, int offset = 0});
@@ -46,25 +45,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       print('[UserRemoteDataSource] Getting user by ID: $userId');
       final response = await dioClient.get('/users/$userId');
-
-      if (response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
-        print('[UserRemoteDataSource] User retrieved successfully');
-        return UserModel.fromJson(data);
-      } else {
-        throw ServerFailure('Failed to get user');
-      }
-    } on DioException catch (e) {
-      print('[UserRemoteDataSource] Error getting user: ${e.response?.statusCode}');
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<UserModel> getUserByUsername(String username) async {
-    try {
-      print('[UserRemoteDataSource] Getting user by username: $username');
-      final response = await dioClient.get('/profile/$username');
 
       if (response.statusCode == 200) {
         final data = response.data['data'] ?? response.data;

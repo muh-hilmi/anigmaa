@@ -4,7 +4,6 @@ class UserModel extends User {
   const UserModel({
     required super.id,
     super.email,
-    super.username,  // Added username
     required super.name,
     super.bio,
     super.avatar,
@@ -16,6 +15,10 @@ class UserModel extends User {
     super.isVerified = false,
     super.isEmailVerified = false,
     required super.privacy,
+    super.phone,
+    super.dateOfBirth,
+    super.gender,
+    super.location,
   });
 
   // REVIEW: DUAL NAMING CONVENTION FALLBACKS - This is technical debt from backend inconsistency
@@ -28,6 +31,7 @@ class UserModel extends User {
     final lastLoginAt = json['lastLoginAt'] ?? json['last_login_at'];
     final isVerified = json['isVerified'] ?? json['is_verified'];
     final isEmailVerified = json['isEmailVerified'] ?? json['is_email_verified'];
+    final dateOfBirth = json['dateOfBirth'] ?? json['date_of_birth'];
 
     // Validate required fields
     if (json['id'] == null || (json['id'] as String).isEmpty) {
@@ -40,7 +44,6 @@ class UserModel extends User {
     return UserModel(
       id: json['id'] as String,
       email: json['email'] as String?,
-      username: json['username'] as String?,  // Added username mapping
       name: json['name'] as String,
       bio: json['bio'] as String?,
       avatar: avatarUrl as String?,
@@ -56,6 +59,10 @@ class UserModel extends User {
       isVerified: isVerified as bool? ?? false,
       isEmailVerified: isEmailVerified as bool? ?? false,
       privacy: UserPrivacyModel.fromJson(json['privacy'] ?? {}),
+      phone: json['phone'] as String?,
+      dateOfBirth: dateOfBirth != null ? DateTime.parse(dateOfBirth as String) : null,
+      gender: json['gender'] as String?,
+      location: json['location'] as String?,
     );
   }
 
@@ -63,7 +70,6 @@ class UserModel extends User {
     return {
       'id': id,
       'email': email,
-      'username': username,  // Added username
       'name': name,
       'bio': bio,
       'avatar': avatar,
@@ -75,6 +81,10 @@ class UserModel extends User {
       'isVerified': isVerified,
       'isEmailVerified': isEmailVerified,
       'privacy': (privacy as UserPrivacyModel).toJson(),
+      'phone': phone,
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'gender': gender,
+      'location': location,
     };
   }
 
@@ -82,7 +92,6 @@ class UserModel extends User {
     return UserModel(
       id: user.id,
       email: user.email,
-      username: user.username,  // Added username
       name: user.name,
       bio: user.bio,
       avatar: user.avatar,
@@ -94,6 +103,10 @@ class UserModel extends User {
       isVerified: user.isVerified,
       isEmailVerified: user.isEmailVerified,
       privacy: user.privacy,
+      phone: user.phone,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
+      location: user.location,
     );
   }
 }

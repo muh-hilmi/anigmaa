@@ -75,9 +75,7 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   @override
   Future<List<PostModel>> getPostsByUser(String userId, {int page = 1, int limit = 20}) async {
     try {
-      // Note: Backend endpoint is /profile/{username}/posts but we're getting user ID here
-      // This is a temporary workaround - ideally we should pass username instead of ID
-      // For now, we'll use the user ID as if it's a username (backend should handle both)
+      // Get posts by user ID (backend endpoint: /profile/{userId}/posts)
       final offset = (page - 1) * limit;
       final response = await dioClient.get(
         '/profile/$userId/posts',

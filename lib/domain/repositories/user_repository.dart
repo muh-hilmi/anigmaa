@@ -9,9 +9,6 @@ abstract class UserRepository {
   /// Get user by ID
   Future<Either<Failure, User>> getUserById(String userId);
 
-  /// Get user by username
-  Future<Either<Failure, User>> getUserByUsername(String username);
-
   /// Update current user profile
   Future<Either<Failure, User>> updateCurrentUser(Map<String, dynamic> userData);
 

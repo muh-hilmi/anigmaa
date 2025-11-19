@@ -199,20 +199,33 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (mounted) {
-        // Navigate to home
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/home',
-          (route) => false,
-        );
+        // Check if user needs to complete profile (first-time user)
+        final needsProfileCompletion = authResponse.user.dateOfBirth == null ||
+                                        authResponse.user.location == null;
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selamat datang, ${googleAccount.displayName ?? 'User'}! 🎉'),
-            backgroundColor: const Color(0xFF84994F),
-          ),
-        );
+        if (needsProfileCompletion) {
+          // New user - go to complete profile
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/complete-profile',
+            (route) => false,
+          );
+        } else {
+          // Returning user - go to home
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/home',
+            (route) => false,
+          );
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selamat datang kembali, ${googleAccount.displayName ?? 'User'}! 🎉'),
+              backgroundColor: const Color(0xFF84994F),
+            ),
+          );
+        }
       }
     } catch (e) {
       setState(() {

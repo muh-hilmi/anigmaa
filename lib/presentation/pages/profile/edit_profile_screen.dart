@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'dart:io';
 import '../../../domain/entities/user.dart';
 import '../../bloc/user/user_bloc.dart';
@@ -21,23 +24,52 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _bioController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _locationController = TextEditingController();
-  final _websiteController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
   String? _selectedAvatarUrl;
   File? _selectedImageFile;
+  DateTime? _selectedDateOfBirth;
+  String? _selectedGender;
+  List<String> _selectedInterests = [];
   bool _isLoading = false;
+  bool _isLoadingLocation = false;
+
+  final List<String> _genderOptions = [
+    'Laki-laki',
+    'Perempuan',
+    'Lainnya',
+    'Prefer not to say',
+  ];
+
+  final List<String> _availableInterests = [
+    'Music',
+    'Sports',
+    'Technology',
+    'Food',
+    'Travel',
+    'Art',
+    'Gaming',
+    'Movies',
+    'Books',
+    'Photography',
+    'Fitness',
+    'Cooking',
+  ];
 
   @override
   void initState() {
     super.initState();
     if (widget.user != null) {
-      _nameController.text = widget.user!.name;
       _bioController.text = widget.user!.bio ?? '';
+      _phoneController.text = widget.user!.phone ?? '';
+      _locationController.text = widget.user!.location ?? '';
       _selectedAvatarUrl = widget.user!.avatar;
+      _selectedDateOfBirth = widget.user!.dateOfBirth;
+      _selectedGender = widget.user!.gender;
+      _selectedInterests = List.from(widget.user!.interests);
     }
   }
 
@@ -55,10 +87,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   const SizedBox(height: 20),
                   _buildProfilePhoto(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  _buildNameInfo(),
+                  const SizedBox(height: 16),
                   _buildPersonalInfo(),
                   const SizedBox(height: 16),
-                  _buildSocialLinks(),
+                  _buildEssentialFields(),
+                  const SizedBox(height: 16),
+                  _buildInterestsSection(),
                   const SizedBox(height: 24),
                   _buildSaveButton(),
                   const SizedBox(height: 40),
@@ -126,7 +162,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Stack(
             children: [
-              // Profile image with beautiful border
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -162,7 +197,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
-              // Camera button
               Positioned(
                 bottom: 5,
                 right: 5,
@@ -215,6 +249,78 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _buildNameInfo() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF84994F).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.badge_outlined,
+              color: Color(0xFF84994F),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nama Lengkap',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.user?.name ?? 'User',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Dari akun Google (ga bisa diubah)',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[500],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.lock_outline,
+            size: 20,
+            color: Colors.grey[400],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPersonalInfo() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -260,19 +366,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 20),
           _buildModernTextField(
-            controller: _nameController,
-            label: 'Nama Lengkap',
-            hint: 'Tulis nama lengkap lo',
-            icon: Icons.badge_outlined,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Nama wajib diisi yaa!';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildModernTextField(
             controller: _bioController,
             label: 'Bio',
             hint: 'Ceritain tentang lo dong...',
@@ -280,19 +373,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             maxLines: 4,
             maxLength: 150,
           ),
-          const SizedBox(height: 16),
-          _buildModernTextField(
-            controller: _locationController,
-            label: 'Lokasi',
-            hint: 'Kota, Negara',
-            icon: Icons.location_on_outlined,
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildSocialLinks() {
+  Widget _buildEssentialFields() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
@@ -319,14 +405,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.link,
+                  Icons.contact_page_outlined,
                   color: Color(0xFF84994F),
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
               const Text(
-                'Link Sosmed',
+                'Data Penting',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -336,11 +422,262 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ],
           ),
           const SizedBox(height: 20),
+
+          // Phone
           _buildModernTextField(
-            controller: _websiteController,
-            label: 'Website',
-            hint: 'https://website-lo.com',
-            icon: Icons.language,
+            controller: _phoneController,
+            label: 'Nomor HP',
+            hint: '08123456789',
+            icon: Icons.phone_outlined,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+          const SizedBox(height: 16),
+
+          // Birth Date
+          _buildDateField(),
+          const SizedBox(height: 16),
+
+          // Gender
+          _buildGenderField(),
+          const SizedBox(height: 16),
+
+          // Location
+          _buildLocationField(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tanggal Lahir',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: _selectDate,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.cake_outlined, color: Color(0xFF84994F), size: 22),
+                const SizedBox(width: 12),
+                Text(
+                  _selectedDateOfBirth == null
+                      ? 'Pilih tanggal lahir'
+                      : '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _selectedDateOfBirth == null ? Colors.grey[400] : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Gender',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: _selectedGender,
+              hint: const Text('Pilih gender'),
+              items: _genderOptions.map((gender) {
+                return DropdownMenuItem(
+                  value: gender,
+                  child: Text(gender),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedGender = value;
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Lokasi',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  hintText: 'Kota, Negara',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF84994F), size: 22),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF84994F), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF84994F),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: _isLoadingLocation ? null : _requestLocation,
+                icon: _isLoadingLocation
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Icon(Icons.my_location, color: Colors.white),
+                tooltip: 'Gunakan lokasi saat ini',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInterestsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.favorite_outline,
+                  color: Color(0xFF84994F),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Minat & Hobi',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Pilih minimal 3 minat biar event recommendations makin akurat',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableInterests.map((interest) {
+              final isSelected = _selectedInterests.contains(interest);
+              return FilterChip(
+                label: Text(interest),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedInterests.add(interest);
+                    } else {
+                      _selectedInterests.remove(interest);
+                    }
+                  });
+                },
+                selectedColor: const Color(0xFF84994F).withValues(alpha: 0.2),
+                checkmarkColor: const Color(0xFF84994F),
+                labelStyle: TextStyle(
+                  color: isSelected ? const Color(0xFF84994F) : Colors.grey[700],
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -354,6 +691,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required IconData icon,
     int maxLines = 1,
     int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -372,6 +710,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: controller,
           maxLines: maxLines,
           maxLength: maxLength,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -434,7 +773,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Icon(Icons.save_rounded, size: 22),
                   SizedBox(width: 8),
                   Text(
-                    'Simpan',
+                    'Simpan Perubahan',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -445,6 +784,83 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
       ),
     );
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(const Duration(days: 365 * 20)),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF84994F),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDateOfBirth = picked;
+      });
+    }
+  }
+
+  Future<void> _requestLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied');
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final locationText = [
+          place.locality,
+          place.administrativeArea,
+        ].where((e) => e != null && e.isNotEmpty).join(', ');
+
+        setState(() {
+          _locationController.text = locationText.isNotEmpty ? locationText : 'Location detected';
+          _isLoadingLocation = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mendapatkan lokasi: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _changeProfilePicture() {
@@ -674,34 +1090,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
       // TODO: Upload image to cloud storage first if _selectedImageFile is not null
-      // For now, we'll use the file path or existing avatar URL
       String? avatarToSave;
       if (_selectedImageFile != null) {
         // TODO: Upload to cloud storage and get URL
-        // avatarToSave = await _uploadImageToCloudStorage(_selectedImageFile!);
-        avatarToSave = _selectedImageFile!.path; // Temporary - will be replaced with cloud URL
-        print('[EditProfile] New avatar file selected: $avatarToSave');
+        avatarToSave = _selectedImageFile!.path; // Temporary
       } else if (_selectedAvatarUrl != null) {
         avatarToSave = _selectedAvatarUrl;
-        print('[EditProfile] Keeping existing avatar: $avatarToSave');
       }
 
       // Update user profile via BLoC
       context.read<UserBloc>().add(
         UpdateUserProfile(
-          name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
           bio: _bioController.text.trim().isNotEmpty ? _bioController.text.trim() : null,
           avatar: avatarToSave,
+          phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+          dateOfBirth: _selectedDateOfBirth,
+          gender: _selectedGender,
+          location: _locationController.text.trim().isNotEmpty ? _locationController.text.trim() : null,
+          interests: _selectedInterests,
         ),
       );
 
-      // Listen for the result
+      // Listen for result
       final userBloc = context.read<UserBloc>();
       await for (final state in userBloc.stream) {
         if (state is UserLoaded) {
@@ -726,7 +1140,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             );
 
-            // Go back to profile screen
             Navigator.pop(context, true);
           }
           break;
@@ -775,10 +1188,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _bioController.dispose();
+    _phoneController.dispose();
     _locationController.dispose();
-    _websiteController.dispose();
     super.dispose();
   }
 }

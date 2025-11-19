@@ -34,18 +34,6 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, User>> getUserByUsername(String username) async {
-    try {
-      final userModel = await remoteDataSource.getUserByUsername(username);
-      return Right(userModel);
-    } on Failure catch (e) {
-      return Left(e);
-    } catch (e) {
-      return Left(ServerFailure('Failed to get user: $e'));
-    }
-  }
-
-  @override
   Future<Either<Failure, User>> updateCurrentUser(Map<String, dynamic> userData) async {
     try {
       final userModel = await remoteDataSource.updateCurrentUser(userData);

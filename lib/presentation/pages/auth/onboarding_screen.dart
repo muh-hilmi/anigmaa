@@ -192,66 +192,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildGetStartedButtons() {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () async {
-              final authService = di.sl<AuthService>();
-              await authService.setHasSeenOnboarding(true);
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () async {
+          final authService = di.sl<AuthService>();
+          await authService.setHasSeenOnboarding(true);
 
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/signup');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Yuk Mulai',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () async {
-              final authService = di.sl<AuthService>();
-              await authService.setHasSeenOnboarding(true);
-
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              side: const BorderSide(color: Colors.black),
-            ),
-            child: const Text(
-              'Udah Punya Akun',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+        child: const Text(
+          'Mulai dengan Google',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ],
+      ),
     );
   }
 

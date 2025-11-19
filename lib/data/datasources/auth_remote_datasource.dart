@@ -4,15 +4,10 @@ import '../../core/errors/failures.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<AuthResponse> login(String email, String password);
-  Future<AuthResponse> register(Map<String, dynamic> userData);
   Future<AuthResponse> loginWithGoogle(String idToken);
   Future<void> logout();
   Future<UserModel> getCurrentUser();
   Future<UserModel> updateProfile(Map<String, dynamic> profileData);
-  Future<void> changePassword(String oldPassword, String newPassword);
-  Future<void> forgotPassword(String email);
-  Future<void> resetPassword(String token, String newPassword);
   Future<void> verifyEmail(String token);
   Future<void> resendVerificationEmail();
 }
@@ -64,47 +59,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final DioClient dioClient;
 
   AuthRemoteDataSourceImpl({required this.dioClient});
-
-  @override
-  Future<AuthResponse> login(String email, String password) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
-        return AuthResponse.fromJson(data);
-      } else {
-        throw ServerFailure('Failed to login');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<AuthResponse> register(Map<String, dynamic> userData) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/register',
-        data: userData,
-      );
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = response.data['data'] ?? response.data;
-        return AuthResponse.fromJson(data);
-      } else {
-        throw ServerFailure('Failed to register');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
 
   @override
   Future<AuthResponse> loginWithGoogle(String idToken) async {
@@ -174,60 +128,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return UserModel.fromJson(data);
       } else {
         throw ServerFailure('Failed to update profile');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<void> changePassword(String oldPassword, String newPassword) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/change-password',
-        data: {
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-        },
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerFailure('Failed to change password');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<void> forgotPassword(String email) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/forgot-password',
-        data: {'email': email},
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerFailure('Failed to send password reset email');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<void> resetPassword(String token, String newPassword) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/reset-password',
-        data: {
-          'token': token,
-          'newPassword': newPassword,
-        },
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerFailure('Failed to reset password');
       }
     } on DioException catch (e) {
       throw _handleDioException(e);
