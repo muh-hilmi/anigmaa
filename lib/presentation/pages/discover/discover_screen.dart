@@ -10,8 +10,6 @@ import '../../bloc/events/events_event.dart';
 import '../../bloc/events/events_state.dart';
 import '../event_detail/event_detail_screen.dart';
 import '../create_event/create_event_screen.dart';
-// import '../calendar/calendar_screen.dart';
-import '../map/map_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -22,9 +20,11 @@ class DiscoverScreen extends StatefulWidget {
 
 class DiscoverScreenState extends State<DiscoverScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   // Events data from BLoC
   List<Event> _allEvents = [];
+  List<Event> _filteredEvents = [];
 
   // Current selected mode
   String _selectedMode = 'for_you'; // 'trending', 'for_you', 'chill'
@@ -32,7 +32,20 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_filterEvents);
     context.read<EventsBloc>().add(const LoadEventsByMode(mode: 'for_you'));
+  }
+
+  void _filterEvents() {
+    // When search changes, reapply mode filter (which includes search)
+    _applyModeFilter();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void addNewEvent(Event event) {
@@ -43,7 +56,56 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     setState(() {
       _selectedMode = mode;
     });
-    context.read<EventsBloc>().add(LoadEventsByMode(mode: mode));
+    // API consumption nanti - untuk sekarang semua client-side filtering
+    _applyModeFilter();
+  }
+
+  void _applyModeFilter() {
+    setState(() {
+      List<Event> baseEvents = _allEvents;
+
+      // Apply search filter first if exists
+      if (_searchController.text.isNotEmpty) {
+        final query = _searchController.text.toLowerCase();
+        baseEvents = baseEvents.where((event) {
+          return event.title.toLowerCase().contains(query) ||
+                 event.description.toLowerCase().contains(query) ||
+                 event.location.name.toLowerCase().contains(query);
+        }).toList();
+      }
+
+      // Apply mode-specific filter
+      switch (_selectedMode) {
+        case 'today':
+          final now = DateTime.now();
+          _filteredEvents = baseEvents.where((event) {
+            return event.startTime.year == now.year &&
+                   event.startTime.month == now.month &&
+                   event.startTime.day == now.day;
+          }).toList();
+          break;
+
+        case 'free':
+          _filteredEvents = baseEvents.where((event) => event.isFree).toList();
+          break;
+
+        case 'paid':
+          _filteredEvents = baseEvents.where((event) => !event.isFree).toList();
+          break;
+
+        case 'nearby':
+          // Sort by distance (TODO: implement distance calculation with user location)
+          _filteredEvents = baseEvents.toList();
+          break;
+
+        case 'trending':
+        case 'for_you':
+        case 'chill':
+        default:
+          // TODO: API integration untuk trending/for_you/chill modes
+          _filteredEvents = baseEvents;
+      }
+    });
   }
 
   @override
@@ -83,6 +145,9 @@ class DiscoverScreenState extends State<DiscoverScreen> {
 
           if (state is EventsLoaded) {
             _allEvents = state.events;
+            if (_filteredEvents.isEmpty && _searchController.text.isEmpty) {
+              _applyModeFilter();
+            }
 
             return _allEvents.isEmpty
                 ? _buildEmptyState()
@@ -96,6 +161,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                       controller: _scrollController,
                       slivers: [
                         _buildAppBar(),
+                        SliverToBoxAdapter(child: _buildSearchBar()),
                         SliverToBoxAdapter(child: _buildModeSwitcher()),
                         SliverToBoxAdapter(child: _buildLiveEventsBar()),
                         _buildEventsList(),
@@ -172,46 +238,49 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () => _showSearchDialog(),
-          icon: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFFAF8F5),
-            ),
-            child: const Icon(
-              Icons.search_rounded,
-              color: Color(0xFF1A1A1A),
-              size: 20,
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MapScreen(events: _allEvents)),
-            );
-          },
-          icon: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFFAF8F5),
-            ),
-            child: const Icon(
-              Icons.map_outlined,
-              color: Color(0xFF1A1A1A),
-              size: 20,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
+      actions: const [
+        SizedBox(width: 8),
       ],
+    );
+  }
+
+  // Search Bar
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      color: Colors.white,
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Cari event, lokasi...',
+          hintStyle: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Color(0xFF84994F),
+            size: 22,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, size: 20),
+                  onPressed: () => _searchController.clear(),
+                )
+              : null,
+          filled: true,
+          fillColor: const Color(0xFFFAF8F5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+        ),
+      ),
     );
   }
 
@@ -219,8 +288,10 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildModeSwitcher() {
     return Container(
       margin: const EdgeInsets.only(top: 8, bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+      height: 46,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           _buildModeChip(
             mode: 'trending',
@@ -242,6 +313,34 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             icon: Icons.nightlight_round,
             color: Colors.blue,
           ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'nearby',
+            label: 'Terdekat',
+            icon: Icons.near_me_rounded,
+            color: const Color(0xFF84994F),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'today',
+            label: 'Hari Ini',
+            icon: Icons.calendar_today_rounded,
+            color: const Color(0xFFFF9500),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'free',
+            label: 'Gratis',
+            icon: Icons.money_off_rounded,
+            color: const Color(0xFF34C759),
+          ),
+          const SizedBox(width: 8),
+          _buildModeChip(
+            mode: 'paid',
+            label: 'Berbayar',
+            icon: Icons.attach_money_rounded,
+            color: const Color(0xFF6366F1),
+          ),
         ],
       ),
     );
@@ -254,42 +353,37 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     required Color color,
   }) {
     final isSelected = _selectedMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _changeMode(mode),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? color : Colors.grey[300]!,
-              width: isSelected ? 2 : 1,
+    return GestureDetector(
+      onTap: () => _changeMode(mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? color : Colors.grey[600],
+              size: 18,
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? color : Colors.grey[600],
-                size: 18,
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? color : Colors.grey[700],
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? color : Colors.grey[700],
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -298,10 +392,37 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   // Events List
   Widget _buildEventsList() {
     // Filter to only show upcoming and live events (hide completed/cancelled events)
-    final displayEvents = _allEvents.where((event) {
+    final displayEvents = _filteredEvents.where((event) {
       return event.status == EventStatus.upcoming ||
              event.status == EventStatus.live;
     }).toList();
+
+    if (displayEvents.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Ga nemu event nih 😅',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Coba kata kunci lain',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -310,7 +431,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 0.75,
+          childAspectRatio: 0.68,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -323,6 +444,9 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Widget _buildEventCard(Event event) {
+    final daysUntil = event.startTime.difference(DateTime.now()).inDays;
+    final hoursUntil = event.startTime.difference(DateTime.now()).inHours;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -348,20 +472,28 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             Stack(
               children: [
                 Container(
-                  height: 120,
+                  height: 110,
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        event.imageUrls.isNotEmpty
-                            ? event.imageUrls.first
-                            : 'https://picsum.photos/400/300?random=${event.id}',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
+                    color: const Color(0xFFFAF8F5),
+                    image: event.imageUrls.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(event.imageUrls.first),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
+                  child: event.imageUrls.isEmpty
+                      ? const Center(
+                          child: Icon(
+                            Icons.event_rounded,
+                            color: Color(0xFF84994F),
+                            size: 32,
+                          ),
+                        )
+                      : null,
                 ),
                 // Category badge
                 Positioned(
@@ -378,6 +510,31 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                     child: Text(
                       EventCategoryUtils.getCategoryName(event.category),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                // Price badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: event.isFree
+                          ? const Color(0xFF84994F)
+                          : const Color(0xFF6366F1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      event.isFree ? 'GRATIS' : 'Rp${event.price!.toInt()}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
@@ -405,7 +562,60 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+                    // Countdown
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 11,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            daysUntil > 0
+                                ? '$daysUntil hari lagi'
+                                : hoursUntil > 0
+                                    ? '$hoursUntil jam lagi'
+                                    : 'Sekarang!',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Location
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 11,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            event.location.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Attendees
                     Row(
                       children: [
                         const Icon(
@@ -415,7 +625,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${event.currentAttendees}',
+                          '${event.currentAttendees}/${event.maxAttendees}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF84994F),
@@ -534,20 +744,27 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                 ),
                 padding: const EdgeInsets.all(2),
                 child: ClipOval(
-                  child: Image.network(
-                    event.imageUrls.isNotEmpty
-                      ? event.imageUrls.first
-                      : 'https://picsum.photos/100/100?random=${event.id}',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) => Container(
-                      color: const Color(0xFFFAF8F5),
-                      child: const Icon(
-                        Icons.event_rounded,
-                        color: Color(0xFF84994F),
-                        size: 24,
-                      ),
-                    ),
-                  ),
+                  child: event.imageUrls.isNotEmpty
+                      ? Image.network(
+                          event.imageUrls.first,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stack) => Container(
+                            color: const Color(0xFFFAF8F5),
+                            child: const Icon(
+                              Icons.event_rounded,
+                              color: Color(0xFF84994F),
+                              size: 24,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: const Color(0xFFFAF8F5),
+                          child: const Icon(
+                            Icons.event_rounded,
+                            color: Color(0xFF84994F),
+                            size: 24,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -717,339 +934,4 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  // Helpers
-  void _showSearchDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.95,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (_, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Cari Event',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAF8F5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 18,
-                          color: Color(0xFF1A1A1A),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF8F5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFF84994F).withOpacity(0.2),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: TextField(
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Cari event, kategori, lokasi...',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search_rounded,
-                        color: Color(0xFF84994F),
-                        size: 22,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          Icons.tune_rounded,
-                          color: Colors.grey[700],
-                          size: 22,
-                        ),
-                        onPressed: () {
-                          // Show filter options
-                        },
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Quick Filters
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Filter Cepat',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildFilterChip('Gratis', Icons.money_off_outlined),
-                        _buildFilterChip('Hari Ini', Icons.calendar_today),
-                        _buildFilterChip('Minggu Ini', Icons.date_range),
-                        _buildFilterChip('Terdekat', Icons.location_on_outlined),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Popular Categories
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Kategori Populer',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildCategoryChip('Music', Icons.music_note, Colors.purple),
-                        _buildCategoryChip('Food', Icons.restaurant, Colors.orange),
-                        _buildCategoryChip('Sports', Icons.sports_soccer, Colors.green),
-                        _buildCategoryChip('Tech', Icons.computer, Colors.blue),
-                        _buildCategoryChip('Art', Icons.palette, Colors.pink),
-                        _buildCategoryChip('Networking', Icons.people, Colors.teal),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Recent Searches
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Pencarian Terakhir',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              'Hapus Semua',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: ListView(
-                          controller: scrollController,
-                          children: [
-                            _buildRecentSearchItem('Music Festival Jaksel', Icons.music_note),
-                            _buildRecentSearchItem('Kopi Meetup', Icons.coffee),
-                            _buildRecentSearchItem('Workshop Design', Icons.design_services),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF84994F).withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF84994F)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryChip(String label, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentSearchItem(String query, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: const Color(0xFF84994F),
-          ),
-        ),
-        title: Text(
-          query,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
-        trailing: Icon(
-          Icons.north_west,
-          size: 18,
-          color: Colors.grey[400],
-        ),
-        onTap: () {
-          // Perform search with this query
-        },
-      ),
-    );
-  }
-
-  String _formatEventTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = time.difference(now);
-
-    if (diff.inDays > 7) {
-      return '${time.day}/${time.month}/${time.year}';
-    } else if (diff.inDays > 0) {
-      return '${diff.inDays} hari lagi';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours} jam lagi';
-    } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes} menit lagi';
-    } else {
-      return 'Sekarang';
-    }
-  }
 }
