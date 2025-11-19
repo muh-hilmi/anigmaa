@@ -8,8 +8,6 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Future<UserModel> getCurrentUser();
   Future<UserModel> updateProfile(Map<String, dynamic> profileData);
-  Future<void> verifyEmail(String token);
-  Future<void> resendVerificationEmail();
 }
 
 class AuthResponse {
@@ -128,35 +126,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return UserModel.fromJson(data);
       } else {
         throw ServerFailure('Failed to update profile');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<void> verifyEmail(String token) async {
-    try {
-      final response = await dioClient.post(
-        '/auth/verify-email',
-        data: {'token': token},
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerFailure('Failed to verify email');
-      }
-    } on DioException catch (e) {
-      throw _handleDioException(e);
-    }
-  }
-
-  @override
-  Future<void> resendVerificationEmail() async {
-    try {
-      final response = await dioClient.post('/auth/resend-verification');
-
-      if (response.statusCode != 200) {
-        throw ServerFailure('Failed to resend verification email');
       }
     } on DioException catch (e) {
       throw _handleDioException(e);

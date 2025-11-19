@@ -99,10 +99,31 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           break;
 
         case 'trending':
+          // Trending: High engagement events (most attendees)
+          _filteredEvents = baseEvents.toList()
+            ..sort((a, b) {
+              // Sort by attendance percentage (current/max) descending
+              final aPercent = a.currentAttendees / a.maxAttendees;
+              final bPercent = b.currentAttendees / b.maxAttendees;
+              return bPercent.compareTo(aPercent);
+            });
+          break;
+
         case 'for_you':
+          // For You: Balanced mix (default sorting by date)
+          _filteredEvents = baseEvents.toList()
+            ..sort((a, b) => a.startTime.compareTo(b.startTime));
+          break;
+
         case 'chill':
+          // Chill: Small intimate events (max 50 attendees) and specific categories
+          _filteredEvents = baseEvents.where((event) {
+            return event.maxAttendees <= 50;
+          }).toList()
+            ..sort((a, b) => a.maxAttendees.compareTo(b.maxAttendees));
+          break;
+
         default:
-          // TODO: API integration untuk trending/for_you/chill modes
           _filteredEvents = baseEvents;
       }
     });
