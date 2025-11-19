@@ -64,7 +64,6 @@ import 'data/repositories/community_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
 import 'data/repositories/qna_repository_impl.dart';
 import 'domain/repositories/qna_repository.dart';
-import 'data/services/auth_api_service.dart';
 import 'data/services/analytics_service.dart';
 
 // Presentation
@@ -100,9 +99,6 @@ Future<void> init() async {
     environment: MidtransEnvironment.sandbox,
   );
   sl.registerLazySingleton(() => paymentService);
-
-  // API Services
-  sl.registerLazySingleton(() => AuthApiService(sl()));
 
   // Analytics Service
   sl.registerLazySingleton(() => AnalyticsService(
