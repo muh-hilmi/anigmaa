@@ -15,6 +15,10 @@ class UserModel extends User {
     super.isVerified = false,
     super.isEmailVerified = false,
     required super.privacy,
+    super.phone,
+    super.dateOfBirth,
+    super.gender,
+    super.location,
   });
 
   // REVIEW: DUAL NAMING CONVENTION FALLBACKS - This is technical debt from backend inconsistency
@@ -27,6 +31,7 @@ class UserModel extends User {
     final lastLoginAt = json['lastLoginAt'] ?? json['last_login_at'];
     final isVerified = json['isVerified'] ?? json['is_verified'];
     final isEmailVerified = json['isEmailVerified'] ?? json['is_email_verified'];
+    final dateOfBirth = json['dateOfBirth'] ?? json['date_of_birth'];
 
     // Validate required fields
     if (json['id'] == null || (json['id'] as String).isEmpty) {
@@ -54,6 +59,10 @@ class UserModel extends User {
       isVerified: isVerified as bool? ?? false,
       isEmailVerified: isEmailVerified as bool? ?? false,
       privacy: UserPrivacyModel.fromJson(json['privacy'] ?? {}),
+      phone: json['phone'] as String?,
+      dateOfBirth: dateOfBirth != null ? DateTime.parse(dateOfBirth as String) : null,
+      gender: json['gender'] as String?,
+      location: json['location'] as String?,
     );
   }
 
@@ -72,6 +81,10 @@ class UserModel extends User {
       'isVerified': isVerified,
       'isEmailVerified': isEmailVerified,
       'privacy': (privacy as UserPrivacyModel).toJson(),
+      'phone': phone,
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'gender': gender,
+      'location': location,
     };
   }
 
@@ -90,6 +103,10 @@ class UserModel extends User {
       isVerified: user.isVerified,
       isEmailVerified: user.isEmailVerified,
       privacy: user.privacy,
+      phone: user.phone,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
+      location: user.location,
     );
   }
 }

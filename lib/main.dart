@@ -22,6 +22,7 @@ import 'presentation/pages/calendar/calendar_screen.dart';
 import 'presentation/pages/splash/splash_screen.dart';
 import 'presentation/pages/auth/onboarding_screen.dart';
 import 'presentation/pages/auth/login_screen.dart';
+import 'presentation/pages/auth/complete_profile_screen.dart';
 import 'presentation/pages/create_post/create_post_screen.dart';
 
 void main() async {
@@ -126,6 +127,7 @@ class NotionSocialApp extends StatelessWidget {
           '/onboarding': (context) => const OnboardingScreen(),
           '/home': (context) => const MainNavigationWrapper(),
           '/login': (context) => const LoginScreen(),
+          '/complete-profile': (context) => const CompleteProfileScreen(),
         },
       ),
     );

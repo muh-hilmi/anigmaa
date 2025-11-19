@@ -69,6 +69,10 @@ class UserModel {
       isVerified: isVerified ?? false,
       isEmailVerified: isEmailVerified ?? false,
       privacy: const UserPrivacy(),
+      phone: phone,
+      dateOfBirth: dateOfBirth != null ? DateTime.parse(dateOfBirth!) : null,
+      gender: gender,
+      location: location,
     );
   }
 
@@ -83,6 +87,10 @@ class UserModel {
       isVerified: user.isVerified,
       isEmailVerified: user.isEmailVerified,
       createdAt: user.createdAt.toIso8601String(),
+      phone: user.phone,
+      dateOfBirth: user.dateOfBirth?.toIso8601String(),
+      gender: user.gender,
+      location: user.location,
     );
   }
 }

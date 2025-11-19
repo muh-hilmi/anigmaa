@@ -13,6 +13,12 @@ class User {
   final bool isEmailVerified;
   final UserPrivacy privacy;
 
+  // Essential fields (required after first login)
+  final String? phone;
+  final DateTime? dateOfBirth;
+  final String? gender; // 'male', 'female', 'other', 'prefer_not_to_say'
+  final String? location;
+
   const User({
     required this.id,
     this.email,
@@ -27,6 +33,10 @@ class User {
     this.isVerified = false,
     this.isEmailVerified = false,
     required this.privacy,
+    this.phone,
+    this.dateOfBirth,
+    this.gender,
+    this.location,
   });
 
   User copyWith({
@@ -43,6 +53,10 @@ class User {
     bool? isVerified,
     bool? isEmailVerified,
     UserPrivacy? privacy,
+    String? phone,
+    DateTime? dateOfBirth,
+    String? gender,
+    String? location,
   }) {
     return User(
       id: id ?? this.id,
@@ -58,7 +72,16 @@ class User {
       isVerified: isVerified ?? this.isVerified,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       privacy: privacy ?? this.privacy,
+      phone: phone ?? this.phone,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
+      location: location ?? this.location,
     );
+  }
+
+  /// Check if user has completed essential profile fields
+  bool get hasCompletedEssentialProfile {
+    return dateOfBirth != null && location != null;
   }
 
   @override
