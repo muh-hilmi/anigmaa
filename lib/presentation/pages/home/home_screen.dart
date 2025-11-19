@@ -5,6 +5,7 @@ import '../discover/swipeable_events_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
+import '../../widgets/email_verification_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onTabChanged;
@@ -110,6 +111,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                 ],
               ),
+            ),
+            // Email Verification Banner
+            BlocBuilder<UserBloc, UserState>(
+              builder: (context, state) {
+                if (state is UserLoaded) {
+                  return EmailVerificationBanner(
+                    isEmailVerified: state.user.isEmailVerified,
+                    userEmail: state.user.email,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
             // Tab Bar
             Container(
