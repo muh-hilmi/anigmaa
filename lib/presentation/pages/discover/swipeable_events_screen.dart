@@ -332,17 +332,54 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                   borderRadius: BorderRadius.circular(32),
                   child: Stack(
                     children: [
-                      // Background cream color
-                      Container(
-                        color: const Color(0xFFFAF8F5),
-                        child: Center(
-                          child: Icon(
-                            Icons.event_rounded,
-                            size: 140,
-                            color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                      // Background image
+                      if (widget.event.imageUrls.isNotEmpty)
+                        Positioned.fill(
+                          child: Image.network(
+                            widget.event.imageUrls.first,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback if image fails to load
+                              return Container(
+                                color: const Color(0xFFFAF8F5),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.event_rounded,
+                                    size: 140,
+                                    color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                                  ),
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: const Color(0xFFFAF8F5),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: const Color(0xFF84994F),
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      else
+                        // Fallback background when no image
+                        Container(
+                          color: const Color(0xFFFAF8F5),
+                          child: Center(
+                            child: Icon(
+                              Icons.event_rounded,
+                              size: 140,
+                              color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                            ),
                           ),
                         ),
-                      ),
 
                       // Top badges
                       Positioned(
@@ -427,9 +464,11 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.transparent,
-                                Colors.white.withValues(alpha: 0.97),
+                                Colors.black.withValues(alpha: 0.0),
+                                Colors.black.withValues(alpha: 0.6),
+                                Colors.black.withValues(alpha: 0.9),
                               ],
+                              stops: const [0.0, 0.5, 1.0],
                             ),
                           ),
                           child: Column(
@@ -442,8 +481,15 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                 style: const TextStyle(
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF1A1A1A),
+                                  color: Colors.white,
                                   height: 1.2,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black45,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -453,10 +499,10 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                 const SizedBox(height: 8),
                                 Text(
                                   widget.event.description,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w400,
-                                    color: Colors.grey[700],
+                                    color: Colors.white70,
                                     height: 1.4,
                                   ),
                                   maxLines: 2,
@@ -472,12 +518,12 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
                                       Icons.calendar_today,
-                                      color: Color(0xFF84994F),
+                                      color: Colors.white,
                                       size: 18,
                                     ),
                                   ),
@@ -491,15 +537,15 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w700,
-                                            color: Color(0xFF1A1A1A),
+                                            color: Colors.white,
                                           ),
                                         ),
                                         Text(
                                           DateFormat('h:mm a').format(widget.event.startTime),
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
-                                            color: Colors.grey[600],
+                                            color: Colors.white70,
                                           ),
                                         ),
                                       ],
@@ -515,12 +561,12 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
                                       Icons.location_on,
-                                      color: Color(0xFF84994F),
+                                      color: Colors.white,
                                       size: 18,
                                     ),
                                   ),
@@ -531,7 +577,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                       style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1A1A1A),
+                                        color: Colors.white,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -546,10 +592,10 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                               Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFAF8F5),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: const Color(0xFF84994F).withValues(alpha: 0.2),
+                                    color: Colors.white.withValues(alpha: 0.3),
                                     width: 1,
                                   ),
                                 ),
@@ -559,10 +605,10 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                     Expanded(
                                       child: Row(
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.people,
                                             size: 18,
-                                            color: const Color(0xFF84994F),
+                                            color: Colors.white,
                                           ),
                                           const SizedBox(width: 8),
                                           Expanded(
@@ -574,15 +620,15 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w700,
-                                                    color: Color(0xFF1A1A1A),
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                                 Text(
                                                   'Maks: ${widget.event.maxAttendees}',
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w500,
-                                                    color: Colors.grey[600],
+                                                    color: Colors.white70,
                                                   ),
                                                 ),
                                               ],
@@ -601,7 +647,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                             height: 32,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: const Color(0xFF84994F).withValues(alpha: 0.2),
+                                              color: Colors.white.withValues(alpha: 0.3),
                                             ),
                                             child: Center(
                                               child: Text(
@@ -609,7 +655,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w800,
-                                                  color: Color(0xFF84994F),
+                                                  color: Colors.white,
                                                 ),
                                               ),
                                             ),
@@ -619,12 +665,12 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(
+                                                const Text(
                                                   'Organizer',
                                                   style: TextStyle(
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.w500,
-                                                    color: Colors.grey[600],
+                                                    color: Colors.white70,
                                                   ),
                                                 ),
                                                 Text(
@@ -632,7 +678,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                                   style: const TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w700,
-                                                    color: Color(0xFF1A1A1A),
+                                                    color: Colors.white,
                                                   ),
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
