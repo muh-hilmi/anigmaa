@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../feed/modern_feed_screen.dart';
+import '../feed/ranked_feed_screen.dart';
 import '../discover/swipeable_events_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../../bloc/user/user_bloc.dart';
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 controller: _tabController,
                 physics: const NeverScrollableScrollPhysics(), // Disable swipe between tabs
                 children: [
-                  const ModernFeedScreen(),
+                  const RankedFeedScreen(),
                   const SwipeableEventsScreen(),
                 ],
               ),
