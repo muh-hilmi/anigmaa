@@ -192,11 +192,11 @@ class _LocationPickerState extends State<LocationPicker> {
       });
 
       if (results.isEmpty) {
-        _showError('Lokasi tidak ditemukan. Coba kata kunci lain.');
+        _showError('Lokasi tidak ditemukan. Gunakan alamat lengkap seperti "Stadion Manahan, Solo" atau "Jl. Slamet Riyadi".');
       }
     } catch (e) {
       AppLogger().error('Error searching location: $e');
-      _showError('Lokasi tidak ditemukan. Coba alamat yang lebih spesifik.');
+      _showError('Lokasi tidak ditemukan. Gunakan alamat lengkap dan spesifik (contoh: "Jl. Slamet Riyadi No.1, Solo").');
       setState(() => _searchResults = []);
     } finally {
       setState(() => _isLoading = false);
@@ -315,7 +315,7 @@ class _LocationPickerState extends State<LocationPicker> {
               controller: _searchController,
               focusNode: _searchFocusNode,
               decoration: InputDecoration(
-                hintText: 'Cari lokasi (contoh: Starbucks, Monas, dll)',
+                hintText: 'Cari alamat lengkap (contoh: Jl. Slamet Riyadi, Solo)',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -562,7 +562,7 @@ class _LocationPickerState extends State<LocationPicker> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Ketik nama tempat atau alamat di kolom pencarian',
+              'Ketik alamat lengkap di kolom pencarian\n(contoh: Stadion Manahan, Solo)',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

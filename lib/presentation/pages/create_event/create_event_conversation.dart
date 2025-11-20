@@ -174,26 +174,38 @@ class _CreateEventConversationState extends State<CreateEventConversation>
         case ConversationStep.greeting:
           _currentStep = ConversationStep.askStartDate;
           _addBotMessage('Keren! 🎉\n\nKapan eventnya dimulai?');
-          _showDatePicker(isStart: true);
+          // Add delay so user can read the message before picker appears
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) _showDatePicker(isStart: true);
+          });
           break;
 
         case ConversationStep.askStartDate:
           _currentStep = ConversationStep.askStartTime;
           String dateStr = DateFormat('dd MMMM yyyy').format(_startDate!);
           _addBotMessage('Oke tanggal $dateStr 📅\n\nJam berapa mulainya?');
-          _showTimePicker(isStart: true);
+          // Add delay so user can read the message before picker appears
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) _showTimePicker(isStart: true);
+          });
           break;
 
         case ConversationStep.askStartTime:
           _currentStep = ConversationStep.askEndTime;
           _addBotMessage('Sip! 🕐\n\nSampai jam berapa eventnya?');
-          _showTimePicker(isStart: false);
+          // Add delay so user can read the message before picker appears
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) _showTimePicker(isStart: false);
+          });
           break;
 
         case ConversationStep.askEndTime:
           _currentStep = ConversationStep.askLocation;
           _addBotMessage('Perfect! 🕐\n\nDimana tempatnya nih?');
-          _showLocationPicker();
+          // Add delay so user can read the message before picker appears
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) _showLocationPicker();
+          });
           break;
 
         case ConversationStep.askLocation:
@@ -322,7 +334,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   void _showTimePicker({required bool isStart}) async {
     final time = await showTimePicker(
       context: context,
-      initialTime: const TimeOfDay(hour: 19, minute: 0),
+      initialTime: isStart
+          ? const TimeOfDay(hour: 19, minute: 0)
+          : TimeOfDay(hour: (_startTime?.hour ?? 19) + 2, minute: _startTime?.minute ?? 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -336,6 +350,23 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (time != null) {
+      // Validate end time
+      if (!isStart && _startTime != null) {
+        final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+        final endMinutes = time.hour * 60 + time.minute;
+
+        if (endMinutes <= startMinutes) {
+          // End time is same or before start time - show error
+          if (endMinutes == startMinutes) {
+            _addBotMessage('Oops! ⏰ Jam mulai dan selesai tidak boleh sama. Event minimal harus ada durasinya dong!');
+          } else {
+            _addBotMessage('Oops! ⏰ Jam selesai tidak boleh lebih awal dari jam mulai. Coba pilih lagi ya!');
+          }
+          _showQuickReplies(['Pilih Jam Selesai 🕐']);
+          return;
+        }
+      }
+
       setState(() {
         _activeQuickReplies = [];
       });
@@ -383,15 +414,15 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   }
 
   void _showCategorySelector() {
-    // Will be shown in the input area
+    setState(() => _waitingForInput = true);
   }
 
   void _showPriceSelector() {
-    // Will be shown in the input area
+    setState(() => _waitingForInput = true);
   }
 
   void _showImageOptions() {
-    // Will be shown in the input area
+    setState(() => _waitingForInput = true);
   }
 
   void _showPreview() {
