@@ -19,7 +19,6 @@ enum ConversationStep {
   greeting,
   askStartDate,
   askStartTime,
-  askEndDate,
   askEndTime,
   askLocation,
   askName,
@@ -61,7 +60,6 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   String _eventDescription = '';
   DateTime? _startDate;
   TimeOfDay? _startTime;
-  DateTime? _endDate;
   TimeOfDay? _endTime;
   LocationData? _location;
   EventCategory _category = EventCategory.meetup;
@@ -159,15 +157,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askStartTime:
-          _currentStep = ConversationStep.askEndDate;
-          _addBotMessage('Sip! 🕐\n\nSampai tanggal berapa eventnya?');
-          _showDatePicker(isStart: false);
-          break;
-
-        case ConversationStep.askEndDate:
           _currentStep = ConversationStep.askEndTime;
-          String dateStr = DateFormat('dd MMMM yyyy').format(_endDate!);
-          _addBotMessage('Tanggal $dateStr ya 📅\n\nJam berapa selesainya?');
+          _addBotMessage('Sip! 🕐\n\nSampai jam berapa eventnya?');
           _showTimePicker(isStart: false);
           break;
 
@@ -270,10 +261,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   void _showDatePicker({required bool isStart}) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: isStart
-          ? DateTime.now().add(const Duration(days: 1))
-          : (_startDate ?? DateTime.now()).add(const Duration(days: 1)),
-      firstDate: isStart ? DateTime.now() : (_startDate ?? DateTime.now()),
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -288,11 +277,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (date != null) {
-      if (isStart) {
-        _startDate = date;
-      } else {
-        _endDate = date;
-      }
+      _startDate = date;
       String dateStr = DateFormat('dd MMMM yyyy').format(date);
       _addUserMessage(dateStr);
       _moveToNextStep();
