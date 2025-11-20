@@ -17,12 +17,12 @@ class CreateEventConversation extends StatefulWidget {
 
 enum ConversationStep {
   greeting,
-  askName,
   askStartDate,
   askStartTime,
   askEndDate,
   askEndTime,
   askLocation,
+  askName,
   askDescription,
   askCategory,
   askPrice,
@@ -146,14 +146,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     Future.delayed(const Duration(milliseconds: 500), () {
       switch (_currentStep) {
         case ConversationStep.greeting:
-          _currentStep = ConversationStep.askName;
-          _addBotMessage('Keren! 🎉\n\nPertama-tama, apa nama eventnya?');
-          _waitForTextInput();
-          break;
-
-        case ConversationStep.askName:
           _currentStep = ConversationStep.askStartDate;
-          _addBotMessage('Nice! "$_eventTitle" 🔥\n\nKapan eventnya dimulai?');
+          _addBotMessage('Keren! 🎉\n\nKapan eventnya dimulai?');
           _showDatePicker(isStart: true);
           break;
 
@@ -184,8 +178,14 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askLocation:
+          _currentStep = ConversationStep.askName;
+          _addBotMessage('Lokasi oke! 📍\n\nSekarang, apa nama eventnya?');
+          _waitForTextInput();
+          break;
+
+        case ConversationStep.askName:
           _currentStep = ConversationStep.askDescription;
-          _addBotMessage('Lokasi oke! 📍\n\nSekarang ceritain dong, eventnya tentang apa?');
+          _addBotMessage('Nice! "$_eventTitle" 🔥\n\nCeritain dong, eventnya tentang apa?');
           _waitForTextInput(multiline: true);
           break;
 
