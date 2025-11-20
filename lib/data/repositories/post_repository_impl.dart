@@ -227,6 +227,7 @@ class PostRepositoryImpl implements PostRepository {
       final newComment = await remoteDataSource.createComment(comment.postId, commentData);
       return Right(newComment);
     } catch (e) {
+      print('[PostRepository] Error creating comment: $e');
       return Left(ServerFailure(e.toString()));
     }
   }

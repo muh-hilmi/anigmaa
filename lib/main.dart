@@ -7,7 +7,7 @@ import 'core/observers/navigation_observer.dart';
 import 'injection_container.dart' as di;
 import 'presentation/pages/discover/discover_screen.dart';
 import 'presentation/pages/home/home_screen.dart';
-import 'presentation/pages/create_event/create_event_screen.dart';
+import 'presentation/pages/create_event/create_event_conversation.dart';
 import 'presentation/bloc/events/events_bloc.dart';
 import 'presentation/bloc/user/user_bloc.dart';
 import 'presentation/bloc/user/user_event.dart';
@@ -323,7 +323,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CreateEventScreen(),
+                        builder: (context) => const CreateEventConversation(),
                       ),
                     );
                     if (result != null && result is Event) {

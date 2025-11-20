@@ -22,6 +22,7 @@ class PostsLoaded extends PostsState {
   final bool isCreatingPost;
   final String? createErrorMessage;
   final String? successMessage;
+  final Set<String> sendingCommentIds; // Track comments being sent
 
   const PostsLoaded({
     required this.posts,
@@ -31,6 +32,7 @@ class PostsLoaded extends PostsState {
     this.isCreatingPost = false,
     this.createErrorMessage,
     this.successMessage,
+    this.sendingCommentIds = const {},
   });
 
   // Computed properties for backward compatibility
@@ -45,6 +47,7 @@ class PostsLoaded extends PostsState {
     bool? isCreatingPost,
     String? createErrorMessage,
     String? successMessage,
+    Set<String>? sendingCommentIds,
   }) {
     return PostsLoaded(
       posts: posts ?? this.posts,
@@ -54,6 +57,7 @@ class PostsLoaded extends PostsState {
       isCreatingPost: isCreatingPost ?? this.isCreatingPost,
       createErrorMessage: createErrorMessage,
       successMessage: successMessage,
+      sendingCommentIds: sendingCommentIds ?? this.sendingCommentIds,
     );
   }
 
@@ -66,6 +70,7 @@ class PostsLoaded extends PostsState {
       isCreatingPost: isCreatingPost,
       createErrorMessage: null,
       successMessage: null,
+      sendingCommentIds: sendingCommentIds,
     );
   }
 
@@ -78,6 +83,7 @@ class PostsLoaded extends PostsState {
         isCreatingPost,
         createErrorMessage,
         successMessage,
+        sendingCommentIds,
       ];
 }
 

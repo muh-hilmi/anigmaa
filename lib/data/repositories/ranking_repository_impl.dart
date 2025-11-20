@@ -15,21 +15,18 @@ class RankingRepositoryImpl implements RankingRepository {
   @override
   Future<Either<Failure, RankedFeed>> getRankedFeed(RankingRequest request) async {
     try {
-      print('[RankingRepository] Getting ranked feed...');
-
       // Convert entity to model
       final requestModel = RankingRequestModel.fromEntity(request);
 
       // Fetch from remote
       final rankedFeed = await remoteDataSource.getRankedFeed(requestModel);
 
-      print('[RankingRepository] Successfully ranked feed');
       return Right(rankedFeed);
     } on Failure catch (e) {
-      print('[RankingRepository] Failure ranking feed: $e');
+      print('[RankingRepository] Error: $e');
       return Left(e);
     } catch (e, stackTrace) {
-      print('[RankingRepository] Exception ranking feed: $e');
+      print('[RankingRepository] Exception: $e');
       print('[RankingRepository] Stack trace: $stackTrace');
       return Left(ServerFailure('Failed to rank feed: $e'));
     }

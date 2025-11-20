@@ -190,8 +190,8 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     } on DioException catch (e) {
       print('[PostRemoteDataSource] Like error: ${e.message}');
 
-      // If post is already liked (400 with "already liked"), treat as success
-      if (e.response?.statusCode == 400 &&
+      // If post is already liked (400 or 409 with "already liked"), treat as success
+      if ((e.response?.statusCode == 400 || e.response?.statusCode == 409) &&
           e.response?.data?['message']?.toString().toLowerCase().contains('already liked') == true) {
         print('[PostRemoteDataSource] Post already liked - treating as success');
         return;
@@ -217,8 +217,8 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     } on DioException catch (e) {
       print('[PostRemoteDataSource] Unlike error: ${e.message}');
 
-      // If post is already not liked (400 with "Post not liked"), treat as success
-      if (e.response?.statusCode == 400 &&
+      // If post is already not liked (400 or 409 with "Post not liked"), treat as success
+      if ((e.response?.statusCode == 400 || e.response?.statusCode == 409) &&
           e.response?.data?['message']?.toString().toLowerCase().contains('not liked') == true) {
         print('[PostRemoteDataSource] Post already not liked - treating as success');
         return;

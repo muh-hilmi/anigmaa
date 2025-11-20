@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:uuid/uuid.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/comment.dart';
 import '../../../domain/entities/user.dart';
@@ -281,139 +282,165 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   }
 
   Widget _buildCommentItem(Comment comment) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state) {
+        final isSending = state is PostsLoaded && state.sendingCommentIds.contains(comment.id);
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey.withValues(alpha: 0.1),
+              width: 1,
+            ),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Author header
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserProfileScreen(
-                        userId: comment.author.id,
-                        userName: comment.author.name,
-                      ),
-                    ),
-                  );
-                },
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: const Color(0xFFFAF8F5),
-                  child: Text(
-                    comment.author.name.isNotEmpty
-                        ? comment.author.name[0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF84994F),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      comment.author.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF000000),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    Text(
-                      timeago.format(comment.createdAt, locale: 'en_short'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  context.read<PostsBloc>().add(
-                        LikeCommentToggled(
-                          widget.post.id,
-                          comment.id,
-                          comment.isLikedByCurrentUser,
+              // Author header
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                            userId: comment.author.id,
+                            userName: comment.author.name,
+                          ),
                         ),
                       );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: comment.isLikedByCurrentUser
-                      ? const Color(0xFFE8EDDA)
-                      : const Color(0xFFFAF8F5),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        comment.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
-                        size: 16,
-                        color: comment.isLikedByCurrentUser
-                          ? const Color(0xFFFF6B6B)
-                          : const Color(0xFF737373),
+                    },
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: const Color(0xFFFAF8F5),
+                      child: Text(
+                        comment.author.name.isNotEmpty
+                            ? comment.author.name[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF84994F),
+                        ),
                       ),
-                      if (comment.likesCount > 0) ...[
-                        const SizedBox(width: 4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                comment.author.name,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF000000),
+                                  letterSpacing: -0.2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '• ${timeago.format(comment.createdAt, locale: 'en_short')}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            if (isSending) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '• Mengirim...',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[400],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
                         Text(
-                          '${comment.likesCount}',
+                          comment.content,
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: comment.isLikedByCurrentUser
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF737373),
+                            fontSize: 13,
+                            color: isSending ? const Color(0xFF9CA3AF) : const Color(0xFF1a1a1a),
+                            height: 1.4,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: -0.1,
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: isSending ? null : () {
+                      context.read<PostsBloc>().add(
+                            LikeCommentToggled(
+                              widget.post.id,
+                              comment.id,
+                              comment.isLikedByCurrentUser,
+                            ),
+                          );
+                    },
+                    child: Opacity(
+                      opacity: isSending ? 0.5 : 1.0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: comment.isLikedByCurrentUser
+                            ? const Color(0xFFFFE8E8)
+                            : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              comment.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+                              size: 14,
+                              color: comment.isLikedByCurrentUser
+                                ? const Color(0xFFFF6B6B)
+                                : const Color(0xFF999999),
+                            ),
+                            if (comment.likesCount > 0) ...[
+                              const SizedBox(width: 3),
+                              Text(
+                                '${comment.likesCount}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: comment.isLikedByCurrentUser
+                                    ? const Color(0xFFFF6B6B)
+                                    : const Color(0xFF999999),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Comment content
-          Text(
-            comment.content,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1a1a1a),
-              height: 1.5,
-              fontWeight: FontWeight.w400,
-              letterSpacing: -0.2,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -505,8 +532,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       return;
     }
 
+    // Generate temporary UUID for optimistic update
+    final tempId = 'temp_${Uuid().v4()}';
+
     final comment = Comment(
-      id: '', // Will be generated
+      id: tempId,
       postId: widget.post.id,
       author: currentUser,
       content: _commentController.text.trim(),

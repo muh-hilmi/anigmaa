@@ -59,25 +59,18 @@ class RankedFeedBloc extends Bloc<RankedFeedEvent, RankedFeedState> {
             todayWindow: todayWindow,
           );
 
-          print('[RankedFeedBloc] Requesting ranked feed...');
-          print('[RankedFeedBloc] User ID: ${user.id}');
-          print('[RankedFeedBloc] Posts: ${event.posts.length}');
-          print('[RankedFeedBloc] Events: ${event.events.length}');
+          // Uncomment for debugging:
+          // print('[RankedFeedBloc] Requesting feed - Posts: ${event.posts.length}, Events: ${event.events.length}');
 
           // Call ranking API
           final result = await getRankedFeed(request);
 
           result.fold(
             (failure) {
-              print('[RankedFeedBloc] Ranking failed: $failure');
+              print('[RankedFeedBloc] Error: $failure');
               emit(RankedFeedError('Failed to rank feed: ${failure.toString()}'));
             },
             (rankedFeed) {
-              print('[RankedFeedBloc] Successfully ranked feed');
-              print('[RankedFeedBloc] Trending events: ${rankedFeed.trendingEvent.length}');
-              print('[RankedFeedBloc] For you posts: ${rankedFeed.forYouPosts.length}');
-              print('[RankedFeedBloc] For you events: ${rankedFeed.forYouEvents.length}');
-
               emit(RankedFeedLoaded(
                 rankedFeed: rankedFeed,
                 posts: event.posts,

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/post.dart';
+import '../../../domain/entities/event.dart';
 import '../../bloc/posts/posts_bloc.dart';
 import '../../bloc/posts/posts_event.dart';
 import '../../bloc/posts/posts_state.dart';
+import '../../bloc/events/events_bloc.dart';
+import '../../bloc/events/events_event.dart';
+import '../../bloc/events/events_state.dart';
+import '../../bloc/ranked_feed/ranked_feed_bloc.dart';
+import '../../bloc/ranked_feed/ranked_feed_event.dart';
+import '../../bloc/ranked_feed/ranked_feed_state.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../widgets/modern_post_card.dart';
 import '../create_post/create_post_screen.dart';
+import '../../../injection_container.dart';
 
 class ModernFeedScreen extends StatefulWidget {
   const ModernFeedScreen({super.key});
@@ -16,180 +24,142 @@ class ModernFeedScreen extends StatefulWidget {
   State<ModernFeedScreen> createState() => _ModernFeedScreenState();
 }
 
-class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ModernFeedScreenState extends State<ModernFeedScreen> {
   late ScrollController _scrollController;
+  late RankedFeedBloc _rankedFeedBloc;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
+    _rankedFeedBloc = sl<RankedFeedBloc>();
+
+    // Load posts and events
     context.read<PostsBloc>().add(LoadPosts());
+    context.read<EventsBloc>().add(LoadEvents());
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _scrollController.dispose();
+    _rankedFeedBloc.close();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_isBottom) {
-      context.read<PostsBloc>().add(LoadMorePosts());
-    }
+  void _loadRankedFeed(List<Post> posts, List<Event> events) {
+    _rankedFeedBloc.add(LoadRankedFeed(posts: posts, events: events));
   }
 
-  bool get _isBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9); // Trigger at 90% scroll
+  List<Post> _sortPostsByRanking(List<Post> posts, List<String> rankedIds) {
+    if (rankedIds.isEmpty) return posts;
+
+    // Create map for O(1) lookup
+    final postMap = {for (var post in posts) post.id: post};
+
+    // Sort posts according to ranked IDs
+    final sortedPosts = <Post>[];
+    for (final id in rankedIds) {
+      if (postMap.containsKey(id)) {
+        sortedPosts.add(postMap[id]!);
+      }
+    }
+
+    // Add remaining posts that weren't in ranking
+    for (final post in posts) {
+      if (!rankedIds.contains(post.id)) {
+        sortedPosts.add(post);
+      }
+    }
+
+    return sortedPosts;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BlocConsumer<PostsBloc, PostsState>(
-        listener: (context, state) {
-          // Show snackbar for success/error messages
-          if (state is PostsLoaded) {
-            if (state.successMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.successMessage!),
-                  backgroundColor: Colors.green[600],
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              // Clear the message after showing
-              context.read<PostsBloc>().emit(state.clearMessages());
-            }
-            if (state.createErrorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.createErrorMessage!),
-                  backgroundColor: Colors.red[600],
-                  duration: const Duration(seconds: 3),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              // Clear the message after showing
-              context.read<PostsBloc>().emit(state.clearMessages());
-            }
-          }
-        },
-        builder: (context, state) {
-          if (state is PostsLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF8B5CF6),
-                strokeWidth: 3,
-              ),
-            );
-          }
+      body: BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, postsState) {
+          return BlocBuilder<EventsBloc, EventsState>(
+            builder: (context, eventsState) {
+              // Wait for both posts and events to load
+              if (postsState is PostsLoading || eventsState is EventsLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF8B5CF6),
+                    strokeWidth: 3,
+                  ),
+                );
+              }
 
-          if (state is PostsError) {
-            return _buildErrorState(state.message);
-          }
+              if (postsState is PostsError) {
+                return _buildErrorState('Failed to load posts: ${postsState.message}');
+              }
 
-          if (state is PostsLoaded) {
-            // Get current user ID to filter out their posts
-            final userState = context.read<UserBloc>().state;
-            String? currentUserId;
-            if (userState is UserLoaded) {
-              currentUserId = userState.user.id;
-            }
+              if (eventsState is EventsError) {
+                return _buildErrorState('Failed to load events: ${eventsState.message}');
+              }
 
-            // Filter out current user's posts (feed should only show others' posts)
-            final feedPosts = currentUserId != null
-                ? state.posts.where((post) => post.author.id != currentUserId).toList()
-                : state.posts;
+              if (postsState is PostsLoaded && eventsState is EventsLoaded) {
+                // Trigger ranking when data is ready
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _loadRankedFeed(postsState.posts, eventsState.events);
+                });
 
-            if (feedPosts.isEmpty) {
+                // Build UI with ranking results
+                return BlocBuilder<RankedFeedBloc, RankedFeedState>(
+                  bloc: _rankedFeedBloc,
+                  builder: (context, rankedState) {
+                    List<Post> displayPosts = postsState.posts;
+
+                    // If ranking succeeded, sort posts
+                    if (rankedState is RankedFeedLoaded) {
+                      displayPosts = _sortPostsByRanking(
+                        postsState.posts,
+                        rankedState.rankedFeed.forYouPosts,
+                      );
+                    }
+
+                    // Get current user ID to filter out their posts
+                    final userState = context.read<UserBloc>().state;
+                    String? currentUserId;
+                    if (userState is UserLoaded) {
+                      currentUserId = userState.user.id;
+                    }
+
+                    // Filter out current user's posts
+                    final feedPosts = currentUserId != null
+                        ? displayPosts.where((post) => post.author.id != currentUserId).toList()
+                        : displayPosts;
+
+                    if (feedPosts.isEmpty) {
+                      return _buildEmptyState();
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<PostsBloc>().add(RefreshPosts());
+                        context.read<EventsBloc>().add(LoadEvents());
+                        await Future.delayed(const Duration(seconds: 1));
+                      },
+                      color: const Color(0xFF8B5CF6),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: feedPosts.length,
+                        itemBuilder: (context, index) {
+                          return ModernPostCard(post: feedPosts[index]);
+                        },
+                      ),
+                    );
+                  },
+                );
+              }
+
               return _buildEmptyState();
-            }
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<PostsBloc>().add(RefreshPosts());
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              color: const Color(0xFF8B5CF6),
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: feedPosts.length + (state.hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  // Show loading indicator at the bottom
-                  if (index >= feedPosts.length) {
-                    return _buildLoadingIndicator(state.isLoadingMore);
-                  }
-
-                  return ModernPostCard(post: feedPosts[index]);
-                },
-              ),
-            );
-          }
-
-          return _buildEmptyState();
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreatePostScreen(),
-            ),
+            },
           );
-
-          if (result != null && result is Post) {
-            context.read<PostsBloc>().add(CreatePostRequested(result));
-          }
         },
-        backgroundColor: const Color(0xFF84994F),
-        elevation: 4,
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-      ),
-    );
-  }
-
-
-  Widget _buildNavigationTabs() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicatorColor: const Color(0xFF84994F),
-        indicatorWeight: 3,
-        labelColor: const Color(0xFF84994F),
-        unselectedLabelColor: const Color(0xFF9E9E9E),
-        labelStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.2,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-        ),
-        tabs: const [
-          Tab(text: 'Beranda'),
-          Tab(text: 'Event'),
-        ],
       ),
     );
   }
@@ -211,11 +181,13 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
               fontSize: 16,
               color: Color(0xFF2D3142),
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
               context.read<PostsBloc>().add(LoadPosts());
+              context.read<EventsBloc>().add(LoadEvents());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF84994F),
@@ -308,21 +280,6 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> with SingleTickerPr
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingIndicator(bool isLoading) {
-    if (!isLoading) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      alignment: Alignment.center,
-      child: const CircularProgressIndicator(
-        color: Color(0xFF8B5CF6),
-        strokeWidth: 2.5,
       ),
     );
   }

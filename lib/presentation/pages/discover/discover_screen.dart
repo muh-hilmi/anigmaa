@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
+import '../../../domain/entities/post.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../bloc/events/events_bloc.dart';
 import '../../bloc/events/events_event.dart';
 import '../../bloc/events/events_state.dart';
+import '../../bloc/posts/posts_bloc.dart';
+import '../../bloc/posts/posts_event.dart';
+import '../../bloc/posts/posts_state.dart';
+import '../../bloc/ranked_feed/ranked_feed_bloc.dart';
+import '../../bloc/ranked_feed/ranked_feed_event.dart';
+import '../../bloc/ranked_feed/ranked_feed_state.dart';
 import '../event_detail/event_detail_screen.dart';
-import '../create_event/create_event_screen.dart';
+import '../create_event/create_event_conversation.dart';
+import '../../../injection_container.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -21,10 +29,14 @@ class DiscoverScreen extends StatefulWidget {
 class DiscoverScreenState extends State<DiscoverScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  late RankedFeedBloc _rankedFeedBloc;
 
   // Events data from BLoC
   List<Event> _allEvents = [];
   List<Event> _filteredEvents = [];
+
+  // Ranked IDs from API
+  Map<String, List<String>> _rankedEventIds = {};
 
   // Current selected mode
   String _selectedMode = 'for_you'; // 'trending', 'for_you', 'chill'
@@ -32,8 +44,10 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   @override
   void initState() {
     super.initState();
+    _rankedFeedBloc = sl<RankedFeedBloc>();
     _searchController.addListener(_filterEvents);
     context.read<EventsBloc>().add(const LoadEventsByMode(mode: 'for_you'));
+    context.read<PostsBloc>().add(LoadPosts());
   }
 
   void _filterEvents() {
@@ -45,6 +59,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _rankedFeedBloc.close();
     super.dispose();
   }
 
@@ -74,53 +89,35 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         }).toList();
       }
 
-      // Apply mode-specific filter
+      // Apply mode-specific filter using ranked IDs if available
       switch (_selectedMode) {
-        case 'today':
-          final now = DateTime.now();
-          _filteredEvents = baseEvents.where((event) {
-            return event.startTime.year == now.year &&
-                   event.startTime.month == now.month &&
-                   event.startTime.day == now.day;
-          }).toList();
-          break;
-
-        case 'free':
-          _filteredEvents = baseEvents.where((event) => event.isFree).toList();
-          break;
-
-        case 'paid':
-          _filteredEvents = baseEvents.where((event) => !event.isFree).toList();
-          break;
-
-        case 'nearby':
-          // Sort by distance (TODO: implement distance calculation with user location)
-          _filteredEvents = baseEvents.toList();
-          break;
-
         case 'trending':
-          // Trending: High engagement events (most attendees)
-          _filteredEvents = baseEvents.toList()
-            ..sort((a, b) {
-              // Sort by attendance percentage (current/max) descending
-              final aPercent = a.currentAttendees / a.maxAttendees;
-              final bPercent = b.currentAttendees / b.maxAttendees;
-              return bPercent.compareTo(aPercent);
-            });
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['trending'] ?? []);
           break;
 
         case 'for_you':
-          // For You: Balanced mix (default sorting by date)
-          _filteredEvents = baseEvents.toList()
-            ..sort((a, b) => a.startTime.compareTo(b.startTime));
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['for_you'] ?? []);
           break;
 
         case 'chill':
-          // Chill: Small intimate events (max 50 attendees) and specific categories
-          _filteredEvents = baseEvents.where((event) {
-            return event.maxAttendees <= 50;
-          }).toList()
-            ..sort((a, b) => a.maxAttendees.compareTo(b.maxAttendees));
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['chill'] ?? []);
+          break;
+
+        case 'today':
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['today'] ?? []);
+          break;
+
+        case 'free':
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['free'] ?? []);
+          break;
+
+        case 'paid':
+          _filteredEvents = _sortEventsByRanking(baseEvents, _rankedEventIds['paid'] ?? []);
+          break;
+
+        case 'nearby':
+          // Nearby: fallback to all events (TODO: implement distance calculation)
+          _filteredEvents = baseEvents.toList();
           break;
 
         default:
@@ -129,68 +126,129 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     });
   }
 
+  List<Event> _sortEventsByRanking(List<Event> events, List<String> rankedIds) {
+    if (rankedIds.isEmpty) return events;
+
+    // Create map for O(1) lookup
+    final eventMap = {for (var event in events) event.id: event};
+
+    // Sort events according to ranked IDs
+    final sortedEvents = <Event>[];
+    for (final id in rankedIds) {
+      if (eventMap.containsKey(id)) {
+        sortedEvents.add(eventMap[id]!);
+      }
+    }
+
+    // Add remaining events that weren't in ranking
+    for (final event in events) {
+      if (!rankedIds.contains(event.id)) {
+        sortedEvents.add(event);
+      }
+    }
+
+    return sortedEvents;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BlocConsumer<EventsBloc, EventsState>(
-        listener: (context, state) {
-          if (state is EventsError) {
-            AppLogger().error('Discover screen error: ${state.message}');
-          }
+      body: BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, postsState) {
+          return BlocConsumer<EventsBloc, EventsState>(
+            listener: (context, state) {
+              if (state is EventsError) {
+                AppLogger().error('Discover screen error: ${state.message}');
+              }
 
-          // Log success/error messages from EventsLoaded state
-          if (state is EventsLoaded) {
-            if (state.successMessage != null) {
-              AppLogger().info('Discover screen: ${state.successMessage}');
-            }
-            if (state.createErrorMessage != null) {
-              AppLogger().error('Discover screen error: ${state.createErrorMessage}');
-            }
-          }
-        },
-        builder: (context, state) {
-          if (state is EventsLoading) {
-            return const Center(child: CircularProgressIndicator(
-              color: Color(0xFF84994F),
-            ));
-          }
+              // Log success/error messages from EventsLoaded state
+              if (state is EventsLoaded) {
+                if (state.successMessage != null) {
+                  AppLogger().info('Discover screen: ${state.successMessage}');
+                }
+                if (state.createErrorMessage != null) {
+                  AppLogger().error('Discover screen error: ${state.createErrorMessage}');
+                }
+              }
+            },
+            builder: (context, eventsState) {
+              if (eventsState is EventsLoading || postsState is PostsLoading) {
+                return const Center(child: CircularProgressIndicator(
+                  color: Color(0xFF84994F),
+                ));
+              }
 
-          if (state is EventsError) {
-            return _buildErrorState(state.message);
-          }
+              if (eventsState is EventsError) {
+                return _buildErrorState(eventsState.message);
+              }
 
-          if (state is EventsLoaded) {
-            _allEvents = state.events;
-            if (_filteredEvents.isEmpty && _searchController.text.isEmpty) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _applyModeFilter();
-              });
-            }
+              if (eventsState is EventsLoaded && postsState is PostsLoaded) {
+                _allEvents = eventsState.events;
 
-            return _allEvents.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    color: const Color(0xFF84994F),
-                    onRefresh: () async {
-                      context.read<EventsBloc>().add(LoadEventsByMode(mode: _selectedMode));
-                      await Future.delayed(const Duration(seconds: 1));
-                    },
-                    child: CustomScrollView(
-                      controller: _scrollController,
-                      slivers: [
-                        _buildAppBar(),
-                        SliverToBoxAdapter(child: _buildSearchBar()),
-                        SliverToBoxAdapter(child: _buildModeSwitcher()),
-                        SliverToBoxAdapter(child: _buildLiveEventsBar()),
-                        _buildEventsList(),
-                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                      ],
-                    ),
-                  );
-          }
+                // Trigger ranking when data is ready
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _rankedFeedBloc.add(LoadRankedFeed(
+                    posts: postsState.posts,
+                    events: eventsState.events,
+                  ));
+                });
 
-          return _buildEmptyState();
+                // Listen to ranking results
+                return BlocBuilder<RankedFeedBloc, RankedFeedState>(
+                  bloc: _rankedFeedBloc,
+                  builder: (context, rankedState) {
+                    // Update ranked IDs when ranking succeeds
+                    if (rankedState is RankedFeedLoaded) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        setState(() {
+                          _rankedEventIds = {
+                            'trending': rankedState.rankedFeed.trendingEvent,
+                            'for_you': rankedState.rankedFeed.forYouEvents,
+                            'chill': rankedState.rankedFeed.chillEvents,
+                            'today': rankedState.rankedFeed.hariIniEvents,
+                            'free': rankedState.rankedFeed.gratisEvents,
+                            'paid': rankedState.rankedFeed.bayarEvents,
+                          };
+                        });
+                        _applyModeFilter();
+                      });
+                    }
+
+                    if (_filteredEvents.isEmpty && _searchController.text.isEmpty && _rankedEventIds.isEmpty) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _applyModeFilter();
+                      });
+                    }
+
+                    return _allEvents.isEmpty
+                        ? _buildEmptyState()
+                        : RefreshIndicator(
+                            color: const Color(0xFF84994F),
+                            onRefresh: () async {
+                              context.read<EventsBloc>().add(LoadEventsByMode(mode: _selectedMode));
+                              context.read<PostsBloc>().add(LoadPosts());
+                              await Future.delayed(const Duration(seconds: 1));
+                            },
+                            child: CustomScrollView(
+                              controller: _scrollController,
+                              slivers: [
+                                _buildAppBar(),
+                                SliverToBoxAdapter(child: _buildSearchBar()),
+                                SliverToBoxAdapter(child: _buildModeSwitcher()),
+                                SliverToBoxAdapter(child: _buildLiveEventsBar()),
+                                _buildEventsList(),
+                                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                              ],
+                            ),
+                          );
+                  },
+                );
+              }
+
+              return _buildEmptyState();
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -198,7 +256,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CreateEventScreen(),
+              builder: (context) => const CreateEventConversation(),
             ),
           );
           if (result != null && result is Event) {
@@ -848,7 +906,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const CreateEventScreen(),
+                  builder: (context) => const CreateEventConversation(),
                 ),
               );
               if (result != null && result is Event) {

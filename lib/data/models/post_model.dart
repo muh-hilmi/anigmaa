@@ -79,8 +79,8 @@ class PostModel extends Post {
       commentsCount: json['comments_count'] as int? ?? 0,
       repostsCount: json['reposts_count'] as int? ?? 0,
       sharesCount: json['shares_count'] as int? ?? 0,
-      isLikedByCurrentUser: json['is_liked_by_user'] as bool? ?? false,
-      isRepostedByCurrentUser: json['is_reposted_by_user'] as bool? ?? false,
+      isLikedByCurrentUser: (json['is_liked_by_current_user'] as bool?) ?? (json['is_liked_by_user'] as bool?) ?? false,
+      isRepostedByCurrentUser: (json['is_reposted_by_current_user'] as bool?) ?? (json['is_reposted_by_user'] as bool?) ?? false,
       isBookmarked: json['is_bookmarked'] as bool? ?? false,
       originalPost: json['original_post'] != null
           ? PostModel.fromJson(json['original_post'])

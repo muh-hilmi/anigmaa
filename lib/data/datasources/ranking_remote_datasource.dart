@@ -15,10 +15,9 @@ class RankingRemoteDataSourceImpl implements RankingRemoteDataSource {
   @override
   Future<RankedFeedModel> getRankedFeed(RankingRequestModel request) async {
     try {
-      print('[RankingRemoteDataSource] Sending ranking request...');
-      print('[RankingRemoteDataSource] User ID: ${request.userProfile.id}');
-      print('[RankingRemoteDataSource] Posts count: ${request.posts.length}');
-      print('[RankingRemoteDataSource] Events count: ${request.events.length}');
+      // Uncomment for debugging:
+      // print('[RankingRemoteDataSource] Sending ranking request...');
+      // print('[RankingRemoteDataSource] Posts: ${request.posts.length}, Events: ${request.events.length}');
 
       final response = await dioClient.post(
         '/feed/rank',
@@ -26,14 +25,7 @@ class RankingRemoteDataSourceImpl implements RankingRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        print('[RankingRemoteDataSource] Successfully received ranked feed');
         final data = response.data;
-
-        // Log the ranked feed summary
-        print('[RankingRemoteDataSource] Trending events: ${(data['trending_event'] as List?)?.length ?? 0}');
-        print('[RankingRemoteDataSource] For you posts: ${(data['for_you_posts'] as List?)?.length ?? 0}');
-        print('[RankingRemoteDataSource] For you events: ${(data['for_you_events'] as List?)?.length ?? 0}');
-
         return RankedFeedModel.fromJson(data);
       } else {
         throw ServerFailure('Failed to rank feed: ${response.statusCode}');
@@ -47,9 +39,10 @@ class RankingRemoteDataSourceImpl implements RankingRemoteDataSource {
   }
 
   Failure _handleDioException(DioException e) {
-    print('[RankingRemoteDataSource] DioException: ${e.type}');
-    print('[RankingRemoteDataSource] Error message: ${e.message}');
-    print('[RankingRemoteDataSource] Response: ${e.response?.data}');
+    // Only log on actual errors
+    if (e.type != DioExceptionType.cancel) {
+      print('[RankingRemoteDataSource] Error: ${e.type} - ${e.message}');
+    }
 
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
@@ -60,7 +53,7 @@ class RankingRemoteDataSourceImpl implements RankingRemoteDataSource {
         final statusCode = e.response?.statusCode;
         final message = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Unknown error';
         if (statusCode == 401) {
-          return AuthFailure('Unauthorized');
+          return UnauthorizedFailure('Unauthorized');
         } else if (statusCode == 404) {
           return NotFoundFailure('Ranking endpoint not found');
         } else if (statusCode == 400) {

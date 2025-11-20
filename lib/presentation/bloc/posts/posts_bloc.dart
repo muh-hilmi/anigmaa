@@ -251,17 +251,89 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Future<void> _onCreateComment(CreateCommentRequested event, Emitter<PostsState> emit) async {
     if (state is! PostsLoaded) return;
 
+    final currentState = state as PostsLoaded;
+
+    // Mark comment as sending
+    final sendingIds = Set<String>.from(currentState.sendingCommentIds);
+    sendingIds.add(event.comment.id);
+
+    // Optimistic update: Add comment immediately to UI
+    final updatedComments = Map<String, List<Comment>>.from(currentState.commentsByPostId);
+    final existingComments = updatedComments[event.comment.postId] ?? [];
+    updatedComments[event.comment.postId] = [event.comment, ...existingComments];
+
+    // Update comment count in posts
+    final updatedPosts = currentState.posts.map((post) {
+      if (post.id == event.comment.postId) {
+        return post.copyWith(commentsCount: post.commentsCount + 1);
+      }
+      return post;
+    }).toList();
+
+    emit(currentState.copyWith(
+      posts: updatedPosts,
+      commentsByPostId: updatedComments,
+      sendingCommentIds: sendingIds,
+    ));
+
     final result = await createComment(CreateCommentParams(comment: event.comment));
 
     result.fold(
       (failure) {
-        // Don't emit error - just log it. Keep posts visible!
+        // Revert optimistic update on failure - use current state not old state
+        if (state is! PostsLoaded) return;
+        final latestState = state as PostsLoaded;
+
+        // Remove from sending state
+        final sendingIds = Set<String>.from(latestState.sendingCommentIds);
+        sendingIds.remove(event.comment.id);
+
+        final revertedComments = Map<String, List<Comment>>.from(latestState.commentsByPostId);
+        // Remove the temporary comment
+        if (revertedComments.containsKey(event.comment.postId)) {
+          revertedComments[event.comment.postId] = revertedComments[event.comment.postId]!
+              .where((c) => c.id != event.comment.id)
+              .toList();
+        }
+
+        final revertedPosts = latestState.posts.map((post) {
+          if (post.id == event.comment.postId) {
+            return post.copyWith(commentsCount: post.commentsCount > 0 ? post.commentsCount - 1 : 0);
+          }
+          return post;
+        }).toList();
+
+        emit(latestState.copyWith(
+          posts: revertedPosts,
+          commentsByPostId: revertedComments,
+          sendingCommentIds: sendingIds,
+        ));
       },
       (newComment) {
-        // Refresh posts to get updated comment count
-        add(RefreshPosts());
-        // Reload comments for this post
-        add(LoadComments(event.comment.postId));
+        // Replace temporary comment with actual comment from server - use current state
+        if (state is! PostsLoaded) return;
+        final latestState = state as PostsLoaded;
+
+        // Comment created successfully
+
+        // Remove from sending state
+        final sendingIds = Set<String>.from(latestState.sendingCommentIds);
+        sendingIds.remove(event.comment.id);
+
+        final finalComments = Map<String, List<Comment>>.from(latestState.commentsByPostId);
+        final postComments = finalComments[event.comment.postId] ?? [];
+
+        finalComments[event.comment.postId] = postComments.map((c) {
+          if (c.id == event.comment.id) {
+            return newComment;
+          }
+          return c;
+        }).toList();
+
+        emit(latestState.copyWith(
+          commentsByPostId: finalComments,
+          sendingCommentIds: sendingIds,
+        ));
       },
     );
   }
@@ -269,29 +341,65 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Future<void> _onLikeCommentToggled(LikeCommentToggled event, Emitter<PostsState> emit) async {
     if (state is! PostsLoaded) return;
 
+    final currentState = state as PostsLoaded;
+
+    // Optimistic update
+    final updatedComments = Map<String, List<Comment>>.from(currentState.commentsByPostId);
+
+    if (updatedComments.containsKey(event.postId)) {
+      final postComments = List<Comment>.from(updatedComments[event.postId]!);
+      final commentIndex = postComments.indexWhere((c) => c.id == event.commentId);
+
+      if (commentIndex != -1) {
+        final comment = postComments[commentIndex];
+        final newLikeCount = event.isCurrentlyLiked
+            ? (comment.likesCount > 0 ? comment.likesCount - 1 : 0)
+            : comment.likesCount + 1;
+
+        postComments[commentIndex] = comment.copyWith(
+          isLikedByCurrentUser: !event.isCurrentlyLiked,
+          likesCount: newLikeCount,
+        );
+        updatedComments[event.postId] = postComments;
+
+        emit(currentState.copyWith(commentsByPostId: updatedComments));
+      }
+    }
+
+    // Make API call
     final result = event.isCurrentlyLiked
         ? await unlikeComment(UnlikeCommentParams(postId: event.postId, commentId: event.commentId))
         : await likeComment(LikeCommentParams(postId: event.postId, commentId: event.commentId));
 
     result.fold(
       (failure) {
-        // Don't emit error - just log it. Keep posts visible!
-      },
-      (updatedComment) {
-        final currentState = state as PostsLoaded;
-        final updatedComments = Map<String, List<Comment>>.from(currentState.commentsByPostId);
+        // Revert optimistic update on failure
+        if (state is! PostsLoaded) return;
+        final latestState = state as PostsLoaded;
 
-        // Update the specific comment in the map
-        if (updatedComments.containsKey(updatedComment.postId)) {
-          final postComments = List<Comment>.from(updatedComments[updatedComment.postId]!);
-          final commentIndex = postComments.indexWhere((c) => c.id == updatedComment.id);
+        final revertedComments = Map<String, List<Comment>>.from(latestState.commentsByPostId);
+        if (revertedComments.containsKey(event.postId)) {
+          final postComments = List<Comment>.from(revertedComments[event.postId]!);
+          final commentIndex = postComments.indexWhere((c) => c.id == event.commentId);
+
           if (commentIndex != -1) {
-            postComments[commentIndex] = updatedComment;
-            updatedComments[updatedComment.postId] = postComments;
+            final comment = postComments[commentIndex];
+            final revertedLikeCount = event.isCurrentlyLiked
+                ? comment.likesCount + 1
+                : (comment.likesCount > 0 ? comment.likesCount - 1 : 0);
+
+            postComments[commentIndex] = comment.copyWith(
+              isLikedByCurrentUser: event.isCurrentlyLiked,
+              likesCount: revertedLikeCount,
+            );
+            revertedComments[event.postId] = postComments;
+
+            emit(latestState.copyWith(commentsByPostId: revertedComments));
           }
         }
-
-        emit(currentState.copyWith(commentsByPostId: updatedComments));
+      },
+      (_) {
+        // Success - optimistic update already applied
       },
     );
   }

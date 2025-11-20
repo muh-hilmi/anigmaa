@@ -323,7 +323,7 @@ class _RankedFeedScreenState extends State<RankedFeedScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        event.location?.city ?? 'Online',
+                        event.location?.name ?? 'Online',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -337,7 +337,7 @@ class _RankedFeedScreenState extends State<RankedFeedScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _formatDate(event.startDate),
+                        _formatDate(event.startTime),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -406,7 +406,7 @@ class _RankedFeedScreenState extends State<RankedFeedScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _formatTime(event.startDate),
+                            _formatTime(event.startTime),
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
@@ -425,7 +425,7 @@ class _RankedFeedScreenState extends State<RankedFeedScreen> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              event.location?.city ?? 'Online',
+                              event.location?.name ?? 'Online',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey[600],
