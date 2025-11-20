@@ -332,11 +332,20 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   }
 
   void _showTimePicker({required bool isStart}) async {
+    // Calculate initial end time (start time + 2 hours, but capped at 23:59)
+    TimeOfDay initialEndTime = const TimeOfDay(hour: 21, minute: 0);
+    if (_startTime != null) {
+      int endHour = _startTime!.hour + 2;
+      // Cap at 23 to avoid TimeOfDay overflow
+      if (endHour > 23) {
+        endHour = 23;
+      }
+      initialEndTime = TimeOfDay(hour: endHour, minute: _startTime!.minute);
+    }
+
     final time = await showTimePicker(
       context: context,
-      initialTime: isStart
-          ? const TimeOfDay(hour: 19, minute: 0)
-          : TimeOfDay(hour: (_startTime?.hour ?? 19) + 2, minute: _startTime?.minute ?? 0),
+      initialTime: isStart ? const TimeOfDay(hour: 19, minute: 0) : initialEndTime,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -426,7 +435,102 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   }
 
   void _showPreview() {
-    // Will be shown in chat
+    // Show preview card in chat
+    final previewWidget = Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF84994F), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Event title
+          Text(
+            _eventTitle,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF84994F),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Category badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF84994F).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              EventCategoryUtils.getCategoryDisplayName(_category),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF84994F),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Description
+          Text(
+            _eventDescription,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+              height: 1.4,
+            ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const Divider(height: 24),
+
+          // Event details
+          _buildPreviewRow(Icons.calendar_today,
+            '${DateFormat('dd MMM yyyy').format(_startDate!)} • ${_startTime!.format(context)} - ${_endTime!.format(context)}'),
+          const SizedBox(height: 8),
+          _buildPreviewRow(Icons.location_on, _location?.name ?? 'Lokasi'),
+          const SizedBox(height: 8),
+          _buildPreviewRow(Icons.people, '$_capacity orang'),
+          const SizedBox(height: 8),
+          _buildPreviewRow(
+            _isFree ? Icons.card_giftcard : Icons.attach_money,
+            _isFree ? 'Gratis' : CurrencyFormatter.formatToRupiah(_price),
+          ),
+          const SizedBox(height: 8),
+          _buildPreviewRow(
+            _privacy == EventPrivacy.public ? Icons.public : Icons.lock,
+            _privacy == EventPrivacy.public ? 'Publik' : 'Private',
+          ),
+        ],
+      ),
+    );
+
+    _addBotMessage('', customWidget: previewWidget);
+    setState(() => _waitingForInput = true);
+  }
+
+  Widget _buildPreviewRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildCategoryChips() {
