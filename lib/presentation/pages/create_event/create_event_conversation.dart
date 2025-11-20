@@ -17,12 +17,11 @@ class CreateEventConversation extends StatefulWidget {
 
 enum ConversationStep {
   greeting,
-  askName,
   askStartDate,
   askStartTime,
-  askEndDate,
   askEndTime,
   askLocation,
+  askName,
   askDescription,
   askCategory,
   askPrice,
@@ -55,13 +54,13 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   ConversationStep _currentStep = ConversationStep.greeting;
   bool _isTyping = false;
   bool _waitingForInput = false;
+  List<String> _activeQuickReplies = [];
 
   // Event data
   String _eventTitle = '';
   String _eventDescription = '';
   DateTime? _startDate;
   TimeOfDay? _startTime;
-  DateTime? _endDate;
   TimeOfDay? _endTime;
   LocationData? _location;
   EventCategory _category = EventCategory.meetup;
@@ -134,10 +133,37 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   }
 
   void _showQuickReplies(List<String> replies) {
-    setState(() => _waitingForInput = true);
+    setState(() {
+      _waitingForInput = true;
+      _activeQuickReplies = replies;
+    });
   }
 
   void _handleQuickReply(String reply) {
+    setState(() {
+      _activeQuickReplies = [];
+    });
+
+    // Handle retry buttons for pickers
+    if (reply == 'Pilih Tanggal 📅') {
+      _addUserMessage(reply);
+      _showDatePicker(isStart: true);
+      return;
+    } else if (reply == 'Pilih Jam Mulai 🕐') {
+      _addUserMessage(reply);
+      _showTimePicker(isStart: true);
+      return;
+    } else if (reply == 'Pilih Jam Selesai 🕐') {
+      _addUserMessage(reply);
+      _showTimePicker(isStart: false);
+      return;
+    } else if (reply == 'Pilih Lokasi 📍') {
+      _addUserMessage(reply);
+      _showLocationPicker();
+      return;
+    }
+
+    // Normal flow
     _addUserMessage(reply);
     _moveToNextStep();
   }
@@ -146,14 +172,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     Future.delayed(const Duration(milliseconds: 500), () {
       switch (_currentStep) {
         case ConversationStep.greeting:
-          _currentStep = ConversationStep.askName;
-          _addBotMessage('Keren! 🎉\n\nPertama-tama, apa nama eventnya?');
-          _waitForTextInput();
-          break;
-
-        case ConversationStep.askName:
           _currentStep = ConversationStep.askStartDate;
-          _addBotMessage('Nice! "$_eventTitle" 🔥\n\nKapan eventnya dimulai?');
+          _addBotMessage('Keren! 🎉\n\nKapan eventnya dimulai?');
           _showDatePicker(isStart: true);
           break;
 
@@ -165,15 +185,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askStartTime:
-          _currentStep = ConversationStep.askEndDate;
-          _addBotMessage('Sip! 🕐\n\nSampai tanggal berapa eventnya?');
-          _showDatePicker(isStart: false);
-          break;
-
-        case ConversationStep.askEndDate:
           _currentStep = ConversationStep.askEndTime;
-          String dateStr = DateFormat('dd MMMM yyyy').format(_endDate!);
-          _addBotMessage('Tanggal $dateStr ya 📅\n\nJam berapa selesainya?');
+          _addBotMessage('Sip! 🕐\n\nSampai jam berapa eventnya?');
           _showTimePicker(isStart: false);
           break;
 
@@ -184,8 +197,14 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askLocation:
+          _currentStep = ConversationStep.askName;
+          _addBotMessage('Lokasi oke! 📍\n\nSekarang, apa nama eventnya?');
+          _waitForTextInput();
+          break;
+
+        case ConversationStep.askName:
           _currentStep = ConversationStep.askDescription;
-          _addBotMessage('Lokasi oke! 📍\n\nSekarang ceritain dong, eventnya tentang apa?');
+          _addBotMessage('Nice! "$_eventTitle" 🔥\n\nCeritain dong, eventnya tentang apa?');
           _waitForTextInput(multiline: true);
           break;
 
@@ -270,10 +289,8 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   void _showDatePicker({required bool isStart}) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: isStart
-          ? DateTime.now().add(const Duration(days: 1))
-          : (_startDate ?? DateTime.now()).add(const Duration(days: 1)),
-      firstDate: isStart ? DateTime.now() : (_startDate ?? DateTime.now()),
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -288,14 +305,17 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (date != null) {
-      if (isStart) {
-        _startDate = date;
-      } else {
-        _endDate = date;
-      }
+      setState(() {
+        _activeQuickReplies = [];
+      });
+      _startDate = date;
       String dateStr = DateFormat('dd MMMM yyyy').format(date);
       _addUserMessage(dateStr);
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      _addBotMessage('Oke, kalau udah siap pilih tanggalnya, klik tombol ini ya! 📅');
+      _showQuickReplies(['Pilih Tanggal 📅']);
     }
   }
 
@@ -316,6 +336,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (time != null) {
+      setState(() {
+        _activeQuickReplies = [];
+      });
       if (isStart) {
         _startTime = time;
       } else {
@@ -323,6 +346,13 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       }
       _addUserMessage(time.format(context));
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      String message = isStart
+          ? 'Oke, kalau udah siap pilih jam mulainya, klik tombol ini ya! 🕐'
+          : 'Oke, kalau udah siap pilih jam selesainya, klik tombol ini ya! 🕐';
+      _addBotMessage(message);
+      _showQuickReplies(isStart ? ['Pilih Jam Mulai 🕐'] : ['Pilih Jam Selesai 🕐']);
     }
   }
 
@@ -339,9 +369,16 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (result != null) {
+      setState(() {
+        _activeQuickReplies = [];
+      });
       _location = result;
       _addUserMessage('📍 ${result.name}');
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      _addBotMessage('Oke, kalau udah siap pilih lokasinya, klik tombol ini ya! 📍');
+      _showQuickReplies(['Pilih Lokasi 📍']);
     }
   }
 
@@ -555,14 +592,14 @@ class _CreateEventConversationState extends State<CreateEventConversation>
                 color: const Color(0xFF84994F),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.smart_toy, color: Colors.white, size: 20),
+              child: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Event Bot',
+                  'Buat Event Baru',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
@@ -570,7 +607,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
                   ),
                 ),
                 Text(
-                  'Online',
+                  'Isi detail event kamu',
                   style: TextStyle(
                     color: Color(0xFF84994F),
                     fontSize: 11,
@@ -704,45 +741,54 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   Widget _buildInputArea() {
     Widget inputWidget;
 
-    switch (_currentStep) {
-      case ConversationStep.greeting:
-        inputWidget = Wrap(
-          spacing: 8,
-          children: [
-            _buildQuickReply('Siap! 🚀'),
-            _buildQuickReply('Gasss 🔥'),
-          ],
-        );
-        break;
+    // If there are active quick replies, show them
+    if (_activeQuickReplies.isNotEmpty) {
+      inputWidget = Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _activeQuickReplies.map((reply) => _buildQuickReply(reply)).toList(),
+      );
+    } else {
+      switch (_currentStep) {
+        case ConversationStep.greeting:
+          inputWidget = Wrap(
+            spacing: 8,
+            children: [
+              _buildQuickReply('Siap! 🚀'),
+              _buildQuickReply('Gasss 🔥'),
+            ],
+          );
+          break;
 
-      case ConversationStep.askCategory:
-        inputWidget = _buildCategoryChips();
-        break;
+        case ConversationStep.askCategory:
+          inputWidget = _buildCategoryChips();
+          break;
 
-      case ConversationStep.askPrice:
-        inputWidget = _buildPriceOptions();
-        break;
+        case ConversationStep.askPrice:
+          inputWidget = _buildPriceOptions();
+          break;
 
-      case ConversationStep.askPrivacy:
-        inputWidget = Wrap(
-          spacing: 8,
-          children: [
-            _buildQuickReply('Publik 🌍'),
-            _buildQuickReply('Private 🔒'),
-          ],
-        );
-        break;
+        case ConversationStep.askPrivacy:
+          inputWidget = Wrap(
+            spacing: 8,
+            children: [
+              _buildQuickReply('Publik 🌍'),
+              _buildQuickReply('Private 🔒'),
+            ],
+          );
+          break;
 
-      case ConversationStep.askImage:
-        inputWidget = _buildImageOptions();
-        break;
+        case ConversationStep.askImage:
+          inputWidget = _buildImageOptions();
+          break;
 
-      case ConversationStep.preview:
-        inputWidget = _buildPreviewActions();
-        break;
+        case ConversationStep.preview:
+          inputWidget = _buildPreviewActions();
+          break;
 
-      default:
-        inputWidget = _buildTextInput();
+        default:
+          inputWidget = _buildTextInput();
+      }
     }
 
     return Container(
