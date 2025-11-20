@@ -54,6 +54,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   ConversationStep _currentStep = ConversationStep.greeting;
   bool _isTyping = false;
   bool _waitingForInput = false;
+  List<String> _activeQuickReplies = [];
 
   // Event data
   String _eventTitle = '';
@@ -132,10 +133,37 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   }
 
   void _showQuickReplies(List<String> replies) {
-    setState(() => _waitingForInput = true);
+    setState(() {
+      _waitingForInput = true;
+      _activeQuickReplies = replies;
+    });
   }
 
   void _handleQuickReply(String reply) {
+    setState(() {
+      _activeQuickReplies = [];
+    });
+
+    // Handle retry buttons for pickers
+    if (reply == 'Pilih Tanggal 📅') {
+      _addUserMessage(reply);
+      _showDatePicker(isStart: true);
+      return;
+    } else if (reply == 'Pilih Jam Mulai 🕐') {
+      _addUserMessage(reply);
+      _showTimePicker(isStart: true);
+      return;
+    } else if (reply == 'Pilih Jam Selesai 🕐') {
+      _addUserMessage(reply);
+      _showTimePicker(isStart: false);
+      return;
+    } else if (reply == 'Pilih Lokasi 📍') {
+      _addUserMessage(reply);
+      _showLocationPicker();
+      return;
+    }
+
+    // Normal flow
     _addUserMessage(reply);
     _moveToNextStep();
   }
@@ -277,10 +305,17 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (date != null) {
+      setState(() {
+        _activeQuickReplies = [];
+      });
       _startDate = date;
       String dateStr = DateFormat('dd MMMM yyyy').format(date);
       _addUserMessage(dateStr);
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      _addBotMessage('Oke, kalau udah siap pilih tanggalnya, klik tombol ini ya! 📅');
+      _showQuickReplies(['Pilih Tanggal 📅']);
     }
   }
 
@@ -301,6 +336,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (time != null) {
+      setState(() {
+        _activeQuickReplies = [];
+      });
       if (isStart) {
         _startTime = time;
       } else {
@@ -308,6 +346,13 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       }
       _addUserMessage(time.format(context));
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      String message = isStart
+          ? 'Oke, kalau udah siap pilih jam mulainya, klik tombol ini ya! 🕐'
+          : 'Oke, kalau udah siap pilih jam selesainya, klik tombol ini ya! 🕐';
+      _addBotMessage(message);
+      _showQuickReplies(isStart ? ['Pilih Jam Mulai 🕐'] : ['Pilih Jam Selesai 🕐']);
     }
   }
 
@@ -324,9 +369,16 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     );
 
     if (result != null) {
+      setState(() {
+        _activeQuickReplies = [];
+      });
       _location = result;
       _addUserMessage('📍 ${result.name}');
       _moveToNextStep();
+    } else {
+      // User canceled, show retry option
+      _addBotMessage('Oke, kalau udah siap pilih lokasinya, klik tombol ini ya! 📍');
+      _showQuickReplies(['Pilih Lokasi 📍']);
     }
   }
 
@@ -689,45 +741,54 @@ class _CreateEventConversationState extends State<CreateEventConversation>
   Widget _buildInputArea() {
     Widget inputWidget;
 
-    switch (_currentStep) {
-      case ConversationStep.greeting:
-        inputWidget = Wrap(
-          spacing: 8,
-          children: [
-            _buildQuickReply('Siap! 🚀'),
-            _buildQuickReply('Gasss 🔥'),
-          ],
-        );
-        break;
+    // If there are active quick replies, show them
+    if (_activeQuickReplies.isNotEmpty) {
+      inputWidget = Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _activeQuickReplies.map((reply) => _buildQuickReply(reply)).toList(),
+      );
+    } else {
+      switch (_currentStep) {
+        case ConversationStep.greeting:
+          inputWidget = Wrap(
+            spacing: 8,
+            children: [
+              _buildQuickReply('Siap! 🚀'),
+              _buildQuickReply('Gasss 🔥'),
+            ],
+          );
+          break;
 
-      case ConversationStep.askCategory:
-        inputWidget = _buildCategoryChips();
-        break;
+        case ConversationStep.askCategory:
+          inputWidget = _buildCategoryChips();
+          break;
 
-      case ConversationStep.askPrice:
-        inputWidget = _buildPriceOptions();
-        break;
+        case ConversationStep.askPrice:
+          inputWidget = _buildPriceOptions();
+          break;
 
-      case ConversationStep.askPrivacy:
-        inputWidget = Wrap(
-          spacing: 8,
-          children: [
-            _buildQuickReply('Publik 🌍'),
-            _buildQuickReply('Private 🔒'),
-          ],
-        );
-        break;
+        case ConversationStep.askPrivacy:
+          inputWidget = Wrap(
+            spacing: 8,
+            children: [
+              _buildQuickReply('Publik 🌍'),
+              _buildQuickReply('Private 🔒'),
+            ],
+          );
+          break;
 
-      case ConversationStep.askImage:
-        inputWidget = _buildImageOptions();
-        break;
+        case ConversationStep.askImage:
+          inputWidget = _buildImageOptions();
+          break;
 
-      case ConversationStep.preview:
-        inputWidget = _buildPreviewActions();
-        break;
+        case ConversationStep.preview:
+          inputWidget = _buildPreviewActions();
+          break;
 
-      default:
-        inputWidget = _buildTextInput();
+        default:
+          inputWidget = _buildTextInput();
+      }
     }
 
     return Container(
