@@ -592,14 +592,14 @@ class _CreateEventConversationState extends State<CreateEventConversation>
                 color: const Color(0xFF84994F),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.smart_toy, color: Colors.white, size: 20),
+              child: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Event Bot',
+                  'Buat Event Baru',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
@@ -607,7 +607,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
                   ),
                 ),
                 Text(
-                  'Online',
+                  'Isi detail event kamu',
                   style: TextStyle(
                     color: Color(0xFF84994F),
                     fontSize: 11,
