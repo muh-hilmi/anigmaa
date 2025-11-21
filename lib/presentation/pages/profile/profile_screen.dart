@@ -14,11 +14,11 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/user/user_event.dart';
 
-/// Reusable profile screen - works like Instagram/TikTok
-/// - If userId is null or matches current user → shows own profile with full menu
-/// - If userId is different → shows other user's profile with Follow button
+/// Modern profile screen with Instagram/TikTok/X style
+/// - Reusable for viewing own profile and other users
+/// - userId null = own profile, userId provided = other user's profile
 class ProfileScreen extends StatefulWidget {
-  final String? userId; // null = show own profile
+  final String? userId;
 
   const ProfileScreen({super.key, this.userId});
 
@@ -26,27 +26,38 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   String? _currentUserId;
   bool _isOwnProfile = false;
   bool _isFollowing = false;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _initialize() async {
     final authService = di.sl<AuthService>();
     _currentUserId = authService.userId;
 
-    // Determine which user to load
     final targetUserId = widget.userId ?? _currentUserId;
 
     if (targetUserId != null && mounted) {
       setState(() {
         _isOwnProfile = targetUserId == _currentUserId;
+        _tabController.dispose();
+        _tabController =
+            TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
       });
       context.read<UserBloc>().add(LoadUserById(targetUserId));
     }
@@ -55,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       body: BlocBuilder<UserBloc, UserState>(
         builder: (context, state) {
           if (state is UserLoading) {
@@ -104,336 +115,294 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (state is UserLoaded) {
             final user = state.user;
 
-            return CustomScrollView(
-              slivers: [
-                // App Bar
-                SliverAppBar(
-                  expandedHeight: 200,
-                  pinned: true,
-                  backgroundColor: const Color(0xFF84994F),
-                  leading: !_isOwnProfile
-                      ? IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
+            return NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverAppBar(
+                    floating: true,
+                    pinned: false,
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    leading: !_isOwnProfile
+                        ? IconButton(
+                            icon: const Icon(Icons.arrow_back,
+                                color: Colors.black),
+                            onPressed: () => Navigator.pop(context),
+                          )
+                        : null,
+                    title: Text(
+                      user.name,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    actions: [
+                      if (_isOwnProfile)
+                        IconButton(
+                          icon: const Icon(Icons.menu, color: Colors.black),
+                          onPressed: () => _showMenuBottomSheet(context),
                         )
-                      : null,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF84994F),
-                            Color(0xFF6B7A3F),
-                          ],
+                      else
+                        IconButton(
+                          icon:
+                              const Icon(Icons.more_vert, color: Colors.black),
+                          onPressed: () => _showUserMenuBottomSheet(context),
                         ),
-                      ),
-                      child: SafeArea(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 20),
-                            // Profile Photo
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 3,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: (user.avatar != null && user.avatar!.isNotEmpty)
-                                    ? Image.network(
-                                        user.avatar!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stack) =>
-                                            _buildDefaultAvatar(user.name),
-                                      )
-                                    : _buildDefaultAvatar(user.name),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            // Name
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            // Email
-                            Text(
-                              user.email ?? '',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
-                  actions: _isOwnProfile
-                      ? [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const EditProfileScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ]
-                      : null,
-                ),
-
-                // Stats
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          'Events Hosted',
-                          state.eventsHosted.toString(),
-                          Icons.event,
-                        ),
-                        Container(
-                          height: 40,
-                          width: 1,
-                          color: Colors.grey[300],
-                        ),
-                        _buildStatItem(
-                          'Attended',
-                          state.eventsAttended.toString(),
-                          Icons.check_circle,
-                        ),
-                        Container(
-                          height: 40,
-                          width: 1,
-                          color: Colors.grey[300],
-                        ),
-                        _buildStatItem(
-                          'Connections',
-                          state.connections.toString(),
-                          Icons.people,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Action Button (Edit Profile / Follow)
-                if (!_isOwnProfile)
+                ];
+              },
+              body: CustomScrollView(
+                slivers: [
+                  // Profile Header
                   SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isFollowing = !_isFollowing;
-                          });
-                          // TODO: Implement follow/unfollow logic
-                          if (_isFollowing) {
-                            context.read<UserBloc>().add(FollowUserEvent(user.id));
-                          } else {
-                            context.read<UserBloc>().add(UnfollowUserEvent(user.id));
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isFollowing
-                              ? Colors.grey[300]
-                              : const Color(0xFF84994F),
-                          foregroundColor: _isFollowing ? Colors.black87 : Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          _isFollowing ? 'Following' : 'Follow',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                // Menu List (Only for own profile)
-                if (_isOwnProfile)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildMenuItem(
-                            icon: Icons.event,
-                            title: 'My Events',
-                            subtitle: 'Events yang kamu buat',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MyEventsScreen(),
+                          // Avatar + Stats Row
+                          Row(
+                            children: [
+                              // Avatar
+                              Container(
+                                width: 86,
+                                height: 86,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.grey[300]!,
+                                    width: 1,
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
-                          _buildDivider(),
-                          _buildMenuItem(
-                            icon: Icons.confirmation_number,
-                            title: 'Tiket Gue',
-                            subtitle: 'Lihat semua tiket event',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MyTicketsScreen(),
+                                child: ClipOval(
+                                  child: (user.avatar != null &&
+                                          user.avatar!.isNotEmpty)
+                                      ? Image.network(
+                                          user.avatar!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stack) =>
+                                                  _buildDefaultAvatar(
+                                                      user.name),
+                                        )
+                                      : _buildDefaultAvatar(user.name),
                                 ),
-                              );
-                            },
-                          ),
-                          _buildDivider(),
-                          _buildMenuItem(
-                            icon: Icons.receipt_long,
-                            title: 'Transaksi',
-                            subtitle: 'Riwayat pembayaran',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const TransactionHistoryScreen(),
+                              ),
+                              const SizedBox(width: 24),
+                              // Stats
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildStatColumn(
+                                      state.eventsHosted.toString(),
+                                      'Posts',
+                                    ),
+                                    _buildStatColumn(
+                                      _formatNumber(user.stats.followersCount),
+                                      'Followers',
+                                    ),
+                                    _buildStatColumn(
+                                      _formatNumber(user.stats.followingCount),
+                                      'Following',
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
-                          _buildDivider(),
-                          _buildMenuItem(
-                            icon: Icons.bookmark,
-                            title: 'Tersimpan',
-                            subtitle: 'Event & post favorit',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SavedItemsScreen(),
+                          const SizedBox(height: 12),
+                          // Name + Verified
+                          Row(
+                            children: [
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
                                 ),
-                              );
-                            },
-                          ),
-                          _buildDivider(),
-                          _buildMenuItem(
-                            icon: Icons.qr_code,
-                            title: 'QR Code Gue',
-                            subtitle: 'Share profil & scan QR',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const QRCodeScreen(),
+                              ),
+                              if (user.isVerified) ...[
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.verified,
+                                  size: 16,
+                                  color: Color(0xFF84994F),
                                 ),
-                              );
-                            },
+                              ],
+                            ],
                           ),
-                          _buildDivider(),
-                          _buildMenuItem(
-                            icon: Icons.settings,
-                            title: 'Settings',
-                            subtitle: 'Privacy & notifikasi',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SettingsScreen(),
+                          // Bio
+                          if (user.bio != null && user.bio!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              user.bio!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[800],
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                          // Location
+                          if (user.location != null &&
+                              user.location!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 14,
+                                  color: Colors.grey[600],
                                 ),
-                              );
-                            },
-                          ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  user.location!,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          // Action Buttons
+                          if (_isOwnProfile)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildActionButton(
+                                    label: 'Edit Profile',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const EditProfileScreen(),
+                                        ),
+                                      );
+                                    },
+                                    isPrimary: false,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildActionButton(
+                                    label: 'Share Profile',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const QRCodeScreen(),
+                                        ),
+                                      );
+                                    },
+                                    isPrimary: false,
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: _buildActionButton(
+                                    label: _isFollowing ? 'Following' : 'Follow',
+                                    onTap: () {
+                                      setState(() {
+                                        _isFollowing = !_isFollowing;
+                                      });
+                                      if (_isFollowing) {
+                                        context
+                                            .read<UserBloc>()
+                                            .add(FollowUserEvent(user.id));
+                                      } else {
+                                        context
+                                            .read<UserBloc>()
+                                            .add(UnfollowUserEvent(user.id));
+                                      }
+                                    },
+                                    isPrimary: !_isFollowing,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 3,
+                                  child: _buildActionButton(
+                                    label: 'Message',
+                                    onTap: () {
+                                      // TODO: Navigate to chat
+                                    },
+                                    isPrimary: false,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  height: 32,
+                                  width: 32,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(
+                                      Icons.person_add_outlined,
+                                      size: 18,
+                                      color: Colors.grey[800],
+                                    ),
+                                    onPressed: () {
+                                      // TODO: Suggest to friends
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
                   ),
-
-                // Logout Button (Only for own profile)
-                if (_isOwnProfile)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.all(16),
-                      child: OutlinedButton(
-                        onPressed: () => _showLogoutDialog(context),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.logout, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'Logout',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                  // Tab Bar
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StickyTabBarDelegate(
+                      TabBar(
+                        controller: _tabController,
+                        labelColor: Colors.black,
+                        unselectedLabelColor: Colors.grey,
+                        indicatorColor: Colors.black,
+                        indicatorWeight: 1,
+                        tabs: [
+                          const Tab(icon: Icon(Icons.grid_on, size: 24)),
+                          const Tab(
+                              icon: Icon(Icons.confirmation_number, size: 24)),
+                          if (_isOwnProfile)
+                            const Tab(icon: Icon(Icons.bookmark_border, size: 24)),
+                        ],
                       ),
                     ),
                   ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 20)),
-              ],
+                  // Tab Content
+                  SliverFillRemaining(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildEventsGrid(state.eventsHosted),
+                        _buildAttendedGrid(state.eventsAttended),
+                        if (_isOwnProfile) _buildSavedGrid(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -451,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           name.isNotEmpty ? name[0].toUpperCase() : '?',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 32,
+            fontSize: 36,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -459,85 +428,376 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatColumn(String value, String label) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF84994F),
-          size: 28,
-        ),
-        const SizedBox(height: 8),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1A1A),
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+            fontSize: 13,
+            color: Colors.grey[700],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
+  }
+
+  Widget _buildActionButton({
+    required String label,
     required VoidCallback onTap,
+    required bool isPrimary,
   }) {
-    return ListTile(
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFF84994F).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          icon,
-          color: const Color(0xFF84994F),
-          size: 22,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1A1A),
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.grey[600],
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[400],
-      ),
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 32,
+        decoration: BoxDecoration(
+          color: isPrimary ? const Color(0xFF84994F) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+          border: !isPrimary
+              ? Border.all(color: Colors.grey[300]!)
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isPrimary ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 72),
-      child: Divider(
-        height: 1,
-        color: Colors.grey[200],
+  Widget _buildEventsGrid(int eventsCount) {
+    if (eventsCount == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_outlined, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              _isOwnProfile ? 'Belum ada event' : 'Belum ada event',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_isOwnProfile)
+              Text(
+                'Buat event pertamamu!',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+          ],
+        ),
+      );
+    }
+
+    // TODO: Replace with actual event grid from events
+    return GridView.builder(
+      padding: const EdgeInsets.all(1),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 1,
+        crossAxisSpacing: 1,
       ),
+      itemCount: eventsCount,
+      itemBuilder: (context, index) {
+        return Container(
+          color: Colors.grey[200],
+          child: Center(
+            child: Icon(Icons.event, color: Colors.grey[400]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAttendedGrid(int attendedCount) {
+    if (attendedCount == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.confirmation_number_outlined,
+                size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              _isOwnProfile ? 'Belum pernah attend event' : 'Belum pernah attend event',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // TODO: Replace with actual attended events grid
+    return GridView.builder(
+      padding: const EdgeInsets.all(1),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 1,
+        crossAxisSpacing: 1,
+      ),
+      itemCount: attendedCount,
+      itemBuilder: (context, index) {
+        return Container(
+          color: Colors.grey[200],
+          child: Center(
+            child: Icon(Icons.check_circle, color: Colors.grey[400]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSavedGrid() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.bookmark_border, size: 64, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'Belum ada item tersimpan',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Simpan event & post favoritmu di sini',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMenuBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildMenuSheetItem(
+              icon: Icons.event,
+              title: 'My Events',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyEventsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.confirmation_number,
+              title: 'Tiket Gue',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyTicketsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.receipt_long,
+              title: 'Transaksi',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TransactionHistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.bookmark,
+              title: 'Tersimpan',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SavedItemsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.qr_code,
+              title: 'QR Code Gue',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const QRCodeScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.settings,
+              title: 'Settings',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+            _buildMenuSheetItem(
+              icon: Icons.logout,
+              title: 'Logout',
+              iconColor: Colors.red,
+              textColor: Colors.red,
+              onTap: () {
+                Navigator.pop(context);
+                _showLogoutDialog(context);
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showUserMenuBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildMenuSheetItem(
+              icon: Icons.share,
+              title: 'Share Profile',
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Share profile
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.block,
+              title: 'Block User',
+              iconColor: Colors.red,
+              textColor: Colors.red,
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Block user
+              },
+            ),
+            _buildMenuSheetItem(
+              icon: Icons.report,
+              title: 'Report',
+              iconColor: Colors.red,
+              textColor: Colors.red,
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Report user
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuSheetItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: iconColor ?? Colors.grey[800],
+        size: 24,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: textColor ?? Colors.black,
+        ),
+      ),
+      onTap: onTap,
     );
   }
 
@@ -597,5 +857,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     }
+  }
+}
+
+// Sticky Tab Bar Delegate
+class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  const _StickyTabBarDelegate(this.tabBar);
+
+  final TabBar tabBar;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) {
+    return tabBar != oldDelegate.tabBar;
   }
 }
