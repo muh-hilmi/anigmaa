@@ -152,10 +152,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                     ],
                   ),
-                ];
-              },
-              body: CustomScrollView(
-                slivers: [
                   // Profile Header
                   SliverToBoxAdapter(
                     child: Padding(
@@ -390,17 +386,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                     ),
                   ),
-                  // Tab Content
-                  SliverFillRemaining(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildEventsGrid(state.eventsHosted),
-                        _buildAttendedGrid(state.eventsAttended),
-                        if (_isOwnProfile) _buildSavedGrid(),
-                      ],
-                    ),
-                  ),
+                ];
+              },
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildEventsGrid(state.eventsHosted),
+                  _buildAttendedGrid(state.eventsAttended),
+                  if (_isOwnProfile) _buildSavedGrid(),
                 ],
               ),
             );
