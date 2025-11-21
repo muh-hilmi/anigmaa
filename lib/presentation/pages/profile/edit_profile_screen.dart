@@ -764,18 +764,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // TODO: Upload image if _selectedImageFile is not null
       // TODO: Get the uploaded image URL
 
-      final updatedUser = widget.user!.copyWith(
-        bio: _bioController.text,
-        phone: _phoneController.text,
-        location: _locationController.text,
-        dateOfBirth: _selectedDateOfBirth,
-        gender: _selectedGender,
-        interests: _selectedInterests,
-        // avatar: uploadedImageUrl, // Update this after upload
-      );
-
       if (mounted) {
-        context.read<UserBloc>().add(UpdateUserProfile(updatedUser));
+        context.read<UserBloc>().add(UpdateUserProfile(
+          bio: _bioController.text,
+          phone: _phoneController.text,
+          location: _locationController.text,
+          dateOfBirth: _selectedDateOfBirth,
+          gender: _selectedGender,
+          interests: _selectedInterests,
+          // avatar: uploadedImageUrl, // Update this after upload
+        ));
 
         // Wait a bit for the update to process
         await Future.delayed(const Duration(milliseconds: 500));

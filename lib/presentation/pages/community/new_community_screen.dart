@@ -532,7 +532,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           context,
           MaterialPageRoute(
             builder: (context) => CommunityDetailScreen(
-              communityId: community.id,
+              community: community,
             ),
           ),
         );
