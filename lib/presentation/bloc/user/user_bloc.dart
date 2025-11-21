@@ -10,6 +10,7 @@ import '../../../domain/usecases/unfollow_user.dart';
 import '../../../domain/usecases/get_user_followers.dart';
 import '../../../domain/usecases/get_user_following.dart';
 import '../../../domain/usecases/update_current_user.dart';
+import '../../../domain/repositories/post_repository.dart';
 import 'user_event.dart';
 import 'user_state.dart';
 
@@ -23,6 +24,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final UnfollowUser? unfollowUser;
   final GetUserFollowers? getUserFollowers;
   final GetUserFollowing? getUserFollowing;
+  final PostRepository? postRepository;
 
   UserBloc({
     required this.authService,
@@ -34,6 +36,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     this.unfollowUser,
     this.getUserFollowers,
     this.getUserFollowing,
+    this.postRepository,
   }) : super(UserInitial()) {
     on<LoadUserProfile>(_onLoadUserProfile);
     on<LoadUserById>(_onLoadUserById);
@@ -46,6 +49,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UnfollowUserEvent>(_onUnfollowUser);
     on<LoadFollowersEvent>(_onLoadFollowers);
     on<LoadFollowingEvent>(_onLoadFollowing);
+    on<LoadUserPostsEvent>(_onLoadUserPosts);
   }
 
   Future<void> _onLoadUserProfile(
@@ -393,6 +397,44 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
     } catch (e) {
       emit(UserError('Failed to load following: $e'));
+    }
+  }
+
+  Future<void> _onLoadUserPosts(
+    LoadUserPostsEvent event,
+    Emitter<UserState> emit,
+  ) async {
+    // Only load posts if current state is UserLoaded
+    if (state is! UserLoaded) return;
+
+    final currentState = state as UserLoaded;
+
+    if (postRepository == null) {
+      print('[UserBloc] PostRepository not available');
+      return;
+    }
+
+    try {
+      final result = await postRepository!.getUserPosts(
+        event.userId,
+        limit: 50,
+      );
+
+      result.fold(
+        (failure) {
+          print('[UserBloc] Failed to load user posts: ${failure.message}');
+          // Keep current state, just log error
+        },
+        (paginatedPosts) {
+          print('[UserBloc] Loaded ${paginatedPosts.data.length} posts for user ${event.userId}');
+          emit(currentState.copyWith(
+            userPosts: paginatedPosts.data,
+            postsCount: paginatedPosts.data.length,
+          ));
+        },
+      );
+    } catch (e) {
+      print('[UserBloc] Exception loading user posts: $e');
     }
   }
 }

@@ -108,3 +108,12 @@ class LoadFollowingEvent extends UserEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+class LoadUserPostsEvent extends UserEvent {
+  final String userId;
+
+  const LoadUserPostsEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
