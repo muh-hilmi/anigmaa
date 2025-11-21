@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/user.dart';
+import '../../../domain/entities/post.dart';
 
 abstract class UserState extends Equatable {
   const UserState();
@@ -19,6 +20,7 @@ class UserLoaded extends UserState {
   final int connections;
   final int postsCount;
   final int totalInvitedAttendees;
+  final List<Post> userPosts;
 
   const UserLoaded({
     required this.user,
@@ -27,10 +29,11 @@ class UserLoaded extends UserState {
     required this.connections,
     this.postsCount = 0,
     this.totalInvitedAttendees = 0,
+    this.userPosts = const [],
   });
 
   @override
-  List<Object?> get props => [user, eventsHosted, eventsAttended, connections, postsCount, totalInvitedAttendees];
+  List<Object?> get props => [user, eventsHosted, eventsAttended, connections, postsCount, totalInvitedAttendees, userPosts];
 
   UserLoaded copyWith({
     User? user,
@@ -39,6 +42,7 @@ class UserLoaded extends UserState {
     int? connections,
     int? postsCount,
     int? totalInvitedAttendees,
+    List<Post>? userPosts,
   }) {
     return UserLoaded(
       user: user ?? this.user,
@@ -47,6 +51,7 @@ class UserLoaded extends UserState {
       connections: connections ?? this.connections,
       postsCount: postsCount ?? this.postsCount,
       totalInvitedAttendees: totalInvitedAttendees ?? this.totalInvitedAttendees,
+      userPosts: userPosts ?? this.userPosts,
     );
   }
 }

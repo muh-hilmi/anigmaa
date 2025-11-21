@@ -134,6 +134,7 @@ Future<void> init() async {
       unfollowUser: sl(),
       getUserFollowers: sl(),
       getUserFollowing: sl(),
+      postRepository: sl(),
     ),
   );
 

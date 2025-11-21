@@ -13,8 +13,9 @@ import '../../../injection_container.dart' as di;
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/user/user_event.dart';
+import '../../widgets/modern_post_card.dart';
 
-/// Modern profile screen with Instagram/TikTok/X style
+/// Modern profile screen with unique card-based design
 /// - Reusable for viewing own profile and other users
 /// - userId null = own profile, userId provided = other user's profile
 class ProfileScreen extends StatefulWidget {
@@ -59,13 +60,15 @@ class _ProfileScreenState extends State<ProfileScreen>
             TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
       });
       context.read<UserBloc>().add(LoadUserById(targetUserId));
+      // Load user posts
+      context.read<UserBloc>().add(LoadUserPostsEvent(targetUserId));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFAF8F5),
       body: BlocBuilder<UserBloc, UserState>(
         builder: (context, state) {
           if (state is UserLoading) {
@@ -130,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     floating: true,
                     pinned: false,
                     elevation: 0,
-                    backgroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFFAF8F5),
                     leading: !_isOwnProfile
                         ? IconButton(
                             icon: const Icon(Icons.arrow_back,
@@ -160,139 +163,163 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                     ],
                   ),
-                  // Profile Header
+                  // Profile Header with Unique Design
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Avatar + Name & Location Row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar
-                              Container(
-                                width: 86,
-                                height: 86,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.grey[300]!,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: ClipOval(
-                                  child: (user.avatar != null &&
-                                          user.avatar!.isNotEmpty)
-                                      ? Image.network(
-                                          user.avatar!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stack) =>
-                                                  _buildDefaultAvatar(
-                                                      user.name),
-                                        )
-                                      : _buildDefaultAvatar(user.name),
-                                ),
+                          // Avatar Section - Centered
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF84994F),
+                                  Color(0xFFA8B86D),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                              const SizedBox(width: 16),
-                              // Name + Verified + Location
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Name + Verified
-                                    Row(
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            user.name,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        if (user.isVerified) ...[
-                                          const SizedBox(width: 4),
-                                          const Icon(
-                                            Icons.verified,
-                                            size: 16,
-                                            color: Color(0xFF84994F),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    // Location
-                                    if (user.location != null &&
-                                        user.location!.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.location_on_outlined,
-                                            size: 14,
-                                            color: Colors.grey[600],
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Flexible(
-                                            child: Text(
-                                              user.location!,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black87,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3,
                               ),
-                            ],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: (user.avatar != null &&
+                                      user.avatar!.isNotEmpty)
+                                  ? Image.network(
+                                      user.avatar!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stack) =>
+                                          _buildDefaultAvatar(user.name),
+                                    )
+                                  : _buildDefaultAvatar(user.name),
+                            ),
                           ),
                           const SizedBox(height: 16),
-                          // Stats Row
+                          // Name + Verified
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildStatColumn(
-                                state.eventsHosted.toString(),
-                                'Event',
+                              Flexible(
+                                child: Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              _buildStatColumn(
-                                '0',
-                                'Post',
-                              ),
-                              _buildStatColumn(
-                                _formatNumber(user.stats.followersCount),
-                                'Follower',
-                              ),
-                              _buildStatColumn(
-                                _formatNumber(user.stats.followingCount),
-                                'Following',
-                              ),
+                              if (user.isVerified) ...[
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.verified,
+                                  size: 20,
+                                  color: Color(0xFF84994F),
+                                ),
+                              ],
                             ],
                           ),
+                          // Location
+                          if (user.location != null &&
+                              user.location!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    user.location!,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[700],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           // Bio
                           if (user.bio != null && user.bio!.isNotEmpty) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Text(
                               user.bio!,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[800],
-                                height: 1.3,
+                                height: 1.4,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ],
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
+                          // Stats Cards - Unique Grid Layout
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatsCard(
+                                  icon: Icons.event_rounded,
+                                  value: state.eventsHosted.toString(),
+                                  label: 'Event',
+                                  color: const Color(0xFF84994F),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildStatsCard(
+                                  icon: Icons.article_rounded,
+                                  value: state.postsCount.toString(),
+                                  label: 'Post',
+                                  color: const Color(0xFFFF6B6B),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatsCard(
+                                  icon: Icons.people_rounded,
+                                  value: _formatNumber(user.stats.followersCount),
+                                  label: 'Follower',
+                                  color: const Color(0xFF4ECDC4),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildStatsCard(
+                                  icon: Icons.person_add_rounded,
+                                  value: _formatNumber(user.stats.followingCount),
+                                  label: 'Following',
+                                  color: const Color(0xFFFFA07A),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
                           // Action Buttons
                           if (_isOwnProfile)
                             Row(
@@ -300,6 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 Expanded(
                                   child: _buildActionButton(
                                     label: 'Edit Profile',
+                                    icon: Icons.edit_rounded,
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -309,13 +337,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         ),
                                       );
                                     },
-                                    isPrimary: false,
+                                    isPrimary: true,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: _buildActionButton(
-                                    label: 'Share Profile',
+                                    label: 'Share',
+                                    icon: Icons.qr_code_rounded,
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -337,6 +366,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   flex: 3,
                                   child: _buildActionButton(
                                     label: _isFollowing ? 'Following' : 'Follow',
+                                    icon: _isFollowing
+                                        ? Icons.person_remove_rounded
+                                        : Icons.person_add_rounded,
                                     onTap: () {
                                       setState(() {
                                         _isFollowing = !_isFollowing;
@@ -359,30 +391,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   flex: 3,
                                   child: _buildActionButton(
                                     label: 'Message',
+                                    icon: Icons.chat_bubble_rounded,
                                     onTap: () {
                                       // TODO: Navigate to chat
                                     },
                                     isPrimary: false,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  height: 32,
-                                  width: 32,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    icon: Icon(
-                                      Icons.person_add_outlined,
-                                      size: 18,
-                                      color: Colors.grey[800],
-                                    ),
-                                    onPressed: () {
-                                      // TODO: Suggest to friends
-                                    },
                                   ),
                                 ),
                               ],
@@ -397,16 +410,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                     delegate: _StickyTabBarDelegate(
                       TabBar(
                         controller: _tabController!,
-                        labelColor: Colors.black,
+                        labelColor: const Color(0xFF84994F),
                         unselectedLabelColor: Colors.grey,
-                        indicatorColor: Colors.black,
-                        indicatorWeight: 1,
+                        indicatorColor: const Color(0xFF84994F),
+                        indicatorWeight: 3,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
                         tabs: [
-                          const Tab(icon: Icon(Icons.grid_on, size: 24)),
-                          const Tab(
-                              icon: Icon(Icons.confirmation_number, size: 24)),
-                          if (_isOwnProfile)
-                            const Tab(icon: Icon(Icons.bookmark_border, size: 24)),
+                          const Tab(text: 'Posts'),
+                          const Tab(text: 'Events'),
+                          if (_isOwnProfile) const Tab(text: 'Saved'),
                         ],
                       ),
                     ),
@@ -416,8 +431,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               body: TabBarView(
                 controller: _tabController!,
                 children: [
+                  _buildPostsTab(state.userPosts),
                   _buildEventsGrid(state.eventsHosted),
-                  _buildAttendedGrid(state.eventsAttended),
                   if (_isOwnProfile) _buildSavedGrid(),
                 ],
               ),
@@ -432,13 +447,22 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildDefaultAvatar(String name) {
     return Container(
-      color: const Color(0xFF84994F),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF84994F),
+            Color(0xFFA8B86D),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: Center(
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : '?',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 36,
+            fontSize: 40,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -446,27 +470,59 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStatColumn(String value, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
+  Widget _buildStatsCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[700],
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -481,31 +537,112 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildActionButton({
     required String label,
+    required IconData icon,
     required VoidCallback onTap,
     required bool isPrimary,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 32,
+        height: 44,
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF84994F) : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
-          border: !isPrimary
-              ? Border.all(color: Colors.grey[300]!)
+          gradient: isPrimary
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF84994F),
+                    Color(0xFFA8B86D),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
               : null,
+          color: isPrimary ? null : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: !isPrimary ? Border.all(color: Colors.grey[300]!) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isPrimary ? Colors.white : Colors.black,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isPrimary ? Colors.white : Colors.grey[800],
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isPrimary ? Colors.white : Colors.black,
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPostsTab(List<dynamic> posts) {
+    if (posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.article_outlined,
+                size: 64,
+                color: Colors.grey[300],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _isOwnProfile ? 'Belum ada postingan' : 'Belum ada postingan',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_isOwnProfile)
+              Text(
+                'Buat postingan pertamamu!',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8),
+      itemCount: posts.length,
+      itemBuilder: (context, index) {
+        return ModernPostCard(post: posts[index]);
+      },
     );
   }
 
@@ -515,12 +652,30 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_outlined, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.event_outlined,
+                size: 64,
+                color: Colors.grey[300],
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(
               _isOwnProfile ? 'Belum ada event' : 'Belum ada event',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
               ),
@@ -538,60 +693,29 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     // TODO: Replace with actual event grid from events
     return GridView.builder(
-      padding: const EdgeInsets.all(1),
+      padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 1,
-        crossAxisSpacing: 1,
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.8,
       ),
       itemCount: eventsCount,
       itemBuilder: (context, index) {
         return Container(
-          color: Colors.grey[200],
-          child: Center(
-            child: Icon(Icons.event, color: Colors.grey[400]),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAttendedGrid(int attendedCount) {
-    if (attendedCount == 0) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.confirmation_number_outlined,
-                size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              _isOwnProfile ? 'Belum pernah attend event' : 'Belum pernah attend event',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // TODO: Replace with actual attended events grid
-    return GridView.builder(
-      padding: const EdgeInsets.all(1),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 1,
-        crossAxisSpacing: 1,
-      ),
-      itemCount: attendedCount,
-      itemBuilder: (context, index) {
-        return Container(
-          color: Colors.grey[200],
+            ],
+          ),
           child: Center(
-            child: Icon(Icons.check_circle, color: Colors.grey[400]),
+            child: Icon(Icons.event, color: Colors.grey[400], size: 40),
           ),
         );
       },
@@ -603,12 +727,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bookmark_border, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.bookmark_border,
+              size: 64,
+              color: Colors.grey[300],
+            ),
+          ),
+          const SizedBox(height: 20),
           Text(
             'Belum ada item tersimpan',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
             ),
@@ -894,7 +1036,7 @@ class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFFFAF8F5),
       child: tabBar,
     );
   }
