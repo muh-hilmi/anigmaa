@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../domain/entities/community.dart';
 import '../../../domain/entities/community_category.dart';
 import '../../bloc/communities/communities_bloc.dart';
@@ -126,6 +127,17 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                       color: Colors.grey[600],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<CommunitiesBloc>().add(LoadCommunities());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF84994F),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Try Again'),
+                  ),
                 ],
               ),
             ),
@@ -133,26 +145,25 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         }
 
         if (state is CommunitiesLoaded) {
-          return Column(
-            children: [
-              _buildFilters(state),
-              const Divider(height: 1),
-              Expanded(
-                child: state.filteredCommunities.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: state.filteredCommunities.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return _buildCommunityCard(
-                            state.filteredCommunities[index],
-                            state.joinedCommunities,
-                          );
-                        },
-                      ),
-              ),
-            ],
+          if (state.filteredCommunities.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          return RefreshIndicator(
+            color: const Color(0xFF84994F),
+            onRefresh: () async {
+              context.read<CommunitiesBloc>().add(LoadCommunities());
+            },
+            child: ListView.builder(
+              padding: const EdgeInsets.only(top: 8),
+              itemCount: state.filteredCommunities.length,
+              itemBuilder: (context, index) {
+                return _buildXStyleCommunityCard(
+                  state.filteredCommunities[index],
+                  state.joinedCommunities,
+                );
+              },
+            ),
           );
         }
 
@@ -506,6 +517,339 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         ),
       ),
     );
+  }
+
+  /// X-style Community Card with Post Previews
+  Widget _buildXStyleCommunityCard(
+    Community community,
+    List<Community> joinedCommunities,
+  ) {
+    final isJoined = joinedCommunities.any((c) => c.id == community.id);
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CommunityDetailScreen(
+              communityId: community.id,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                // Community Icon/Avatar
+                _buildCommunityAvatar(community),
+                const SizedBox(width: 12),
+                // Community Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              community.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (community.isVerified) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: Color(0xFF84994F),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            community.category.emoji,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            community.category.displayName,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            ' • ${_formatMemberCount(community.memberCount)} members',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Join Button
+                OutlinedButton(
+                  onPressed: () {
+                    if (isJoined) {
+                      context
+                          .read<CommunitiesBloc>()
+                          .add(LeaveCommunity(community.id));
+                    } else {
+                      context
+                          .read<CommunitiesBloc>()
+                          .add(JoinCommunity(community.id));
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor:
+                        isJoined ? Colors.grey[700] : const Color(0xFF84994F),
+                    side: BorderSide(
+                      color: isJoined
+                          ? Colors.grey.shade300
+                          : const Color(0xFF84994F),
+                    ),
+                    backgroundColor: isJoined ? Colors.grey.shade50 : null,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    minimumSize: const Size(70, 32),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text(
+                    isJoined ? 'Joined' : 'Join',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Description
+            Text(
+              community.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            // Recent Posts Preview
+            _buildRecentPostsPreview(community),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommunityAvatar(Community community) {
+    if (community.icon != null && community.icon!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: CachedNetworkImage(
+          imageUrl: community.icon!,
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            width: 56,
+            height: 56,
+            color: Colors.grey.shade200,
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF84994F),
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) =>
+              _buildDefaultCommunityAvatar(community),
+        ),
+      );
+    }
+    return _buildDefaultCommunityAvatar(community);
+  }
+
+  Widget _buildDefaultCommunityAvatar(Community community) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: const Color(0xFF84994F).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          community.name[0].toUpperCase(),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF84994F),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentPostsPreview(Community community) {
+    // Mock recent posts data (replace with real data from API)
+    final mockPosts = _getMockPosts(community.id);
+
+    if (mockPosts.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.article_outlined, size: 16, color: Colors.grey[400]),
+            const SizedBox(width: 8),
+            Text(
+              'No posts yet',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.article_outlined, size: 14, color: Colors.grey[600]),
+              const SizedBox(width: 6),
+              Text(
+                'Recent posts',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...mockPosts.take(2).map((post) => _buildPostPreview(post)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostPreview(Map<String, dynamic> post) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Author avatar
+          CircleAvatar(
+            radius: 10,
+            backgroundColor: Colors.grey.shade300,
+            child: Text(
+              post['author'][0].toUpperCase(),
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Post content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  post['author'],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  post['content'],
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[700],
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getMockPosts(String communityId) {
+    // Mock data - replace with real API call
+    return [
+      {
+        'author': 'Sarah Johnson',
+        'content':
+            'Just joined this community! Excited to connect with everyone here.',
+      },
+      {
+        'author': 'Mike Chen',
+        'content':
+            'Looking forward to the upcoming event next week. See you all there!',
+      },
+    ];
+  }
+
+  String _formatMemberCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M';
+    } else if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K';
+    }
+    return count.toString();
   }
 
   Widget _buildEmptyState() {
