@@ -77,7 +77,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                 }
 
                 if (state is CommunitiesLoaded) {
-                  var communities = state.communities;
+                  var communities = state.filteredCommunities;
 
                   // Filter by category if selected
                   if (_selectedCategory != null) {
@@ -123,7 +123,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => CommunityDetailScreen(
-                                  communityId: communities[index].id,
+                                  community: communities[index],
                                 ),
                               ),
                             );
