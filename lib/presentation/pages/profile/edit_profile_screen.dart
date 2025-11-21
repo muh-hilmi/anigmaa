@@ -4,12 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../../../domain/entities/user.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 
+/// Instagram-style Edit Profile Screen with Anigmaa theme
 class EditProfileScreen extends StatefulWidget {
   final User? user;
 
@@ -74,722 +76,515 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void dispose() {
+    _bioController.dispose();
+    _phoneController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          SliverToBoxAdapter(
-            child: Form(
+      backgroundColor: Colors.white,
+      appBar: _buildAppBar(),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF84994F),
+              ),
+            )
+          : Form(
               key: _formKey,
-              child: Column(
+              child: ListView(
                 children: [
                   const SizedBox(height: 20),
                   _buildProfilePhoto(),
-                  const SizedBox(height: 16),
-                  _buildNameInfo(),
-                  const SizedBox(height: 16),
-                  _buildPersonalInfo(),
-                  const SizedBox(height: 16),
-                  _buildEssentialFields(),
-                  const SizedBox(height: 16),
-                  _buildInterestsSection(),
+                  const SizedBox(height: 8),
+                  _buildChangePhotoButton(),
+                  const SizedBox(height: 32),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Name',
+                    value: widget.user?.name ?? '',
+                    readOnly: true,
+                    onTap: () {},
+                    trailing: const Icon(Icons.lock_outline,
+                        size: 20, color: Colors.grey),
+                  ),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Bio',
+                    value: _bioController.text,
+                    onTap: () => _editBio(),
+                  ),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Phone',
+                    value: _phoneController.text.isEmpty
+                        ? 'Add phone number'
+                        : _phoneController.text,
+                    onTap: () => _editPhone(),
+                  ),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Gender',
+                    value: _selectedGender ?? 'Select gender',
+                    onTap: () => _selectGender(),
+                  ),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Date of Birth',
+                    value: _selectedDateOfBirth != null
+                        ? _formatDate(_selectedDateOfBirth!)
+                        : 'Select date',
+                    onTap: () => _selectDate(),
+                  ),
+                  _buildDivider(),
+                  _buildTextField(
+                    label: 'Location',
+                    value: _locationController.text.isEmpty
+                        ? 'Add location'
+                        : _locationController.text,
+                    onTap: () => _editLocation(),
+                    trailing: _isLoadingLocation
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF84994F),
+                            ),
+                          )
+                        : null,
+                  ),
+                  _buildDivider(),
                   const SizedBox(height: 24),
-                  _buildSaveButton(),
+                  _buildSectionHeader('Interests'),
+                  const SizedBox(height: 16),
+                  _buildInterests(),
                   const SizedBox(height: 40),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      backgroundColor: const Color(0xFF84994F),
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.close, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: const Text(
+        'Edit Profile',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
-        centerTitle: true,
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF84994F),
-                const Color(0xFF84994F).withValues(alpha: 0.8),
-              ],
+      ),
+      centerTitle: true,
+      actions: [
+        TextButton(
+          onPressed: _saveProfile,
+          child: const Text(
+            'Done',
+            style: TextStyle(
+              color: Color(0xFF84994F),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
+      ],
     );
   }
 
   Widget _buildProfilePhoto() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF84994F),
-                      const Color(0xFF84994F).withValues(alpha: 0.6),
-                    ],
-                  ),
-                ),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: CircleAvatar(
-                    radius: 65,
-                    backgroundColor: Colors.grey.shade100,
-                    backgroundImage: _selectedImageFile != null
-                        ? FileImage(_selectedImageFile!)
-                        : (_selectedAvatarUrl != null
-                            ? NetworkImage(_selectedAvatarUrl!)
-                            : null) as ImageProvider?,
-                    child: (_selectedImageFile == null && _selectedAvatarUrl == null)
-                        ? Icon(
-                            Icons.person,
-                            size: 70,
-                            color: Colors.grey[400],
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 5,
-                right: 5,
-                child: GestureDetector(
-                  onTap: _changeProfilePicture,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF84994F), Color(0xFF6B7D3F)],
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Ganti Foto Profil',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'JPG, PNG atau GIF (Maks 5MB)',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNameInfo() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
+    return Center(
+      child: Stack(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.grey.shade200,
+                width: 1,
+              ),
             ),
-            child: const Icon(
-              Icons.badge_outlined,
-              color: Color(0xFF84994F),
-              size: 24,
+            child: ClipOval(
+              child: _selectedImageFile != null
+                  ? Image.file(
+                      _selectedImageFile!,
+                      fit: BoxFit.cover,
+                    )
+                  : (_selectedAvatarUrl != null &&
+                          _selectedAvatarUrl!.isNotEmpty)
+                      ? CachedNetworkImage(
+                          imageUrl: _selectedAvatarUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade100,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF84994F),
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              _buildDefaultAvatar(),
+                        )
+                      : _buildDefaultAvatar(),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Nama Lengkap',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.user?.name ?? 'User',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Dari akun Google (ga bisa diubah)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[500],
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.lock_outline,
-            size: 20,
-            color: Colors.grey[400],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPersonalInfo() {
+  Widget _buildDefaultAvatar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.grey.shade100,
+        shape: BoxShape.circle,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.person_outline,
-                  color: Color(0xFF84994F),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Info Pribadi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildModernTextField(
-            controller: _bioController,
-            label: 'Bio',
-            hint: 'Ceritain tentang lo dong...',
-            icon: Icons.info_outline,
-            maxLines: 4,
-            maxLength: 150,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEssentialFields() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.contact_page_outlined,
-                  color: Color(0xFF84994F),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Data Penting',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Phone
-          _buildModernTextField(
-            controller: _phoneController,
-            label: 'Nomor HP',
-            hint: '08123456789',
-            icon: Icons.phone_outlined,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
-          const SizedBox(height: 16),
-
-          // Birth Date
-          _buildDateField(),
-          const SizedBox(height: 16),
-
-          // Gender
-          _buildGenderField(),
-          const SizedBox(height: 16),
-
-          // Location
-          _buildLocationField(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Tanggal Lahir',
+      child: Center(
+        child: Text(
+          widget.user?.name[0].toUpperCase() ?? 'U',
           style: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChangePhotoButton() {
+    return Center(
+      child: TextButton(
+        onPressed: _changeProfilePicture,
+        child: const Text(
+          'Change photo',
+          style: TextStyle(
+            color: Color(0xFF84994F),
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: _selectDate,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.cake_outlined, color: Color(0xFF84994F), size: 22),
-                const SizedBox(width: 12),
-                Text(
-                  _selectedDateOfBirth == null
-                      ? 'Pilih tanggal lahir'
-                      : '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _selectedDateOfBirth == null ? Colors.grey[400] : Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildGenderField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Gender',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: _selectedGender,
-              hint: const Text('Pilih gender'),
-              items: _genderOptions.map((gender) {
-                return DropdownMenuItem(
-                  value: gender,
-                  child: Text(gender),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedGender = value;
-                });
-              },
-            ),
-          ),
-        ),
-      ],
+  Widget _buildDivider() {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Colors.grey.shade200,
     );
   }
 
-  Widget _buildLocationField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Lokasi',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
+  Widget _buildTextField({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+    bool readOnly = false,
+    Widget? trailing,
+  }) {
+    return InkWell(
+      onTap: readOnly ? null : onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
           children: [
-            Expanded(
-              child: TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  hintText: 'Kota, Negara',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF84994F), size: 22),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF84994F), width: 2),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            SizedBox(
+              width: 100,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF84994F),
-                borderRadius: BorderRadius.circular(12),
+            Expanded(
+              child: Text(
+                value.isEmpty ? 'Add $label' : value,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: value.isEmpty || readOnly
+                      ? Colors.grey.shade600
+                      : Colors.black,
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.right,
               ),
-              child: IconButton(
-                onPressed: _isLoadingLocation ? null : _requestLocation,
-                icon: _isLoadingLocation
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Icon(Icons.my_location, color: Colors.white),
-                tooltip: 'Gunakan lokasi saat ini',
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 8),
+              trailing,
+            ] else if (!readOnly) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey.shade400,
+                size: 20,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInterests() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _availableInterests.map((interest) {
+          final isSelected = _selectedInterests.contains(interest);
+          return InkWell(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _selectedInterests.remove(interest);
+                } else {
+                  _selectedInterests.add(interest);
+                }
+              });
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF84994F)
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF84994F)
+                      : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                interest,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? Colors.white : Colors.grey.shade700,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // Edit dialogs
+
+  Future<void> _editBio() async {
+    final controller = TextEditingController(text: _bioController.text);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bio'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          maxLength: 150,
+          decoration: const InputDecoration(
+            hintText: 'Tell us about yourself...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _bioController.text = controller.text;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color(0xFF84994F),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+  }
+
+  Future<void> _editPhone() async {
+    final controller = TextEditingController(text: _phoneController.text);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Phone'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            hintText: '+62 ...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _phoneController.text = controller.text;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color(0xFF84994F),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+  }
+
+  Future<void> _editLocation() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                hintText: 'Enter city name',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _requestLocation();
+              },
+              icon: const Icon(Icons.my_location, size: 18),
+              label: const Text('Use current location'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF84994F),
               ),
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildInterestsSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.favorite_outline,
-                  color: Color(0xFF84994F),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Minat & Hobi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Pilih minimal 3 minat biar event recommendations makin akurat',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey.shade600),
             ),
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _availableInterests.map((interest) {
-              final isSelected = _selectedInterests.contains(interest);
-              return FilterChip(
-                label: Text(interest),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedInterests.add(interest);
-                    } else {
-                      _selectedInterests.remove(interest);
-                    }
-                  });
-                },
-                selectedColor: const Color(0xFF84994F).withValues(alpha: 0.2),
-                checkmarkColor: const Color(0xFF84994F),
-                labelStyle: TextStyle(
-                  color: isSelected ? const Color(0xFF84994F) : Colors.grey[700],
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-              );
-            }).toList(),
+          TextButton(
+            onPressed: () {
+              setState(() {});
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color(0xFF84994F),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    int maxLines = 1,
-    int? maxLength,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+  Future<void> _selectGender() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gender'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: _genderOptions.map((gender) {
+            return RadioListTile<String>(
+              title: Text(gender),
+              value: gender,
+              groupValue: _selectedGender,
+              activeColor: const Color(0xFF84994F),
+              onChanged: (value) {
+                setState(() {
+                  _selectedGender = value;
+                });
+                Navigator.pop(context);
+              },
+            );
+          }).toList(),
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          maxLength: maxLength,
-          inputFormatters: inputFormatters,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            prefixIcon: Icon(icon, color: const Color(0xFF84994F), size: 22),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF84994F), width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            counterText: maxLength != null ? null : '',
-          ),
-          validator: validator,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _saveProfile,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF84994F),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          disabledBackgroundColor: Colors.grey.shade300,
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.save_rounded, size: 22),
-                  SizedBox(width: 8),
-                  Text(
-                    'Simpan Perubahan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(const Duration(days: 365 * 20)),
+      initialDate: _selectedDateOfBirth ?? DateTime(2000),
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -820,45 +615,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied');
+      }
+
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        Position position = await Geolocator.getCurrentPosition();
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty && mounted) {
+          final placemark = placemarks.first;
+          setState(() {
+            _locationController.text =
+                '${placemark.locality ?? ''}, ${placemark.administrativeArea ?? ''}';
+          });
         }
       }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied');
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        final locationText = [
-          place.locality,
-          place.administrativeArea,
-        ].where((e) => e != null && e.isNotEmpty).join(', ');
-
-        setState(() {
-          _locationController.text = locationText.isNotEmpty ? locationText : 'Location detected';
-          _isLoadingLocation = false;
-        });
-      }
     } catch (e) {
-      setState(() {
-        _isLoadingLocation = false;
-      });
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal mendapatkan lokasi: ${e.toString()}'),
+            content: Text('Failed to get location: $e'),
             backgroundColor: Colors.red,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
       }
     }
   }
@@ -866,132 +654,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _changeProfilePicture() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: SafeArea(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Ganti Foto Profil',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildPhotoOption(
-                icon: Icons.camera_alt_rounded,
-                title: 'Ambil Foto',
-                subtitle: 'Pake kamera buat foto sekarang',
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF84994F)),
+                title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
                   _takePicture();
                 },
               ),
-              _buildPhotoOption(
-                icon: Icons.photo_library_rounded,
-                title: 'Pilih dari Galeri',
-                subtitle: 'Pilih dari foto lo',
+              ListTile(
+                leading:
+                    const Icon(Icons.photo_library, color: Color(0xFF84994F)),
+                title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
                   _chooseFromGallery();
                 },
               ),
-              if (_selectedAvatarUrl != null || _selectedImageFile != null)
-                _buildPhotoOption(
-                  icon: Icons.delete_rounded,
-                  title: 'Hapus Foto',
-                  subtitle: 'Pake avatar default',
-                  color: Colors.red,
+              if (_selectedImageFile != null || _selectedAvatarUrl != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Remove Photo'),
                   onTap: () {
-                    Navigator.pop(context);
                     setState(() {
-                      _selectedAvatarUrl = null;
                       _selectedImageFile = null;
+                      _selectedAvatarUrl = null;
                     });
+                    Navigator.pop(context);
                   },
                 ),
-              const SizedBox(height: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: (color ?? const Color(0xFF84994F)).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: color ?? const Color(0xFF84994F),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: color ?? Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-          ],
         ),
       ),
     );
@@ -1009,33 +711,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (photo != null) {
         setState(() {
           _selectedImageFile = File(photo.path);
-          _selectedAvatarUrl = null;
         });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Foto berhasil diambil!'),
-                ],
-              ),
-              backgroundColor: const Color(0xFF84994F),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Waduh error nih: ${e.toString()}'),
+            content: Text('Failed to take picture: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1055,33 +737,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (image != null) {
         setState(() {
           _selectedImageFile = File(image.path);
-          _selectedAvatarUrl = null;
         });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Foto berhasil dipilih!'),
-                ],
-              ),
-              backgroundColor: const Color(0xFF84994F),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Waduh error nih: ${e.toString()}'),
+            content: Text('Failed to pick image: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1090,107 +752,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
-      // TODO: Upload image to cloud storage first if _selectedImageFile is not null
-      String? avatarToSave;
-      if (_selectedImageFile != null) {
-        // TODO: Upload to cloud storage and get URL
-        avatarToSave = _selectedImageFile!.path; // Temporary
-      } else if (_selectedAvatarUrl != null) {
-        avatarToSave = _selectedAvatarUrl;
-      }
+      // TODO: Upload image if _selectedImageFile is not null
+      // TODO: Get the uploaded image URL
 
-      // Update user profile via BLoC
-      context.read<UserBloc>().add(
-        UpdateUserProfile(
-          bio: _bioController.text.trim().isNotEmpty ? _bioController.text.trim() : null,
-          avatar: avatarToSave,
-          phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
-          dateOfBirth: _selectedDateOfBirth,
-          gender: _selectedGender,
-          location: _locationController.text.trim().isNotEmpty ? _locationController.text.trim() : null,
-          interests: _selectedInterests,
-        ),
+      final updatedUser = widget.user!.copyWith(
+        bio: _bioController.text,
+        phone: _phoneController.text,
+        location: _locationController.text,
+        dateOfBirth: _selectedDateOfBirth,
+        gender: _selectedGender,
+        interests: _selectedInterests,
+        // avatar: uploadedImageUrl, // Update this after upload
       );
 
-      // Listen for result
-      final userBloc = context.read<UserBloc>();
-      await for (final state in userBloc.stream) {
-        if (state is UserLoaded) {
-          setState(() => _isLoading = false);
+      if (mounted) {
+        context.read<UserBloc>().add(UpdateUserProfile(updatedUser));
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Row(
-                  children: [
-                    Icon(Icons.check_circle_rounded, color: Colors.white),
-                    SizedBox(width: 12),
-                    Text('Profil berhasil diupdate!'),
-                  ],
-                ),
-                backgroundColor: const Color(0xFF84994F),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                duration: const Duration(seconds: 2),
-              ),
-            );
+        // Wait a bit for the update to process
+        await Future.delayed(const Duration(milliseconds: 500));
 
-            Navigator.pop(context, true);
-          }
-          break;
-        } else if (state is UserError) {
-          setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Color(0xFF84994F),
+            duration: Duration(seconds: 2),
+          ),
+        );
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(state.message)),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-          break;
-        }
+        Navigator.pop(context);
       }
     } catch (e) {
-      setState(() => _isLoading = false);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Waduh error nih: ${e.toString()}'),
+            content: Text('Failed to save profile: $e'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
-  @override
-  void dispose() {
-    _bioController.dispose();
-    _phoneController.dispose();
-    _locationController.dispose();
-    super.dispose();
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
