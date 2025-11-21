@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +9,7 @@ import '../saved/saved_items_screen.dart';
 import '../qr/qr_code_screen.dart';
 import 'my_events_screen.dart';
 import 'edit_profile_screen.dart';
+import 'followers_following_screen.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/google_auth_service.dart';
 import '../../../injection_container.dart' as di;
@@ -32,8 +34,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     with TickerProviderStateMixin {
   String? _currentUserId;
   bool _isOwnProfile = false;
-  bool _isFollowing = false;
   TabController? _tabController;
+  bool _isProcessing = false; // Prevent double-tap
+  bool _unfollowConfirmation = false; // Untuk konfirmasi unfollow
+  Timer? _confirmationTimer;
 
   @override
   void initState() {
@@ -44,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void dispose() {
     _tabController?.dispose();
+    _confirmationTimer?.cancel();
     super.dispose();
   }
 
@@ -70,8 +75,49 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
-      body: BlocBuilder<UserBloc, UserState>(
-        builder: (context, state) {
+      body: BlocListener<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserLoaded) {
+            print('[ProfileScreen] UserLoaded received');
+            print('[ProfileScreen] User: ${state.user.name}');
+            print('[ProfileScreen] Followers: ${state.user.stats.followersCount}');
+            print('[ProfileScreen] Following: ${state.user.stats.followingCount}');
+            print('[ProfileScreen] Is Following: ${state.user.isFollowing}');
+
+            // Reset processing flag and confirmation when state updates
+            if (_isProcessing || _unfollowConfirmation) {
+              _confirmationTimer?.cancel();
+              setState(() {
+                _isProcessing = false;
+                _unfollowConfirmation = false;
+              });
+            }
+          } else if (state is UserActionSuccess) {
+            print('[ProfileScreen] UserActionSuccess received: ${state.message}');
+            _confirmationTimer?.cancel();
+            setState(() {
+              _isProcessing = false;
+              _unfollowConfirmation = false;
+            });
+          } else if (state is UserError) {
+            print('[ProfileScreen] UserError received: ${state.message}');
+            _confirmationTimer?.cancel();
+            setState(() {
+              _isProcessing = false;
+              _unfollowConfirmation = false;
+            });
+
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<UserBloc, UserState>(
+          builder: (context, state) {
           if (state is UserLoading) {
             return const Center(
               child: CircularProgressIndicator(
@@ -117,6 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
           if (state is UserLoaded) {
             final user = state.user;
+            final isFollowing = user.isFollowing ?? false;
 
             // Return loading if TabController is not initialized yet
             if (_tabController == null) {
@@ -313,25 +360,58 @@ class _ProfileScreenState extends State<ProfileScreen>
                             )
                           else
                             _buildFullWidthButton(
-                              label: _isFollowing ? 'Following' : 'Follow',
-                              icon: _isFollowing
-                                  ? Icons.check_rounded
-                                  : Icons.person_add_rounded,
-                              onTap: () {
-                                setState(() {
-                                  _isFollowing = !_isFollowing;
-                                });
-                                if (_isFollowing) {
+                              label: _unfollowConfirmation
+                                  ? 'Yakin nih?'
+                                  : (isFollowing ? 'Following' : 'Follow'),
+                              icon: _unfollowConfirmation
+                                  ? Icons.warning_rounded
+                                  : (isFollowing
+                                      ? Icons.check_rounded
+                                      : Icons.person_add_rounded),
+                              onTap: _isProcessing ? null : () {
+                                // Prevent double-tap
+                                if (_isProcessing) return;
+
+                                print('[ProfileScreen] Button tapped, isFollowing: $isFollowing, confirmation: $_unfollowConfirmation');
+                                print('[ProfileScreen] Current followers: ${user.stats.followersCount}');
+
+                                // Trigger follow/unfollow action
+                                if (isFollowing) {
+                                  // UNFOLLOW logic dengan konfirmasi 2x klik
+                                  if (!_unfollowConfirmation) {
+                                    // Click pertama: Tanya konfirmasi
+                                    print('[ProfileScreen] First click - asking confirmation');
+                                    setState(() => _unfollowConfirmation = true);
+
+                                    // Reset konfirmasi setelah 3 detik
+                                    _confirmationTimer?.cancel();
+                                    _confirmationTimer = Timer(const Duration(seconds: 3), () {
+                                      if (mounted) {
+                                        setState(() => _unfollowConfirmation = false);
+                                      }
+                                    });
+                                  } else {
+                                    // Click kedua: Execute unfollow langsung
+                                    print('[ProfileScreen] Second click - triggering UNFOLLOW for user: ${user.id}');
+                                    _confirmationTimer?.cancel();
+                                    setState(() {
+                                      _unfollowConfirmation = false;
+                                      _isProcessing = true;
+                                    });
+                                    context
+                                        .read<UserBloc>()
+                                        .add(UnfollowUserEvent(user.id));
+                                  }
+                                } else {
+                                  // FOLLOW logic (langsung tanpa konfirmasi)
+                                  print('[ProfileScreen] Triggering FOLLOW for user: ${user.id}');
+                                  setState(() => _isProcessing = true);
                                   context
                                       .read<UserBloc>()
                                       .add(FollowUserEvent(user.id));
-                                } else {
-                                  context
-                                      .read<UserBloc>()
-                                      .add(UnfollowUserEvent(user.id));
                                 }
                               },
-                              isPrimary: !_isFollowing,
+                              isPrimary: _unfollowConfirmation ? false : !isFollowing,
                             ),
                           const SizedBox(height: 20),
                           // Stats Row - 4 items
@@ -341,6 +421,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _buildStatItem(
                                 value: state.postsCount.toString(),
                                 label: 'Post',
+                                onTap: () {
+                                  // Switch to Posts tab (index 0)
+                                  if (_tabController != null) {
+                                    _tabController!.animateTo(0);
+                                  }
+                                },
                               ),
                               Container(
                                 width: 1,
@@ -350,6 +436,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _buildStatItem(
                                 value: _formatNumber(user.stats.eventsCreated),
                                 label: 'Event',
+                                onTap: () {
+                                  // Switch to Events tab (index 1)
+                                  if (_tabController != null) {
+                                    _tabController!.animateTo(1);
+                                  }
+                                },
                               ),
                               Container(
                                 width: 1,
@@ -359,6 +451,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _buildStatItem(
                                 value: _formatNumber(user.stats.followersCount),
                                 label: 'Followers',
+                                onTap: () {
+                                  // Navigate to Followers screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FollowersFollowingScreen(
+                                        userId: user.id,
+                                        isFollowers: true,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               Container(
                                 width: 1,
@@ -368,6 +472,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _buildStatItem(
                                 value: _formatNumber(user.stats.followingCount),
                                 label: 'Following',
+                                onTap: () {
+                                  // Navigate to Following screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FollowersFollowingScreen(
+                                        userId: user.id,
+                                        isFollowers: false,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -463,7 +579,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
 
       return const SizedBox.shrink();
-        },
+          },
+        ),
       ),
     );
   }
@@ -506,13 +623,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildFullWidthButton({
     required String label,
     required IconData icon,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     required bool isPrimary,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
+      child: Opacity(
+        opacity: onTap == null ? 0.6 : 1.0,
+        child: Container(
         height: 48,
         decoration: BoxDecoration(
           gradient: isPrimary
@@ -557,33 +676,42 @@ class _ProfileScreenState extends State<ProfileScreen>
           ],
         ),
       ),
+      ),
     );
   }
 
   Widget _buildStatItem({
     required String value,
     required String label,
+    VoidCallback? onTap,
   }) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 

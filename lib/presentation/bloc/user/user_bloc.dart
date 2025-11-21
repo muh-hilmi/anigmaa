@@ -313,6 +313,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       return;
     }
 
+    // Get current state to update optimistically
+    final currentState = state;
+
     try {
       final result = await followUser!(
         FollowUserParams(userId: event.userId),
@@ -320,7 +323,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       result.fold(
         (failure) => emit(UserError(failure.toString())),
-        (_) => emit(const UserActionSuccess('Successfully followed user')),
+        (_) {
+          // Optimistically update the UI
+          if (currentState is UserLoaded) {
+            final updatedStats = currentState.user.stats.copyWith(
+              followersCount: currentState.user.stats.followersCount + 1,
+            );
+            final updatedUser = currentState.user.copyWith(
+              isFollowing: true,
+              stats: updatedStats,
+            );
+
+            emit(currentState.copyWith(
+              user: updatedUser,
+              connections: updatedStats.followersCount,
+            ));
+          } else {
+            emit(const UserActionSuccess('Successfully followed user'));
+          }
+        },
       );
     } catch (e) {
       emit(UserError('Failed to follow user: $e'));
@@ -336,6 +357,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       return;
     }
 
+    // Get current state to update optimistically
+    final currentState = state;
+
     try {
       final result = await unfollowUser!(
         UnfollowUserParams(userId: event.userId),
@@ -343,7 +367,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       result.fold(
         (failure) => emit(UserError(failure.toString())),
-        (_) => emit(const UserActionSuccess('Successfully unfollowed user')),
+        (_) {
+          // Optimistically update the UI
+          if (currentState is UserLoaded) {
+            final updatedStats = currentState.user.stats.copyWith(
+              followersCount: currentState.user.stats.followersCount - 1,
+            );
+            final updatedUser = currentState.user.copyWith(
+              isFollowing: false,
+              stats: updatedStats,
+            );
+
+            emit(currentState.copyWith(
+              user: updatedUser,
+              connections: updatedStats.followersCount,
+            ));
+          } else {
+            emit(const UserActionSuccess('Successfully unfollowed user'));
+          }
+        },
       );
     } catch (e) {
       emit(UserError('Failed to unfollow user: $e'));

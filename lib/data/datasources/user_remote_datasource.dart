@@ -49,10 +49,25 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final response = await dioClient.get('/users/$userId');
 
       if (response.statusCode == 200) {
-        // Backend returns: { data: { user: {...} } }
-        final data = response.data['data']?['user'] ?? response.data['data'] ?? response.data;
-        print('[UserRemoteDataSource] User retrieved successfully');
-        return UserModel.fromJson(data);
+        // Backend returns: { data: { user: {...}, settings: {...}, stats: {...}, privacy: {...}, is_following: bool } }
+        final profileData = response.data['data'] ?? response.data;
+
+        // Merge user with stats, settings, privacy for complete profile
+        final userData = profileData['user'] ?? profileData;
+        final statsData = profileData['stats'] ?? {};
+        final settingsData = profileData['settings'] ?? {};
+        final privacyData = profileData['privacy'] ?? {};
+        final isFollowing = profileData['is_following']; // can be null
+
+        // Create merged JSON with all data
+        final mergedData = Map<String, dynamic>.from(userData)
+          ..['stats'] = statsData
+          ..['settings'] = settingsData
+          ..['privacy'] = privacyData
+          ..['is_following'] = isFollowing;
+
+        print('[UserRemoteDataSource] User retrieved successfully, is_following: $isFollowing');
+        return UserModel.fromJson(mergedData);
       } else {
         throw ServerFailure('Failed to get user');
       }

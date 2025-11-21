@@ -19,6 +19,7 @@ class UserModel extends User {
     super.dateOfBirth,
     super.gender,
     super.location,
+    super.isFollowing,
   });
 
   // REVIEW: DUAL NAMING CONVENTION FALLBACKS - This is technical debt from backend inconsistency
@@ -69,6 +70,7 @@ class UserModel extends User {
       dateOfBirth: dateOfBirth != null ? DateTime.parse(dateOfBirth as String) : null,
       gender: json['gender'] as String?,
       location: json['location'] as String?,
+      isFollowing: json['is_following'] as bool?,
     );
   }
 
@@ -113,6 +115,7 @@ class UserModel extends User {
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
       location: user.location,
+      isFollowing: user.isFollowing,
     );
   }
 }

@@ -19,6 +19,9 @@ class User {
   final String? gender; // 'male', 'female', 'other', 'prefer_not_to_say'
   final String? location;
 
+  // Follow status (null if viewing own profile, true/false if viewing other user)
+  final bool? isFollowing;
+
   const User({
     required this.id,
     this.email,
@@ -37,6 +40,7 @@ class User {
     this.dateOfBirth,
     this.gender,
     this.location,
+    this.isFollowing,
   });
 
   User copyWith({
@@ -57,6 +61,7 @@ class User {
     DateTime? dateOfBirth,
     String? gender,
     String? location,
+    bool? isFollowing,
   }) {
     return User(
       id: id ?? this.id,
@@ -76,6 +81,7 @@ class User {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
       location: location ?? this.location,
+      isFollowing: isFollowing ?? this.isFollowing,
     );
   }
 
@@ -83,16 +89,6 @@ class User {
   bool get hasCompletedEssentialProfile {
     return dateOfBirth != null && location != null;
   }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is User &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
 }
 
 class UserSettings {
