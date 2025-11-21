@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../settings/settings_screen.dart';
 import '../tickets/my_tickets_screen.dart';
 import '../transactions/transaction_history_screen.dart';
@@ -126,7 +127,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               );
             }
 
-            return NestedScrollView(
+            return Stack(
+              children: [
+                NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   // Green Header with Overlay Profile Picture
@@ -169,18 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  if (_isOwnProfile)
-                                    IconButton(
-                                      icon: const Icon(Icons.menu, color: Colors.white),
-                                      onPressed: () => _showMenuBottomSheet(context),
-                                    )
-                                  else
-                                    IconButton(
-                                      icon: const Icon(Icons.more_vert,
-                                          color: Colors.white),
-                                      onPressed: () =>
-                                          _showUserMenuBottomSheet(context),
-                                    ),
+                                  const SizedBox(width: 48),
                                 ],
                               ),
                             ),
@@ -188,18 +180,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                         // Profile Picture Overlay
                         Positioned(
-                          bottom: -50,
+                          bottom: -60,
                           left: 0,
                           right: 0,
                           child: Center(
                             child: Container(
-                              width: 100,
-                              height: 100,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Colors.white,
-                                  width: 4,
+                                  width: 5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
@@ -212,11 +204,33 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: ClipOval(
                                 child: (user.avatar != null &&
                                         user.avatar!.isNotEmpty)
-                                    ? Image.network(
-                                        user.avatar!,
+                                    ? CachedNetworkImage(
+                                        imageUrl: user.avatar!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stack) =>
+                                        placeholder: (context, url) => Container(
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFF84994F),
+                                                Color(0xFFA8B86D),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) =>
                                             _buildDefaultAvatar(user.name),
+                                        memCacheWidth: 240,
+                                        memCacheHeight: 240,
+                                        maxWidthDiskCache: 480,
+                                        maxHeightDiskCache: 480,
                                       )
                                     : _buildDefaultAvatar(user.name),
                               ),
@@ -229,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   // Profile Info Section
                   SliverToBoxAdapter(
                     child: Container(
-                      margin: const EdgeInsets.only(top: 60, left: 16, right: 16),
+                      margin: const EdgeInsets.only(top: 70, left: 16, right: 16),
                       child: Column(
                         children: [
                           // Name + Verified
@@ -258,19 +272,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ],
                             ],
                           ),
-                          // Bio/Profession
-                          if (user.bio != null && user.bio!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              user.bio!,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          // Location
+                          if (user.location != null && user.location!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  user.location!,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                           const SizedBox(height: 20),
@@ -313,10 +334,28 @@ class _ProfileScreenState extends State<ProfileScreen>
                               isPrimary: !_isFollowing,
                             ),
                           const SizedBox(height: 20),
-                          // Stats Row - Horizontal Layout
+                          // Stats Row - 4 items
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
+                              _buildStatItem(
+                                value: state.postsCount.toString(),
+                                label: 'Post',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 40,
+                                color: Colors.grey[300],
+                              ),
+                              _buildStatItem(
+                                value: _formatNumber(user.stats.eventsCreated),
+                                label: 'Event',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 40,
+                                color: Colors.grey[300],
+                              ),
                               _buildStatItem(
                                 value: _formatNumber(user.stats.followersCount),
                                 label: 'Followers',
@@ -330,17 +369,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 value: _formatNumber(user.stats.followingCount),
                                 label: 'Following',
                               ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey[300],
-                              ),
-                              _buildStatItem(
-                                value: state.postsCount.toString(),
-                                label: 'Media',
-                              ),
                             ],
                           ),
+                          // Bio/Profession - moved below stats
+                          if (user.bio != null && user.bio!.isNotEmpty) ...[
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                user.bio!,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -378,10 +424,45 @@ class _ProfileScreenState extends State<ProfileScreen>
                   if (_isOwnProfile) _buildSavedGrid(),
                 ],
               ),
-            );
-          }
+            ),
+            // Fixed Menu Button at top right
+            Positioned(
+              top: 8,
+              right: 8,
+              child: SafeArea(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      _isOwnProfile ? Icons.menu : Icons.more_vert,
+                      color: const Color(0xFF84994F),
+                    ),
+                    onPressed: () {
+                      if (_isOwnProfile) {
+                        _showMenuBottomSheet(context);
+                      } else {
+                        _showUserMenuBottomSheet(context);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }
 
-          return const SizedBox.shrink();
+      return const SizedBox.shrink();
         },
       ),
     );
