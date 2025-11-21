@@ -9,7 +9,7 @@ import '../../../domain/entities/event_category.dart';
 import '../../../domain/entities/event_location.dart';
 import '../../../domain/entities/event_host.dart';
 import '../event_detail/event_detail_screen.dart';
-import '../social/user_profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class CommunityDetailScreen extends StatefulWidget {
   final Community community;
@@ -453,9 +453,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserProfileScreen(
+                      builder: (context) => ProfileScreen(
                         userId: post.author.id,
-                        userName: post.author.name,
                       ),
                     ),
                   );
@@ -868,9 +867,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UserProfileScreen(
+            builder: (context) => ProfileScreen(
               userId: member.id,
-              userName: member.name,
             ),
           ),
         );

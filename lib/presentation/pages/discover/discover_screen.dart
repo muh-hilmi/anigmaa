@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
-import '../../../domain/entities/post.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
@@ -173,14 +172,19 @@ class DiscoverScreenState extends State<DiscoverScreen> {
               }
             },
             builder: (context, eventsState) {
-              if (eventsState is EventsLoading || postsState is PostsLoading) {
+              // Handle error state first
+              if (eventsState is EventsError) {
+                return _buildErrorState(eventsState.message);
+              }
+
+              // Show loading for initial, loading states, or when posts are loading
+              if (eventsState is EventsLoading ||
+                  postsState is PostsLoading ||
+                  eventsState is! EventsLoaded ||
+                  postsState is! PostsLoaded) {
                 return const Center(child: CircularProgressIndicator(
                   color: Color(0xFF84994F),
                 ));
-              }
-
-              if (eventsState is EventsError) {
-                return _buildErrorState(eventsState.message);
               }
 
               if (eventsState is EventsLoaded && postsState is PostsLoaded) {

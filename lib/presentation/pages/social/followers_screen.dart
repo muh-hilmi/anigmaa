@@ -4,7 +4,7 @@ import '../../../domain/entities/user.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
-import 'user_profile_screen.dart';
+import '../profile/profile_screen.dart';
 import '../../../core/utils/app_logger.dart';
 
 class FollowersScreen extends StatefulWidget {
@@ -282,9 +282,8 @@ class _FollowersScreenState extends State<FollowersScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfileScreen(
+              builder: (context) => ProfileScreen(
                 userId: user.id,
-                userName: user.name,
               ),
             ),
           );

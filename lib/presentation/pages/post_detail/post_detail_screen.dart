@@ -11,7 +11,7 @@ import '../../bloc/posts/posts_state.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../widgets/modern_post_card.dart';
-import '../social/user_profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post post;
@@ -309,9 +309,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UserProfileScreen(
+                          builder: (context) => ProfileScreen(
                             userId: comment.author.id,
-                            userName: comment.author.name,
                           ),
                         ),
                       );

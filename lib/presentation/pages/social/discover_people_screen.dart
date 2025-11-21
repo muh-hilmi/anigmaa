@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class DiscoverPeopleScreen extends StatefulWidget {
   const DiscoverPeopleScreen({super.key});
@@ -241,9 +241,8 @@ class _DiscoverPeopleScreenState extends State<DiscoverPeopleScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfileScreen(
+              builder: (context) => ProfileScreen(
                 userId: user.id,
-                userName: user.name,
               ),
             ),
           );

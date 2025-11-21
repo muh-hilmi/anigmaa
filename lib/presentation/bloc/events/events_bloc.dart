@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/usecases/usecase.dart';
 import '../../../domain/usecases/create_event.dart';
 import '../../../domain/usecases/get_events.dart';
 import '../../../domain/usecases/get_events_by_category.dart';

@@ -7,7 +7,7 @@ import '../bloc/posts/posts_event.dart';
 import '../bloc/posts/posts_state.dart';
 import '../pages/post_detail/post_detail_screen.dart';
 import '../pages/event_detail/event_detail_screen.dart';
-import '../pages/social/user_profile_screen.dart';
+import '../pages/profile/profile_screen.dart';
 import 'modern_event_mini_card.dart';
 import 'find_matches_modal.dart';
 
@@ -280,9 +280,8 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfileScreen(
+                builder: (context) => ProfileScreen(
                   userId: widget.post.author.id,
-                  userName: widget.post.author.name,
                 ),
               ),
             );
@@ -966,9 +965,8 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => UserProfileScreen(
+                                  builder: (context) => ProfileScreen(
                                     userId: widget.post.author.id,
-                                    userName: widget.post.author.name,
                                   ),
                                 ),
                               );

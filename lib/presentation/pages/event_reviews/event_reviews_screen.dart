@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/review.dart';
-import '../social/user_profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class EventReviewsScreen extends StatefulWidget {
   final Event event;
@@ -24,7 +24,7 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
     Review(
       id: '1',
       userId: 'user1',
-      userName: 'Sarah Chen',
+      userName: 'Ahmad Rizki',
       userAvatar: 'https://picsum.photos/100/100?random=1',
       eventId: 'event1',
       rating: 5,
@@ -37,7 +37,7 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
     Review(
       id: '2',
       userId: 'user2',
-      userName: 'Mike Johnson',
+      userName: 'Dina Putri',
       userAvatar: 'https://picsum.photos/100/100?random=2',
       eventId: 'event1',
       rating: 4,
@@ -49,7 +49,7 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
     Review(
       id: '3',
       userId: 'user3',
-      userName: 'Jessica Wong',
+      userName: 'Budi Santoso',
       userAvatar: 'https://picsum.photos/100/100?random=3',
       eventId: 'event1',
       rating: 5,
@@ -62,7 +62,7 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
     Review(
       id: '4',
       userId: 'user4',
-      userName: 'David Kim',
+      userName: 'Farah Nabila',
       userAvatar: 'https://picsum.photos/100/100?random=4',
       eventId: 'event1',
       rating: 3,
@@ -74,7 +74,7 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
     Review(
       id: '5',
       userId: 'user5',
-      userName: 'Emily Rodriguez',
+      userName: 'Gilang Ramadhan',
       userAvatar: 'https://picsum.photos/100/100?random=5',
       eventId: 'event1',
       rating: 4,
@@ -355,9 +355,8 @@ class _EventReviewsScreenState extends State<EventReviewsScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserProfileScreen(
+                      builder: (context) => ProfileScreen(
                         userId: review.userId,
-                        userName: review.userName,
                       ),
                     ),
                   );
