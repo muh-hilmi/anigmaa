@@ -167,8 +167,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Avatar + Stats Row
+                          // Avatar + Name & Location Row
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Avatar
                               Container(
@@ -195,55 +196,93 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       : _buildDefaultAvatar(user.name),
                                 ),
                               ),
-                              const SizedBox(width: 24),
-                              // Stats
+                              const SizedBox(width: 16),
+                              // Name + Verified + Location
                               Expanded(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _buildStatColumn(
-                                      state.eventsHosted.toString(),
-                                      'Posts',
+                                    // Name + Verified
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            user.name,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (user.isVerified) ...[
+                                          const SizedBox(width: 4),
+                                          const Icon(
+                                            Icons.verified,
+                                            size: 16,
+                                            color: Color(0xFF84994F),
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                    _buildStatColumn(
-                                      _formatNumber(user.stats.followersCount),
-                                      'Followers',
-                                    ),
-                                    _buildStatColumn(
-                                      _formatNumber(user.stats.followingCount),
-                                      'Following',
-                                    ),
+                                    // Location
+                                    if (user.location != null &&
+                                        user.location!.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on_outlined,
+                                            size: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Flexible(
+                                            child: Text(
+                                              user.location!,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black87,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          // Name + Verified
+                          const SizedBox(height: 16),
+                          // Stats Row
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text(
-                                user.name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
+                              _buildStatColumn(
+                                state.eventsHosted.toString(),
+                                'Event',
                               ),
-                              if (user.isVerified) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified,
-                                  size: 16,
-                                  color: Color(0xFF84994F),
-                                ),
-                              ],
+                              _buildStatColumn(
+                                '0',
+                                'Post',
+                              ),
+                              _buildStatColumn(
+                                _formatNumber(user.stats.followersCount),
+                                'Follower',
+                              ),
+                              _buildStatColumn(
+                                _formatNumber(user.stats.followingCount),
+                                'Following',
+                              ),
                             ],
                           ),
                           // Bio
                           if (user.bio != null && user.bio!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 16),
                             Text(
                               user.bio!,
                               style: TextStyle(
@@ -251,28 +290,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 color: Colors.grey[800],
                                 height: 1.3,
                               ),
-                            ),
-                          ],
-                          // Location
-                          if (user.location != null &&
-                              user.location!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on_outlined,
-                                  size: 14,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  user.location!,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                           const SizedBox(height: 16),
