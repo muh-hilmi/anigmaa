@@ -27,22 +27,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   String? _currentUserId;
   bool _isOwnProfile = false;
   bool _isFollowing = false;
-  late TabController _tabController;
+  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
     _initialize();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -55,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (targetUserId != null && mounted) {
       setState(() {
         _isOwnProfile = targetUserId == _currentUserId;
-        _tabController.dispose();
+        _tabController?.dispose();
         _tabController =
             TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
       });
@@ -114,6 +113,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
           if (state is UserLoaded) {
             final user = state.user;
+
+            // Return loading if TabController is not initialized yet
+            if (_tabController == null) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF84994F),
+                ),
+              );
+            }
 
             return NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -371,7 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     pinned: true,
                     delegate: _StickyTabBarDelegate(
                       TabBar(
-                        controller: _tabController,
+                        controller: _tabController!,
                         labelColor: Colors.black,
                         unselectedLabelColor: Colors.grey,
                         indicatorColor: Colors.black,
@@ -389,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ];
               },
               body: TabBarView(
-                controller: _tabController,
+                controller: _tabController!,
                 children: [
                   _buildEventsGrid(state.eventsHosted),
                   _buildAttendedGrid(state.eventsAttended),
