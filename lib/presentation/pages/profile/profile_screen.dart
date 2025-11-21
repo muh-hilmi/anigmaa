@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../settings/settings_screen.dart';
 import '../tickets/my_tickets_screen.dart';
 import '../transactions/transaction_history_screen.dart';
@@ -203,11 +204,33 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: ClipOval(
                                 child: (user.avatar != null &&
                                         user.avatar!.isNotEmpty)
-                                    ? Image.network(
-                                        user.avatar!,
+                                    ? CachedNetworkImage(
+                                        imageUrl: user.avatar!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stack) =>
+                                        placeholder: (context, url) => Container(
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFF84994F),
+                                                Color(0xFFA8B86D),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) =>
                                             _buildDefaultAvatar(user.name),
+                                        memCacheWidth: 240,
+                                        memCacheHeight: 240,
+                                        maxWidthDiskCache: 480,
+                                        maxHeightDiskCache: 480,
                                       )
                                     : _buildDefaultAvatar(user.name),
                               ),
