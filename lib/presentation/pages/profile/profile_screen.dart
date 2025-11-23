@@ -31,25 +31,101 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   String? _currentUserId;
   bool _isOwnProfile = false;
   TabController? _tabController;
   bool _isProcessing = false; // Prevent double-tap
   bool _unfollowConfirmation = false; // Untuk konfirmasi unfollow
   Timer? _confirmationTimer;
+  late ScrollController _postsScrollController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    _postsScrollController = ScrollController();
+    _postsScrollController.addListener(_onPostsScroll);
     _initialize();
   }
 
   @override
   void dispose() {
+    _postsScrollController.dispose();
     _tabController?.dispose();
     _confirmationTimer?.cancel();
     super.dispose();
+  }
+
+  void _onPostsScroll() {
+    if (_postsScrollController.hasClients) {
+      final maxScroll = _postsScrollController.position.maxScrollExtent;
+      final currentScroll = _postsScrollController.position.pixels;
+
+      // Preload more images when 70% scrolled
+      if (currentScroll > maxScroll * 0.7) {
+        _precacheUpcomingPostImages();
+      }
+    }
+  }
+
+  void _precacheVisiblePostImages(List<dynamic> posts) {
+    if (!mounted) return;
+
+    // Take first 15 posts
+    final visiblePosts = posts.take(15).toList();
+
+    for (final post in visiblePosts) {
+      if (post.imageUrls != null && post.imageUrls.isNotEmpty) {
+        for (final imageUrl in post.imageUrls) {
+          precacheImage(
+            CachedNetworkImageProvider(
+              imageUrl,
+              maxWidth: 800,
+              maxHeight: 600,
+            ),
+            context,
+          );
+        }
+      }
+    }
+  }
+
+  void _precacheUpcomingPostImages() {
+    if (!mounted) return;
+
+    final state = context.read<UserBloc>().state;
+    if (state is! UserLoaded) return;
+
+    final posts = state.userPosts;
+    if (posts.isEmpty) return;
+
+    // Calculate current scroll position in terms of items
+    final currentScroll = _postsScrollController.position.pixels;
+    final itemHeight = 500.0; // Approximate height of a post card
+    final currentIndex = (currentScroll / itemHeight).floor();
+
+    // Precache next 10 posts
+    final startIndex = currentIndex + 1;
+    final endIndex = (startIndex + 10).clamp(0, posts.length);
+
+    for (int i = startIndex; i < endIndex; i++) {
+      final post = posts[i];
+      if (post.imageUrls != null && post.imageUrls.isNotEmpty) {
+        for (final imageUrl in post.imageUrls) {
+          precacheImage(
+            CachedNetworkImageProvider(
+              imageUrl,
+              maxWidth: 800,
+              maxHeight: 600,
+            ),
+            context,
+          );
+        }
+      }
+    }
   }
 
   Future<void> _initialize() async {
@@ -73,6 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
       body: BlocListener<UserBloc, UserState>(
@@ -254,6 +331,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     ? CachedNetworkImage(
                                         imageUrl: user.avatar!,
                                         fit: BoxFit.cover,
+                                        fadeInDuration: Duration.zero,
+                                        fadeOutDuration: Duration.zero,
                                         placeholder: (context, url) => Container(
                                           decoration: const BoxDecoration(
                                             gradient: LinearGradient(
@@ -263,12 +342,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               ],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
-                                            ),
-                                          ),
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                              strokeWidth: 2,
                                             ),
                                           ),
                                         ),
@@ -717,6 +790,13 @@ class _ProfileScreenState extends State<ProfileScreen>
 
 
   Widget _buildPostsTab(List<dynamic> posts) {
+    // Precache visible posts when tab is loaded
+    if (posts.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _precacheVisiblePostImages(posts);
+      });
+    }
+
     if (posts.isEmpty) {
       return Center(
         child: Column(
@@ -762,6 +842,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
 
     return ListView.builder(
+      controller: _postsScrollController,
       padding: const EdgeInsets.only(top: 8),
       itemCount: posts.length,
       itemBuilder: (context, index) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/post.dart';
 import '../bloc/posts/posts_bloc.dart';
 import '../bloc/posts/posts_event.dart';
@@ -364,11 +365,19 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
         margin: const EdgeInsets.only(bottom: 14),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            widget.post.imageUrls[0],
+          child: CachedNetworkImage(
+            imageUrl: widget.post.imageUrls[0],
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
+            fadeInDuration: Duration.zero,
+            fadeOutDuration: Duration.zero,
+            memCacheWidth: 800,
+            memCacheHeight: 600,
+            placeholder: (context, url) => Container(
+              height: 300,
+              color: Colors.grey[100],
+            ),
+            errorWidget: (context, url, error) {
               return Container(
                 height: 300,
                 decoration: BoxDecoration(
@@ -403,9 +412,20 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
             return Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  widget.post.imageUrls[index],
+                CachedNetworkImage(
+                  imageUrl: widget.post.imageUrls[index],
                   fit: BoxFit.cover,
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  memCacheWidth: 400,
+                  memCacheHeight: 400,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[100],
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[100],
+                    child: Icon(Icons.image_not_supported_rounded, color: Colors.grey[400]),
+                  ),
                 ),
                 if (index == 3 && widget.post.imageUrls.length > 4)
                   Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/event.dart';
 import '../../bloc/posts/posts_bloc.dart';
@@ -32,11 +33,95 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     _rankedFeedBloc = sl<RankedFeedBloc>();
 
     // Load posts and events
     context.read<PostsBloc>().add(LoadPosts());
     context.read<EventsBloc>().add(LoadEvents());
+  }
+
+  // Instagram-style scroll listener for prefetching
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+
+      // Preload more images when 70% scrolled
+      if (currentScroll > maxScroll * 0.7) {
+        _precacheUpcomingImages();
+      }
+    }
+  }
+
+  // Precache first 15 visible post images on page load
+  void _precacheVisibleImages(List<Post> posts) {
+    if (!mounted) return;
+
+    // Take first 15 posts
+    final visiblePosts = posts.take(15).toList();
+
+    for (final post in visiblePosts) {
+      if (post.imageUrls.isNotEmpty) {
+        for (final imageUrl in post.imageUrls) {
+          precacheImage(
+            CachedNetworkImageProvider(
+              imageUrl,
+              maxWidth: 800,
+              maxHeight: 600,
+            ),
+            context,
+          );
+        }
+      }
+    }
+  }
+
+  // Precache next 10 upcoming post images when scrolling
+  void _precacheUpcomingImages() {
+    if (!mounted) return;
+
+    // Get current posts from state
+    final postsState = context.read<PostsBloc>().state;
+    if (postsState is! PostsLoaded) return;
+
+    final userState = context.read<UserBloc>().state;
+    String? currentUserId;
+    if (userState is UserLoaded) {
+      currentUserId = userState.user.id;
+    }
+
+    // Filter out current user's posts
+    final feedPosts = currentUserId != null
+        ? postsState.posts.where((post) => post.author.id != currentUserId).toList()
+        : postsState.posts;
+
+    if (feedPosts.isEmpty) return;
+
+    // Calculate current scroll position in terms of items
+    final currentScroll = _scrollController.position.pixels;
+    final itemHeight = 500.0; // Approximate height of a post card
+    final currentIndex = (currentScroll / itemHeight).floor();
+
+    // Precache next 10 posts
+    final startIndex = currentIndex + 1;
+    final endIndex = (startIndex + 10).clamp(0, feedPosts.length);
+
+    for (int i = startIndex; i < endIndex; i++) {
+      final post = feedPosts[i];
+      if (post.imageUrls.isNotEmpty) {
+        for (final imageUrl in post.imageUrls) {
+          precacheImage(
+            CachedNetworkImageProvider(
+              imageUrl,
+              maxWidth: 800,
+              maxHeight: 600,
+            ),
+            context,
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -131,6 +216,11 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
                     final feedPosts = currentUserId != null
                         ? displayPosts.where((post) => post.author.id != currentUserId).toList()
                         : displayPosts;
+
+                    // Precache visible images when posts are loaded
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _precacheVisibleImages(feedPosts);
+                    });
 
                     if (feedPosts.isEmpty) {
                       return _buildEmptyState();

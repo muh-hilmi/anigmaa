@@ -185,25 +185,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-
-    Widget currentScreen;
-    switch (_currentIndex) {
-      case 0:
-        currentScreen = HomeScreen(onTabChanged: _onHomeTabChanged); // Home with Feed/Events tabs
-        break;
-      case 1:
-        currentScreen = DiscoverScreen(key: _discoverKey); // Redesigned Discover Page
-        break;
-      case 2:
-        currentScreen = const NewCommunityScreen();
-        break;
-      case 3:
-        currentScreen = ProfileScreen(); // Removed const to allow refresh
-        break;
-      default:
-        currentScreen = HomeScreen(onTabChanged: _onHomeTabChanged);
-    }
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -246,7 +227,16 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       child: Scaffold(
         body: Stack(
           children: [
-            currentScreen,
+            // Use IndexedStack to keep all pages alive and prevent rebuilds
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                HomeScreen(onTabChanged: _onHomeTabChanged), // Home with Feed/Events tabs
+                DiscoverScreen(key: _discoverKey), // Redesigned Discover Page
+                const NewCommunityScreen(),
+                ProfileScreen(), // Removed const to allow refresh
+              ],
+            ),
             // Backdrop overlay when speed dial is open
             if (_isSpeedDialOpen)
               Positioned.fill(

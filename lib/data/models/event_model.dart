@@ -11,6 +11,7 @@ class EventModel extends Event {
     required super.category,
     required super.startTime,
     required super.endTime,
+    super.createdAt,
     required super.location,
     required super.host,
     super.imageUrls = const [],
@@ -29,6 +30,7 @@ class EventModel extends Event {
     // Backend uses snake_case consistently
     final startTime = json['start_time'];
     final endTime = json['end_time'];
+    final createdAt = json['created_at'];
     final imageUrls = json['image_urls'];
     final maxAttendees = json['max_attendees'];
 
@@ -83,6 +85,7 @@ class EventModel extends Event {
       ),
       startTime: DateTime.parse(startTime as String),
       endTime: DateTime.parse(endTime as String),
+      createdAt: createdAt != null ? DateTime.parse(createdAt as String) : null,
       location: location,
       host: host,
       imageUrls: List<String>.from(imageUrls ?? []),
@@ -112,19 +115,21 @@ class EventModel extends Event {
       'title': title,
       'description': description,
       'category': category.toString().split('.').last,
-      'startTime': startTime.toIso8601String(),
-      'endTime': endTime.toIso8601String(),
+      'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime.toIso8601String(),
+      'price': price ?? 0.0,
+      'is_free': isFree,
+      'max_attendees': maxAttendees,
+      'attendees_count': attendeeIds.length,
+      'visibility': privacy.toString().split('.').last,
+      'status': status.toString().split('.').last,
+      'author_id': host.id,
       'location': (location as EventLocationModel).toJson(),
       'host': (host as EventHostModel).toJson(),
-      'imageUrls': imageUrls,
-      'maxAttendees': maxAttendees,
-      'attendeeIds': attendeeIds,
-      'price': price,
-      'isFree': isFree,
-      'status': status.toString().split('.').last,
-      'privacy': privacy.toString().split('.').last,
-      'pendingRequests': pendingRequests,
-      // 'tags': tags,
+      'image_urls': imageUrls,
+      'attendee_ids': attendeeIds,
+      'pending_requests': pendingRequests,
       'requirements': requirements,
     };
   }
@@ -137,6 +142,7 @@ class EventModel extends Event {
       category: event.category,
       startTime: event.startTime,
       endTime: event.endTime,
+      createdAt: event.createdAt,
       location: event.location,
       host: event.host,
       imageUrls: event.imageUrls,

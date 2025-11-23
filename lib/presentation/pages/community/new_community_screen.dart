@@ -17,9 +17,12 @@ class NewCommunityScreen extends StatefulWidget {
 }
 
 class _NewCommunityScreenState extends State<NewCommunityScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

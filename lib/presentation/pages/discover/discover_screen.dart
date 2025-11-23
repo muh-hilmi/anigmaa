@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../domain/entities/event.dart';
 import '../../../domain/entities/event_category.dart';
 import '../../../core/constants/app_colors.dart';
@@ -25,7 +26,7 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => DiscoverScreenState();
 }
 
-class DiscoverScreenState extends State<DiscoverScreen> {
+class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   late RankedFeedBloc _rankedFeedBloc;
@@ -41,17 +42,36 @@ class DiscoverScreenState extends State<DiscoverScreen> {
   String _selectedMode = 'for_you'; // 'trending', 'for_you', 'chill'
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     _rankedFeedBloc = sl<RankedFeedBloc>();
     _searchController.addListener(_filterEvents);
+    _scrollController.addListener(_onScroll);
     context.read<EventsBloc>().add(const LoadEventsByMode(mode: 'for_you'));
     context.read<PostsBloc>().add(LoadPosts());
+  }
+
+  // Instagram-style scroll listener for prefetching
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+
+      // Preload more images when 70% scrolled
+      if (currentScroll > maxScroll * 0.7) {
+        _precacheUpcomingImages();
+      }
+    }
   }
 
   void _filterEvents() {
     // When search changes, reapply mode filter (which includes search)
     _applyModeFilter();
+    // Precache images after filtering
+    _precacheVisibleImages();
   }
 
   @override
@@ -149,8 +169,69 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     return sortedEvents;
   }
 
+  // Instagram-style image precaching for smooth scrolling
+  void _precacheVisibleImages() {
+    if (!mounted) return;
+
+    // Precache first 15 visible + upcoming images
+    final displayEvents = _filteredEvents.where((event) {
+      return event.status == EventStatus.upcoming ||
+             event.status == EventStatus.live;
+    }).take(15).toList();
+
+    for (final event in displayEvents) {
+      if (event.imageUrls.isNotEmpty) {
+        try {
+          precacheImage(
+            CachedNetworkImageProvider(
+              event.imageUrls.first,
+              maxWidth: 400,
+              maxHeight: 300,
+            ),
+            context,
+          );
+        } catch (e) {
+          // Silently fail - image will load on demand
+        }
+      }
+    }
+  }
+
+  // Precache upcoming images when scrolling
+  void _precacheUpcomingImages() {
+    if (!mounted) return;
+
+    final displayEvents = _filteredEvents.where((event) {
+      return event.status == EventStatus.upcoming ||
+             event.status == EventStatus.live;
+    }).toList();
+
+    // Precache next 10 images
+    final startIndex = 15; // After initial precache
+    final endIndex = (startIndex + 10).clamp(0, displayEvents.length);
+
+    for (var i = startIndex; i < endIndex; i++) {
+      final event = displayEvents[i];
+      if (event.imageUrls.isNotEmpty) {
+        try {
+          precacheImage(
+            CachedNetworkImageProvider(
+              event.imageUrls.first,
+              maxWidth: 400,
+              maxHeight: 300,
+            ),
+            context,
+          );
+        } catch (e) {
+          // Silently fail
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocBuilder<PostsBloc, PostsState>(
@@ -216,12 +297,15 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                           };
                         });
                         _applyModeFilter();
+                        // Precache images after ranking
+                        _precacheVisibleImages();
                       });
                     }
 
                     if (_filteredEvents.isEmpty && _searchController.text.isEmpty && _rankedEventIds.isEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _applyModeFilter();
+                        _precacheVisibleImages();
                       });
                     }
 
@@ -561,7 +645,11 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                     color: const Color(0xFFFAF8F5),
                     image: event.imageUrls.isNotEmpty
                         ? DecorationImage(
-                            image: NetworkImage(event.imageUrls.first),
+                            image: CachedNetworkImageProvider(
+                              event.imageUrls.first,
+                              maxWidth: 400,
+                              maxHeight: 300,
+                            ),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -826,10 +914,17 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                 padding: const EdgeInsets.all(2),
                 child: ClipOval(
                   child: event.imageUrls.isNotEmpty
-                      ? Image.network(
-                          event.imageUrls.first,
+                      ? CachedNetworkImage(
+                          imageUrl: event.imageUrls.first,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) => Container(
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                          memCacheWidth: 100,
+                          memCacheHeight: 100,
+                          placeholder: (context, url) => Container(
+                            color: const Color(0xFFFAF8F5),
+                          ),
+                          errorWidget: (context, url, error) => Container(
                             color: const Color(0xFFFAF8F5),
                             child: const Icon(
                               Icons.event_rounded,

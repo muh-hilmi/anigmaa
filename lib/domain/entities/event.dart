@@ -9,6 +9,7 @@ class Event {
   final EventCategory category;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime? createdAt; // Event creation timestamp
   final EventLocation location;
   final EventHost host;
   final List<String> imageUrls;
@@ -38,6 +39,7 @@ class Event {
     required this.category,
     required this.startTime,
     required this.endTime,
+    this.createdAt,
     required this.location,
     required this.host,
     this.imageUrls = const [],

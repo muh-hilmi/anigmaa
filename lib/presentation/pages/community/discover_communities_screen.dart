@@ -21,11 +21,91 @@ class DiscoverCommunitiesScreen extends StatefulWidget {
 
 class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
   CommunityCategory? _selectedCategory;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     context.read<CommunitiesBloc>().add(LoadCommunities());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+
+      // Preload more images when 70% scrolled
+      if (currentScroll > maxScroll * 0.7) {
+        _precacheUpcomingImages();
+      }
+    }
+  }
+
+  void _precacheVisibleImages(List<Community> communities) {
+    if (!mounted) return;
+
+    // Take first 15 communities
+    final visibleCommunities = communities.take(15).toList();
+
+    for (final community in visibleCommunities) {
+      if (community.icon != null && community.icon!.isNotEmpty) {
+        precacheImage(
+          CachedNetworkImageProvider(
+            community.icon!,
+            maxWidth: 112,
+            maxHeight: 112,
+          ),
+          context,
+        );
+      }
+    }
+  }
+
+  void _precacheUpcomingImages() {
+    if (!mounted) return;
+
+    final state = context.read<CommunitiesBloc>().state;
+    if (state is! CommunitiesLoaded) return;
+
+    var communities = state.filteredCommunities;
+    if (_selectedCategory != null) {
+      communities = communities
+          .where((c) => c.category == _selectedCategory)
+          .toList();
+    }
+
+    if (communities.isEmpty) return;
+
+    // Calculate current scroll position in terms of items
+    final currentScroll = _scrollController.position.pixels;
+    final itemHeight = 200.0; // Approximate height of a community card
+    final currentIndex = (currentScroll / itemHeight).floor();
+
+    // Precache next 10 communities
+    final startIndex = currentIndex + 1;
+    final endIndex = (startIndex + 10).clamp(0, communities.length);
+
+    for (int i = startIndex; i < endIndex; i++) {
+      final community = communities[i];
+      if (community.icon != null && community.icon!.isNotEmpty) {
+        precacheImage(
+          CachedNetworkImageProvider(
+            community.icon!,
+            maxWidth: 112,
+            maxHeight: 112,
+          ),
+          context,
+        );
+      }
+    }
   }
 
   @override
@@ -86,6 +166,11 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                         .toList();
                   }
 
+                  // Precache visible images when communities are loaded
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _precacheVisibleImages(communities);
+                  });
+
                   if (communities.isEmpty) {
                     return Center(
                       child: Column(
@@ -113,6 +198,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                       context.read<CommunitiesBloc>().add(LoadCommunities());
                     },
                     child: ListView.builder(
+                      controller: _scrollController,
                       padding: const EdgeInsets.only(top: 8),
                       itemCount: communities.length,
                       itemBuilder: (context, index) {
@@ -342,16 +428,14 @@ class _CommunityCard extends StatelessWidget {
           width: 56,
           height: 56,
           fit: BoxFit.cover,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          memCacheWidth: 112,
+          memCacheHeight: 112,
           placeholder: (context, url) => Container(
             width: 56,
             height: 56,
             color: Colors.grey.shade200,
-            child: const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color(0xFF84994F),
-              ),
-            ),
           ),
           errorWidget: (context, url, error) => _buildDefaultAvatar(),
         ),
