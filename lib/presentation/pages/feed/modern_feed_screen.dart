@@ -320,7 +320,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
           ),
           const SizedBox(height: 24),
           const Text(
-            'Halo! Selamat datang di Anigmaa 👋',
+            'Halo! Selamat datang di flyerr 👋',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,

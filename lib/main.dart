@@ -99,7 +99,7 @@ class NotionSocialApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Anigmaa',
+        title: 'flyerr',
         debugShowCheckedModeBanner: false,
         navigatorObservers: [AppNavigationObserver()],
         theme: ThemeData(

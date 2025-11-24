@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 32),
             // App Name
             const Text(
-              'Anigmaa',
+              'flyerr',
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.w800,

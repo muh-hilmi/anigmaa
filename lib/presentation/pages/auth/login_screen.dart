@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Anigmaa',
+          'flyerr',
           style: TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.w800,

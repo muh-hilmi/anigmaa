@@ -11,7 +11,7 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 
-/// Instagram-style Edit Profile Screen with Anigmaa theme
+/// Instagram-style Edit Profile Screen with flyerr theme
 class EditProfileScreen extends StatefulWidget {
   final User? user;
 

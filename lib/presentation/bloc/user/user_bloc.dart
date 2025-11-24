@@ -96,8 +96,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
   void _loadMockUserProfile(Emitter<UserState> emit) {
     // Get user from auth service
-    final email = authService.userEmail ?? 'user@anigmaa.com';
-    final name = authService.userName ?? 'Anigmaa User';
+    final email = authService.userEmail ?? 'user@flyerr.com';
+    final name = authService.userName ?? 'flyerr User';
 
     // Mock user data - MINIMAL DATA (no dummy bio/avatar)
     final user = User(

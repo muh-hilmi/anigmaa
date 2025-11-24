@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       body: SafeArea(
         child: Column(
           children: [
-            // Header with Anigmaa title
+            // Header with flyerr title
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Anigmaa',
+                    'flyerr',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
