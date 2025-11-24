@@ -122,7 +122,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                 if (state is CommunitiesLoading) {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   );
                 }
@@ -193,7 +193,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                   }
 
                   return RefreshIndicator(
-                    color: const Color(0xFF84994F),
+                    color: const Color(0xFFCCFF00),
                     onRefresh: () async {
                       context.read<CommunitiesBloc>().add(LoadCommunities());
                     },
@@ -291,14 +291,14 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
           });
         },
         backgroundColor: Colors.white,
-        selectedColor: const Color(0xFF84994F).withValues(alpha: 0.15),
+        selectedColor: const Color(0xFFCCFF00).withValues(alpha: 0.15),
         labelStyle: TextStyle(
-          color: isSelected ? const Color(0xFF84994F) : Colors.grey[700],
+          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey[700],
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           fontSize: 14,
         ),
         side: BorderSide(
-          color: isSelected ? const Color(0xFF84994F) : Colors.grey.shade300,
+          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey.shade300,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
@@ -362,7 +362,7 @@ class _CommunityCard extends StatelessWidget {
                             const Icon(
                               Icons.verified,
                               size: 16,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                           ],
                         ],
@@ -449,7 +449,7 @@ class _CommunityCard extends StatelessWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0xFF84994F).withValues(alpha: 0.1),
+        color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -458,7 +458,7 @@ class _CommunityCard extends StatelessWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF84994F),
+            color: Color(0xFFCCFF00),
           ),
         ),
       ),
@@ -469,8 +469,8 @@ class _CommunityCard extends StatelessWidget {
     return OutlinedButton(
       onPressed: onJoin,
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF84994F),
-        side: const BorderSide(color: Color(0xFF84994F)),
+        foregroundColor: const Color(0xFFCCFF00),
+        side: const BorderSide(color: Color(0xFFCCFF00)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         minimumSize: const Size(70, 32),
         shape: RoundedRectangleBorder(

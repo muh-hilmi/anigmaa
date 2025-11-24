@@ -319,7 +319,7 @@ class _LocationPickerState extends State<LocationPicker> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const CircularProgressIndicator(
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -358,7 +358,7 @@ class _LocationPickerState extends State<LocationPicker> {
                         const Icon(
                           Icons.location_pin,
                           size: 50,
-                          color: Color(0xFF84994F),
+                          color: Color(0xFFCCFF00),
                         ),
                         // Shadow circle below pin
                         Container(
@@ -384,7 +384,7 @@ class _LocationPickerState extends State<LocationPicker> {
                       onPressed: _initializeLocation,
                       child: const Icon(
                         Icons.my_location,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                       ),
                     ),
                   ),
@@ -416,7 +416,7 @@ class _LocationPickerState extends State<LocationPicker> {
                     children: [
                       const Icon(
                         Icons.location_on,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -429,7 +429,7 @@ class _LocationPickerState extends State<LocationPicker> {
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Color(0xFF84994F),
+                                      color: Color(0xFFCCFF00),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -477,7 +477,7 @@ class _LocationPickerState extends State<LocationPicker> {
                     child: ElevatedButton(
                       onPressed: _isLoadingAddress ? null : _confirmLocation,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF84994F),
+                        backgroundColor: const Color(0xFFCCFF00),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

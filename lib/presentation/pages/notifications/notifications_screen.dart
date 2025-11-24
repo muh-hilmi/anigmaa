@@ -103,7 +103,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Navigasi ke ${notification.actionUrl ?? "detail"}'),
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
             ),
           );
         },
@@ -174,7 +174,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   height: 8,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFF84994F),
+                    color: Color(0xFFCCFF00),
                   ),
                 ),
             ],
@@ -235,15 +235,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case domain.NotificationType.comment:
         return Colors.blue;
       case domain.NotificationType.follow:
-        return const Color(0xFF84994F);
+        return const Color(0xFFCCFF00);
       case domain.NotificationType.eventReminder:
         return Colors.orange;
       case domain.NotificationType.eventJoined:
-        return const Color(0xFF84994F);
+        return const Color(0xFFCCFF00);
       case domain.NotificationType.eventInvite:
         return Colors.purple;
       case domain.NotificationType.repost:
-        return const Color(0xFF84994F);
+        return const Color(0xFFCCFF00);
       case domain.NotificationType.mention:
         return Colors.deepPurple;
     }

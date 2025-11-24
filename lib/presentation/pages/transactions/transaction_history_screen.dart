@@ -207,9 +207,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF84994F),
+          labelColor: const Color(0xFFCCFF00),
           unselectedLabelColor: Colors.grey[600],
-          indicatorColor: const Color(0xFF84994F),
+          indicatorColor: const Color(0xFFCCFF00),
           labelStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -276,7 +276,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF84994F), Color(0xFF6B7F3F)],
+          colors: [Color(0xFFCCFF00), Color(0xFF6B7F3F)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -350,7 +350,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
               label: const Text('Tarik Dana'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF84994F),
+                foregroundColor: const Color(0xFFCCFF00),
                 disabledBackgroundColor: Colors.white.withValues(alpha: 0.3),
                 disabledForegroundColor: Colors.white60,
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -394,7 +394,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
               'Bulan Ini',
               'Rp ${NumberFormat.compact(locale: 'id_ID').format(_thisMonthRevenue)}',
               Icons.calendar_today,
-              const Color(0xFF84994F),
+              const Color(0xFFCCFF00),
             ),
           ),
         ],
@@ -476,12 +476,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                  color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.event,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                   size: 24,
                 ),
               ),
@@ -546,7 +546,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                       ),
                     ),
                   ],
@@ -623,13 +623,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.filter_alt, size: 16, color: Color(0xFF84994F)),
+                  const Icon(Icons.filter_alt, size: 16, color: Color(0xFFCCFF00)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -637,7 +637,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -650,7 +650,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
                         _selectedEventFilter = 'all';
                       });
                     },
-                    child: const Icon(Icons.close, size: 18, color: Color(0xFF84994F)),
+                    child: const Icon(Icons.close, size: 18, color: Color(0xFFCCFF00)),
                   ),
                 ],
               ),
@@ -688,7 +688,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF84994F),
+      selectedColor: const Color(0xFFCCFF00),
       labelStyle: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
@@ -697,7 +697,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? const Color(0xFF84994F) : Colors.grey[300]!,
+          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey[300]!,
         ),
       ),
     );
@@ -727,7 +727,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Detail transaksi ${transaction.displayId} bentar lagi ya!'),
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
               ),
             );
           },
@@ -797,7 +797,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: transaction.status == TransactionStatus.success
-                                ? const Color(0xFF84994F)
+                                ? const Color(0xFFCCFF00)
                                 : Colors.grey[600],
                           ),
                         ),
@@ -963,7 +963,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
         ),
         title: const Row(
           children: [
-            Icon(Icons.info_outline, color: Color(0xFF84994F)),
+            Icon(Icons.info_outline, color: Color(0xFFCCFF00)),
             SizedBox(width: 8),
             Text(
               'Info Keuangan',
@@ -1006,14 +1006,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF84994F).withValues(alpha: 0.1),
+                color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
                 'Dana bisa ditarik setelah event selesai atau mencapai minimum penarikan.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1078,7 +1078,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF84994F), Color(0xFF6B7F3F)],
+                  colors: [Color(0xFFCCFF00), Color(0xFF6B7F3F)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1155,12 +1155,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> wit
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Fitur penarikan dana coming soon!'),
-                  backgroundColor: Color(0xFF84994F),
+                  backgroundColor: Color(0xFFCCFF00),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

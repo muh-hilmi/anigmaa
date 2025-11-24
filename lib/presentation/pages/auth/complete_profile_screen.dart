@@ -138,7 +138,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _selectedDate == null ? Colors.grey[300]! : const Color(0xFF84994F),
+                color: _selectedDate == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
                 width: 1,
               ),
             ),
@@ -146,7 +146,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               children: [
                 Icon(
                   Icons.cake_outlined,
-                  color: _selectedDate == null ? Colors.grey[400] : const Color(0xFF84994F),
+                  color: _selectedDate == null ? Colors.grey[400] : const Color(0xFFCCFF00),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -186,7 +186,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _selectedGender == null ? Colors.grey[300]! : const Color(0xFF84994F),
+              color: _selectedGender == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
               width: 1,
             ),
           ),
@@ -245,7 +245,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF84994F), width: 2),
+              borderSide: const BorderSide(color: Color(0xFFCCFF00), width: 2),
             ),
           ),
         ),
@@ -294,7 +294,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _location == null ? Colors.grey[300]! : const Color(0xFF84994F),
+                color: _location == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
                 width: 1,
               ),
             ),
@@ -308,7 +308,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       )
                     : Icon(
                         Icons.location_on_outlined,
-                        color: _location == null ? Colors.grey[400] : const Color(0xFF84994F),
+                        color: _location == null ? Colors.grey[400] : const Color(0xFFCCFF00),
                       ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -345,7 +345,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       child: ElevatedButton(
         onPressed: isValid && !_isSubmitting ? _handleSubmit : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF84994F),
+          backgroundColor: const Color(0xFFCCFF00),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -399,7 +399,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF84994F),
+              primary: Color(0xFFCCFF00),
             ),
           ),
           child: child!,

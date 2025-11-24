@@ -91,7 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             )
           : Form(
@@ -153,7 +153,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                           )
                         : null,
@@ -193,7 +193,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: const Text(
             'Done',
             style: TextStyle(
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -233,7 +233,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                           ),
@@ -274,7 +274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: const Text(
           'Change photo',
           style: TextStyle(
-            color: Color(0xFF84994F),
+            color: Color(0xFFCCFF00),
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -383,12 +383,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF84994F)
+                    ? const Color(0xFFCCFF00)
                     : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF84994F)
+                      ? const Color(0xFFCCFF00)
                       : Colors.grey.shade300,
                   width: 1,
                 ),
@@ -444,7 +444,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -488,7 +488,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -524,7 +524,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               icon: const Icon(Icons.my_location, size: 18),
               label: const Text('Use current location'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF84994F),
+                foregroundColor: const Color(0xFFCCFF00),
               ),
             ),
           ],
@@ -545,7 +545,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -567,7 +567,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               title: Text(gender),
               value: gender,
               groupValue: _selectedGender,
-              activeColor: const Color(0xFF84994F),
+              activeColor: const Color(0xFFCCFF00),
               onChanged: (value) {
                 setState(() {
                   _selectedGender = value;
@@ -591,7 +591,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF84994F),
+              primary: Color(0xFFCCFF00),
             ),
           ),
           child: child!,
@@ -664,7 +664,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF84994F)),
+                leading: const Icon(Icons.camera_alt, color: Color(0xFFCCFF00)),
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
@@ -673,7 +673,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               ListTile(
                 leading:
-                    const Icon(Icons.photo_library, color: Color(0xFF84994F)),
+                    const Icon(Icons.photo_library, color: Color(0xFFCCFF00)),
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
@@ -781,7 +781,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
-            backgroundColor: Color(0xFF84994F),
+            backgroundColor: Color(0xFFCCFF00),
             duration: Duration(seconds: 2),
           ),
         );

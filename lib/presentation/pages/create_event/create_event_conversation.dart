@@ -308,7 +308,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF84994F),
+              primary: Color(0xFFCCFF00),
             ),
           ),
           child: child!,
@@ -350,7 +350,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF84994F),
+              primary: Color(0xFFCCFF00),
             ),
           ),
           child: child!,
@@ -442,7 +442,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF84994F), width: 2),
+        border: Border.all(color: const Color(0xFFCCFF00), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,7 +453,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
             ),
           ),
           const SizedBox(height: 8),
@@ -462,7 +462,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withOpacity(0.1),
+              color: const Color(0xFFCCFF00).withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -470,7 +470,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             ),
           ),
@@ -548,7 +548,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F),
+              color: const Color(0xFFCCFF00),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -592,7 +592,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF84994F),
+          color: const Color(0xFFCCFF00),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -681,7 +681,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: source == null ? Colors.grey[300] : const Color(0xFF84994F),
+          color: source == null ? Colors.grey[300] : const Color(0xFFCCFF00),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -724,7 +724,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFF84994F),
+                color: const Color(0xFFCCFF00),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
@@ -744,7 +744,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
                 Text(
                   'Isi detail event kamu',
                   style: TextStyle(
-                    color: Color(0xFF84994F),
+                    color: Color(0xFFCCFF00),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -790,7 +790,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: message.isBot ? Colors.white : const Color(0xFF84994F),
+                color: message.isBot ? Colors.white : const Color(0xFFCCFF00),
                 borderRadius: BorderRadius.circular(20).copyWith(
                   bottomLeft: message.isBot ? const Radius.circular(4) : null,
                   bottomRight: message.isBot ? null : const Radius.circular(4),
@@ -958,7 +958,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF84994F),
+          color: const Color(0xFFCCFF00),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -1002,7 +1002,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.send, color: Colors.white, size: 20),
@@ -1033,7 +1033,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: Color(0xFF84994F)),
+              side: const BorderSide(color: Color(0xFFCCFF00)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1043,7 +1043,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             ),
           ),
@@ -1054,7 +1054,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           child: ElevatedButton(
             onPressed: _submitEvent,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

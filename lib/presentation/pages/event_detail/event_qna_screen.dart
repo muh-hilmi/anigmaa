@@ -112,7 +112,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
               onChanged: (value) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'Cari pertanyaan...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF84994F)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFFCCFF00)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 20),
@@ -144,7 +144,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                 if (state is QnALoading) {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   );
                 }
@@ -207,7 +207,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _askQuestion,
-        backgroundColor: const Color(0xFF84994F),
+        backgroundColor: const Color(0xFFCCFF00),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Tanya',
@@ -249,7 +249,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF84994F),
+      selectedColor: const Color(0xFFCCFF00),
       labelStyle: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
@@ -258,7 +258,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? const Color(0xFF84994F) : Colors.grey[300]!,
+          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey[300]!,
         ),
       ),
     );
@@ -289,12 +289,12 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withOpacity(0.1),
+                  color: const Color(0xFFCCFF00).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.help_outline,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                   size: 20,
                 ),
               ),
@@ -348,7 +348,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                       const Icon(
                         Icons.verified,
                         size: 14,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -356,7 +356,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF84994F),
+                          color: Color(0xFFCCFF00),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -429,12 +429,12 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: qna.isUpvotedByCurrentUser
-                        ? const Color(0xFF84994F).withOpacity(0.1)
+                        ? const Color(0xFFCCFF00).withOpacity(0.1)
                         : Colors.grey[100],
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: qna.isUpvotedByCurrentUser
-                          ? const Color(0xFF84994F)
+                          ? const Color(0xFFCCFF00)
                           : Colors.grey[300]!,
                       width: 1,
                     ),
@@ -445,7 +445,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                       Icon(
                         qna.isUpvotedByCurrentUser ? Icons.thumb_up : Icons.thumb_up_outlined,
                         size: 14,
-                        color: qna.isUpvotedByCurrentUser ? const Color(0xFF84994F) : Colors.grey[600],
+                        color: qna.isUpvotedByCurrentUser ? const Color(0xFFCCFF00) : Colors.grey[600],
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -453,7 +453,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: qna.isUpvotedByCurrentUser ? const Color(0xFF84994F) : Colors.grey[700],
+                          color: qna.isUpvotedByCurrentUser ? const Color(0xFFCCFF00) : Colors.grey[700],
                         ),
                       ),
                     ],
@@ -619,7 +619,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                                 Text('Pertanyaan terkirim! ✅'),
                               ],
                             ),
-                            backgroundColor: const Color(0xFF84994F),
+                            backgroundColor: const Color(0xFFCCFF00),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -628,7 +628,7 @@ class _EventQnAScreenState extends State<EventQnAScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF84994F),
+                        backgroundColor: const Color(0xFFCCFF00),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
