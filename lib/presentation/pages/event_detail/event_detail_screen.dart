@@ -188,7 +188,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           child: Icon(
                             Icons.event_rounded,
                             size: 140,
-                            color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                            color: const Color(0xFFCCFF00).withValues(alpha: 0.08),
                           ),
                         ),
                       );
@@ -199,7 +199,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         color: const Color(0xFFFAF8F5),
                         child: Center(
                           child: CircularProgressIndicator(
-                            color: const Color(0xFF84994F),
+                            color: const Color(0xFFCCFF00),
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
                                     loadingProgress.expectedTotalBytes!
@@ -215,7 +215,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       child: Icon(
                         Icons.event_rounded,
                         size: 140,
-                        color: const Color(0xFF84994F).withValues(alpha: 0.08),
+                        color: const Color(0xFFCCFF00).withValues(alpha: 0.08),
                       ),
                     ),
                   ),
@@ -264,7 +264,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: widget.event.isFree
-                              ? const Color(0xFF84994F)
+                              ? const Color(0xFFCCFF00)
                               : const Color(0xFF6366F1),
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -299,7 +299,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             color: const Color(0xFFFAF8F5),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF84994F).withValues(alpha: 0.3),
+                              color: const Color(0xFFCCFF00).withValues(alpha: 0.3),
                               width: 1.5,
                             ),
                           ),
@@ -308,7 +308,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                           ),
                         ),
@@ -399,12 +399,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withValues(alpha: 0.15),
+              color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.calendar_today,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               size: 18,
             ),
           ),
@@ -455,12 +455,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withValues(alpha: 0.15),
+              color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.location_on,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               size: 18,
             ),
           ),
@@ -523,7 +523,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF84994F).withValues(alpha: 0.2),
+                color: const Color(0xFFCCFF00).withValues(alpha: 0.2),
               ),
               child: Center(
                 child: Text(
@@ -531,7 +531,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF84994F),
+                    color: Color(0xFFCCFF00),
                   ),
                 ),
               ),
@@ -556,7 +556,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       const Icon(
                         Icons.verified,
                         size: 14,
-                        color: Color(0xFF84994F),
+                        color: Color(0xFFCCFF00),
                       ),
                     ],
                   ],
@@ -654,7 +654,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF84994F),
+                          color: Color(0xFFCCFF00),
                         ),
                       ),
                     ),
@@ -667,7 +667,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: CircularProgressIndicator(
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   ),
                 )
@@ -714,7 +714,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   onPressed: _askQuestion,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    side: const BorderSide(color: Color(0xFF84994F), width: 1.5),
+                    side: const BorderSide(color: Color(0xFFCCFF00), width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -722,14 +722,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   icon: const Icon(
                     Icons.help_outline,
                     size: 18,
-                    color: Color(0xFF84994F),
+                    color: Color(0xFFCCFF00),
                   ),
                   label: const Text(
                     'Tanya Dong 💬',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   ),
                 ),
@@ -764,7 +764,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                  color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -772,7 +772,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF84994F),
+                    color: Color(0xFFCCFF00),
                   ),
                 ),
               ),
@@ -813,7 +813,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF84994F).withValues(alpha: 0.15),
+                    color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
@@ -821,7 +821,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   ),
                 ),
@@ -992,7 +992,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 Text('Pertanyaan terkirim! ✅'),
                               ],
                             ),
-                            backgroundColor: const Color(0xFF84994F),
+                            backgroundColor: const Color(0xFFCCFF00),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1001,7 +1001,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF84994F),
+                        backgroundColor: const Color(0xFFCCFF00),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -1040,12 +1040,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withValues(alpha: 0.15),
+              color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.people,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               size: 18,
             ),
           ),
@@ -1426,7 +1426,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF84994F),
+          backgroundColor: const Color(0xFFCCFF00),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
           shape: RoundedRectangleBorder(
@@ -1498,7 +1498,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: (widget.event.isFull || widget.event.hasEnded)
                         ? Colors.grey[300]
-                        : const Color(0xFF84994F),
+                        : const Color(0xFFCCFF00),
                       foregroundColor: (widget.event.isFull || widget.event.hasEnded)
                         ? Colors.grey[600]
                         : Colors.white,
@@ -2515,7 +2515,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                           ],
@@ -2536,13 +2536,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               side: const BorderSide(
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                             child: const Text(
                               'Gajadi',
                               style: TextStyle(
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -2566,7 +2566,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF84994F),
+                              backgroundColor: const Color(0xFFCCFF00),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -2667,7 +2667,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF84994F),
+                          backgroundColor: const Color(0xFFCCFF00),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(

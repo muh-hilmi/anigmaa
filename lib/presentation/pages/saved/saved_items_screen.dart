@@ -46,7 +46,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
           controller: _tabController,
           labelColor: const Color(0xFF1A1A1A),
           unselectedLabelColor: Colors.grey[400],
-          indicatorColor: const Color(0xFF84994F),
+          indicatorColor: const Color(0xFFCCFF00),
           indicatorWeight: 2.5,
           labelStyle: const TextStyle(
             fontSize: 14,
@@ -124,13 +124,13 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF84994F).withOpacity(0.1),
+                color: const Color(0xFFCCFF00).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: const Color(0xFF84994F),
+                color: const Color(0xFFCCFF00),
               ),
             ),
             const SizedBox(height: 24),
@@ -162,7 +162,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
               icon: const Icon(Icons.explore_rounded, size: 20),
               label: const Text('Jelajahi Event'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -268,7 +268,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
               IconButton(
                 icon: const Icon(
                   Icons.bookmark,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                 ),
                 onPressed: () {
                   // Remove from saved
@@ -332,7 +332,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
                   IconButton(
                     icon: const Icon(
                       Icons.bookmark,
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                     onPressed: () {
                       // Remove from saved

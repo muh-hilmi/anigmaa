@@ -99,21 +99,21 @@ class NotionSocialApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Anigmaa',
+        title: 'flyerr',
         debugShowCheckedModeBanner: false,
         navigatorObservers: [AppNavigationObserver()],
         theme: ThemeData(
           useMaterial3: true,
           textTheme: GoogleFonts.plusJakartaSansTextTheme(),
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF84994F),
+            seedColor: const Color(0xFFCCFF00),
             brightness: Brightness.light,
           ),
-          primaryColor: const Color(0xFF84994F),
+          primaryColor: const Color(0xFFCCFF00),
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Color(0xFF84994F)),
+            iconTheme: const IconThemeData(color: Color(0xFFCCFF00)),
             titleTextStyle: GoogleFonts.plusJakartaSans(
               color: const Color(0xFF1A1A1A),
               fontSize: 20,
@@ -358,7 +358,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               FloatingActionButton(
                 heroTag: "main_fab",
                 onPressed: _toggleSpeedDial,
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
                 elevation: _isSpeedDialOpen ? 8 : 6,
                 child: AnimatedRotation(
                   duration: const Duration(milliseconds: 200),
@@ -389,7 +389,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         padding: const EdgeInsets.all(12),
         child: Icon(
           isActive ? filledIcon : outlineIcon,
-          color: isActive ? const Color(0xFF84994F) : Colors.grey[600],
+          color: isActive ? const Color(0xFFCCFF00) : Colors.grey[600],
           size: 28,
         ),
       ),
@@ -442,7 +442,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84994F),
+                  color: const Color(0xFFCCFF00),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(

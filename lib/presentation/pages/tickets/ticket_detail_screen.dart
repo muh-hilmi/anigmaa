@@ -67,7 +67,7 @@ class TicketDetailScreen extends StatelessWidget {
                             ? [Colors.grey[300]!, Colors.grey[400]!]
                             : isCheckedIn
                                 ? [Colors.green[400]!, Colors.green[600]!]
-                                : [const Color(0xFF84994F), const Color(0xFF6B7F3F)],
+                                : [const Color(0xFFCCFF00), const Color(0xFF6B7F3F)],
                       ),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(24),
@@ -147,7 +147,7 @@ class TicketDetailScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 56,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                               letterSpacing: 8,
                               fontFamily: 'monospace',
                             ),
@@ -285,15 +285,15 @@ class TicketDetailScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Download struk bentar lagi ya!'),
-                              backgroundColor: Color(0xFF84994F),
+                              backgroundColor: Color(0xFFCCFF00),
                             ),
                           );
                         },
                         icon: const Icon(Icons.download, size: 18),
                         label: const Text('Download Struk'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF84994F),
-                          side: const BorderSide(color: Color(0xFF84994F)),
+                          foregroundColor: const Color(0xFFCCFF00),
+                          side: const BorderSide(color: Color(0xFFCCFF00)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -308,15 +308,15 @@ class TicketDetailScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Bagiin struk bentar lagi ya!'),
-                              backgroundColor: Color(0xFF84994F),
+                              backgroundColor: Color(0xFFCCFF00),
                             ),
                           );
                         },
                         icon: const Icon(Icons.share, size: 18),
                         label: const Text('Bagiin Struk'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF84994F),
-                          side: const BorderSide(color: Color(0xFF84994F)),
+                          foregroundColor: const Color(0xFFCCFF00),
+                          side: const BorderSide(color: Color(0xFFCCFF00)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

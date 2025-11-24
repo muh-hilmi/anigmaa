@@ -72,7 +72,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           controller: _tabController,
           labelColor: Colors.black,
           unselectedLabelColor: Colors.grey[600],
-          indicatorColor: const Color(0xFF84994F),
+          indicatorColor: const Color(0xFFCCFF00),
           indicatorWeight: 3,
           labelStyle: const TextStyle(
             fontSize: 15,
@@ -100,7 +100,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         if (state is CommunitiesLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
             ),
           );
         }
@@ -137,7 +137,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                       context.read<CommunitiesBloc>().add(LoadCommunities());
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF84994F),
+                      backgroundColor: const Color(0xFFCCFF00),
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('Try Again'),
@@ -154,7 +154,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           }
 
           return RefreshIndicator(
-            color: const Color(0xFF84994F),
+            color: const Color(0xFFCCFF00),
             onRefresh: () async {
               context.read<CommunitiesBloc>().add(LoadCommunities());
             },
@@ -182,7 +182,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         if (state is CommunitiesLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
             ),
           );
         }
@@ -251,7 +251,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                 _tabController.animateTo(0);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -500,7 +500,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                       context.read<CommunitiesBloc>().add(JoinCommunity(community.id));
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF84994F),
+                      backgroundColor: const Color(0xFFCCFF00),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       shape: RoundedRectangleBorder(
@@ -581,7 +581,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                             const Icon(
                               Icons.verified,
                               size: 16,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                           ],
                         ],
@@ -628,11 +628,11 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor:
-                        isJoined ? Colors.grey[700] : const Color(0xFF84994F),
+                        isJoined ? Colors.grey[700] : const Color(0xFFCCFF00),
                     side: BorderSide(
                       color: isJoined
                           ? Colors.grey.shade300
-                          : const Color(0xFF84994F),
+                          : const Color(0xFFCCFF00),
                     ),
                     backgroundColor: isJoined ? Colors.grey.shade50 : null,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -688,7 +688,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
             child: const Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             ),
           ),
@@ -705,7 +705,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0xFF84994F).withValues(alpha: 0.1),
+        color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -714,7 +714,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF84994F),
+            color: Color(0xFFCCFF00),
           ),
         ),
       ),

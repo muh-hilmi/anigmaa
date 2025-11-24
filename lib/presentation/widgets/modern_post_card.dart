@@ -295,7 +295,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             ),
           ),
@@ -477,7 +477,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
                 content: const Text('Mantap! Lo udah ikutan event ini. Cek "Cari Temen" yuk!'),
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
               ),
             );
           },
@@ -548,7 +548,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: _isLiked ? FontWeight.w700 : FontWeight.w600,
-                          color: _isLiked ? const Color(0xFF84994F) : const Color(0xFF262626),
+                          color: _isLiked ? const Color(0xFFCCFF00) : const Color(0xFF262626),
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -772,7 +772,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
               _buildMenuItem(
                 context,
                 icon: Icons.bookmark_border_rounded,
-                iconColor: const Color(0xFF84994F),
+                iconColor: const Color(0xFFCCFF00),
                 backgroundColor: const Color(0xFFE8EDDA),
                 title: 'Simpan Post',
                 onTap: () => Navigator.pop(context),
@@ -999,7 +999,7 @@ class _ModernPostCardState extends State<ModernPostCard> with SingleTickerProvid
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF84994F),
+                                  color: Color(0xFFCCFF00),
                                 ),
                               ),
                             ),

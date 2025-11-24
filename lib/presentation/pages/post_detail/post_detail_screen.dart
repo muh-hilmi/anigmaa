@@ -264,7 +264,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                           padding: const EdgeInsets.all(32),
                           child: Center(
                             child: CircularProgressIndicator(
-                              color: const Color(0xFF84994F),
+                              color: const Color(0xFFCCFF00),
                               strokeWidth: 3,
                             ),
                           ),
@@ -325,7 +325,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF84994F),
+                          color: Color(0xFFCCFF00),
                         ),
                       ),
                     ),
@@ -496,7 +496,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84994F),
+                  color: const Color(0xFFCCFF00),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
@@ -593,7 +593,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                             fontSize: 15,
                             fontWeight: _isLiked ? FontWeight.w700 : FontWeight.w600,
                             color: _isLiked
-                              ? const Color(0xFF84994F)
+                              ? const Color(0xFFCCFF00)
                               : const Color(0xFF262626),
                             letterSpacing: -0.3,
                           ),
@@ -773,7 +773,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                           ),

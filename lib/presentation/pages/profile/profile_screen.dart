@@ -198,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           if (state is UserLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
               ),
             );
           }
@@ -228,7 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ElevatedButton(
                     onPressed: _initialize,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF84994F),
+                      backgroundColor: const Color(0xFFCCFF00),
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('Coba Lagi'),
@@ -246,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             if (_tabController == null) {
               return const Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                 ),
               );
             }
@@ -267,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Color(0xFF84994F),
+                                Color(0xFFCCFF00),
                                 Color(0xFFA8B86D),
                               ],
                               begin: Alignment.topLeft,
@@ -337,7 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           decoration: const BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
-                                                Color(0xFF84994F),
+                                                Color(0xFFCCFF00),
                                                 Color(0xFFA8B86D),
                                               ],
                                               begin: Alignment.topLeft,
@@ -387,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 const Icon(
                                   Icons.verified,
                                   size: 20,
-                                  color: Color(0xFF84994F),
+                                  color: Color(0xFFCCFF00),
                                 ),
                               ],
                             ],
@@ -587,9 +587,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                     delegate: _StickyTabBarDelegate(
                       TabBar(
                         controller: _tabController!,
-                        labelColor: const Color(0xFF84994F),
+                        labelColor: const Color(0xFFCCFF00),
                         unselectedLabelColor: Colors.grey,
-                        indicatorColor: const Color(0xFF84994F),
+                        indicatorColor: const Color(0xFFCCFF00),
                         indicatorWeight: 3,
                         labelStyle: const TextStyle(
                           fontWeight: FontWeight.w600,
@@ -634,7 +634,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: IconButton(
                     icon: Icon(
                       _isOwnProfile ? Icons.menu : Icons.more_vert,
-                      color: const Color(0xFF84994F),
+                      color: const Color(0xFFCCFF00),
                     ),
                     onPressed: () {
                       if (_isOwnProfile) {
@@ -663,7 +663,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF84994F),
+            Color(0xFFCCFF00),
             Color(0xFFA8B86D),
           ],
           begin: Alignment.topLeft,
@@ -710,7 +710,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           gradient: isPrimary
               ? const LinearGradient(
                   colors: [
-                    Color(0xFF84994F),
+                    Color(0xFFCCFF00),
                     Color(0xFFA8B86D),
                   ],
                   begin: Alignment.topLeft,

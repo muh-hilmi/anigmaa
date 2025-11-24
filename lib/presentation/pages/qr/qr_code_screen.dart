@@ -49,7 +49,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
           controller: _tabController,
           labelColor: const Color(0xFF1A1A1A),
           unselectedLabelColor: Colors.grey[400],
-          indicatorColor: const Color(0xFF84994F),
+          indicatorColor: const Color(0xFFCCFF00),
           indicatorWeight: 2.5,
           labelStyle: const TextStyle(
             fontSize: 14,
@@ -121,7 +121,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                       // User info
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: const Color(0xFF84994F).withOpacity(0.1),
+                        backgroundColor: const Color(0xFFCCFF00).withOpacity(0.1),
                         backgroundImage: state.user.avatar != null
                             ? NetworkImage(state.user.avatar!)
                             : null,
@@ -156,7 +156,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(
-                            color: const Color(0xFF84994F).withOpacity(0.3),
+                            color: const Color(0xFFCCFF00).withOpacity(0.3),
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -167,7 +167,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                             Icon(
                               Icons.qr_code_2_rounded,
                               size: 120,
-                              color: const Color(0xFF84994F).withOpacity(0.3),
+                              color: const Color(0xFFCCFF00).withOpacity(0.3),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -188,7 +188,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF84994F).withOpacity(0.05),
+                          color: const Color(0xFFCCFF00).withOpacity(0.05),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -196,7 +196,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                             Icon(
                               Icons.info_outline,
                               size: 20,
-                              color: const Color(0xFF84994F),
+                              color: const Color(0xFFCCFF00),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -227,16 +227,16 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('QR code disimpan ke galeri!'),
-                              backgroundColor: Color(0xFF84994F),
+                              backgroundColor: Color(0xFFCCFF00),
                             ),
                           );
                         },
                         icon: const Icon(Icons.download_rounded, size: 20),
                         label: const Text('Simpan'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF84994F),
+                          foregroundColor: const Color(0xFFCCFF00),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFF84994F)),
+                          side: const BorderSide(color: Color(0xFFCCFF00)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -251,14 +251,14 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Berbagi QR code...'),
-                              backgroundColor: Color(0xFF84994F),
+                              backgroundColor: Color(0xFFCCFF00),
                             ),
                           );
                         },
                         icon: const Icon(Icons.share_rounded, size: 20),
                         label: const Text('Bagikan'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF84994F),
+                          backgroundColor: const Color(0xFFCCFF00),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -294,7 +294,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: const Color(0xFF84994F).withOpacity(0.3),
+                  color: const Color(0xFFCCFF00).withOpacity(0.3),
                   width: 3,
                 ),
                 boxShadow: [
@@ -311,7 +311,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                   Icon(
                     Icons.qr_code_scanner_rounded,
                     size: 100,
-                    color: const Color(0xFF84994F).withOpacity(0.5),
+                    color: const Color(0xFFCCFF00).withOpacity(0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -350,14 +350,14 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Fitur scan QR code lagi on progress nih!'),
-                    backgroundColor: Color(0xFF84994F),
+                    backgroundColor: Color(0xFFCCFF00),
                   ),
                 );
               },
               icon: const Icon(Icons.qr_code_scanner, size: 24),
               label: const Text('Mulai Scan'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -378,7 +378,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
               icon: const Icon(Icons.keyboard_rounded, size: 20),
               label: const Text('Masukkan Kode Manual'),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF84994F),
+                foregroundColor: const Color(0xFFCCFF00),
               ),
             ),
           ],
@@ -413,7 +413,7 @@ class _QRCodeScreenState extends State<QRCodeScreen>
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFF84994F),
+                color: Color(0xFFCCFF00),
                 width: 2,
               ),
             ),
@@ -432,13 +432,13 @@ class _QRCodeScreenState extends State<QRCodeScreen>
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Memproses kode: ${controller.text}'),
-                    backgroundColor: const Color(0xFF84994F),
+                    backgroundColor: const Color(0xFFCCFF00),
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

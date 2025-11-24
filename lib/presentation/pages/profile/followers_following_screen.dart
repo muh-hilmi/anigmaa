@@ -70,7 +70,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF84994F),
+        backgroundColor: const Color(0xFFCCFF00),
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -154,7 +154,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
                 ElevatedButton(
                   onPressed: _loadData,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF84994F),
+                    backgroundColor: const Color(0xFFCCFF00),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Coba Lagi'),
@@ -171,7 +171,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
         if (users.isEmpty && isLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
             ),
           );
         }
@@ -263,11 +263,11 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
                           imageUrl: user.avatar!,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            color: const Color(0xFF84994F).withValues(alpha: 0.2),
+                            color: const Color(0xFFCCFF00).withValues(alpha: 0.2),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Color(0xFF84994F),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                           ),
@@ -301,7 +301,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
                           const Icon(
                             Icons.verified,
                             size: 16,
-                            color: Color(0xFF84994F),
+                            color: Color(0xFFCCFF00),
                           ),
                         ],
                       ],
@@ -339,7 +339,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF84994F),
+            Color(0xFFCCFF00),
             Color(0xFFA8B86D),
           ],
           begin: Alignment.topLeft,

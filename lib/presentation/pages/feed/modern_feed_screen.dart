@@ -280,7 +280,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
               context.read<EventsBloc>().add(LoadEvents());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -309,18 +309,18 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFF84994F).withValues(alpha: 0.1),
+              color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.feed_outlined,
               size: 60,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
             ),
           ),
           const SizedBox(height: 24),
           const Text(
-            'Halo! Selamat datang di Anigmaa 👋',
+            'Halo! Selamat datang di flyerr 👋',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -352,7 +352,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
               shape: RoundedRectangleBorder(

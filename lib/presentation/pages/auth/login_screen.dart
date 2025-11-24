@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: const Color(0xFF84994F),
+            color: const Color(0xFFCCFF00),
             borderRadius: BorderRadius.circular(25),
           ),
           child: const Icon(
@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Anigmaa',
+          'flyerr',
           style: TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.w800,
@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleGoogleSignIn,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF84994F),
+          backgroundColor: const Color(0xFFCCFF00),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Selamat datang kembali, ${googleAccount.displayName ?? 'User'}! 🎉'),
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
             ),
           );
         }

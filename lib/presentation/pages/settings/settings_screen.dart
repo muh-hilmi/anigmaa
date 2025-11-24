@@ -203,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 _buildNavigationTile(
                   icon: Icons.info,
-                  title: 'Tentang Anigmaa',
+                  title: 'Tentang flyerr',
                   subtitle: 'Versi 1.0.0',
                   onTap: _showAbout,
                 ),
@@ -492,7 +492,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Tentang Anigmaa'),
+        title: const Text('Tentang flyerr'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,10 +502,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text('Build: 1.0.0+1'),
             SizedBox(height: 16),
             Text(
-              'Anigmaa adalah app lo buat nemuin & bikin event keren di komunitas lo! 🎉',
+              'flyerr adalah app lo buat nemuin & bikin event keren di komunitas lo! 🎉',
             ),
             SizedBox(height: 16),
-            Text('© 2024 Anigmaa. All rights reserved.'),
+            Text('© 2024 flyerr. All rights reserved.'),
           ],
         ),
         actions: [

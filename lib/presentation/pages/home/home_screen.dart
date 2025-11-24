@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       body: SafeArea(
         child: Column(
           children: [
-            // Header with Anigmaa title
+            // Header with flyerr title
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             initials,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                             ),
                           ),
                         ),
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Anigmaa',
+                    'flyerr',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -120,9 +120,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               color: Colors.white,
               child: TabBar(
                 controller: _tabController,
-                indicatorColor: const Color(0xFF84994F),
+                indicatorColor: const Color(0xFFCCFF00),
                 indicatorWeight: 3,
-                labelColor: const Color(0xFF84994F),
+                labelColor: const Color(0xFFCCFF00),
                 unselectedLabelColor: Colors.grey[600],
                 labelStyle: const TextStyle(
                   fontSize: 16,

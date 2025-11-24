@@ -264,7 +264,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                   eventsState is! EventsLoaded ||
                   postsState is! PostsLoaded) {
                 return const Center(child: CircularProgressIndicator(
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                 ));
               }
 
@@ -312,7 +312,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                     return _allEvents.isEmpty
                         ? _buildEmptyState()
                         : RefreshIndicator(
-                            color: const Color(0xFF84994F),
+                            color: const Color(0xFFCCFF00),
                             onRefresh: () async {
                               context.read<EventsBloc>().add(LoadEventsByMode(mode: _selectedMode));
                               context.read<PostsBloc>().add(LoadPosts());
@@ -351,7 +351,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             addNewEvent(result);
           }
         },
-        backgroundColor: const Color(0xFF84994F),
+        backgroundColor: const Color(0xFFCCFF00),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -374,7 +374,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             ),
             child: const Icon(
               Icons.explore_rounded,
-              color: Color(0xFF84994F),
+              color: Color(0xFFCCFF00),
               size: 20,
             ),
           ),
@@ -425,7 +425,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           ),
           prefixIcon: const Icon(
             Icons.search_rounded,
-            color: Color(0xFF84994F),
+            color: Color(0xFFCCFF00),
             size: 22,
           ),
           suffixIcon: _searchController.text.isNotEmpty
@@ -483,7 +483,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             mode: 'nearby',
             label: 'Terdekat',
             icon: Icons.near_me_rounded,
-            color: const Color(0xFF84994F),
+            color: const Color(0xFFCCFF00),
           ),
           const SizedBox(width: 8),
           _buildModeChip(
@@ -626,7 +626,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF84994F).withOpacity(0.2),
+            color: const Color(0xFFCCFF00).withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -658,7 +658,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                       ? const Center(
                           child: Icon(
                             Icons.event_rounded,
-                            color: Color(0xFF84994F),
+                            color: Color(0xFFCCFF00),
                             size: 32,
                           ),
                         )
@@ -698,7 +698,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                     ),
                     decoration: BoxDecoration(
                       color: event.isFree
-                          ? const Color(0xFF84994F)
+                          ? const Color(0xFFCCFF00)
                           : const Color(0xFF6366F1),
                       borderRadius: BorderRadius.circular(6),
                     ),
@@ -790,14 +790,14 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                         const Icon(
                           Icons.people_rounded,
                           size: 12,
-                          color: Color(0xFF84994F),
+                          color: Color(0xFFCCFF00),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${event.currentAttendees}/${event.maxAttendees}',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF84994F),
+                            color: Color(0xFFCCFF00),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -928,7 +928,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                             color: const Color(0xFFFAF8F5),
                             child: const Icon(
                               Icons.event_rounded,
-                              color: Color(0xFF84994F),
+                              color: Color(0xFFCCFF00),
                               size: 24,
                             ),
                           ),
@@ -937,7 +937,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                           color: const Color(0xFFFAF8F5),
                           child: const Icon(
                             Icons.event_rounded,
-                            color: Color(0xFF84994F),
+                            color: Color(0xFFCCFF00),
                             size: 24,
                           ),
                         ),
@@ -1013,7 +1013,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -1088,7 +1088,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                 context.read<EventsBloc>().add(LoadEvents());
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84994F),
+                backgroundColor: const Color(0xFFCCFF00),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(

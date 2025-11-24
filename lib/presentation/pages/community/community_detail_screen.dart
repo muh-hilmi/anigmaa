@@ -194,7 +194,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 controller: _tabController,
                 labelColor: Colors.black,
                 unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFF84994F),
+                indicatorColor: const Color(0xFFCCFF00),
                 indicatorWeight: 3,
                 labelStyle: const TextStyle(
                   fontSize: 15,
@@ -223,7 +223,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       floatingActionButton: _isJoined
           ? FloatingActionButton.extended(
               onPressed: _showCreatePostDialog,
-              backgroundColor: const Color(0xFF84994F),
+              backgroundColor: const Color(0xFFCCFF00),
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text(
                 'Post',
@@ -241,7 +241,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: const Color(0xFF84994F),
+      backgroundColor: const Color(0xFFCCFF00),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
@@ -249,8 +249,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF84994F),
-                const Color(0xFF84994F).withOpacity(0.8),
+                const Color(0xFFCCFF00),
+                const Color(0xFFCCFF00).withOpacity(0.8),
               ],
             ),
           ),
@@ -287,7 +287,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               if (widget.community.isVerified)
                 const Icon(
                   Icons.verified,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                   size: 24,
                 ),
             ],
@@ -339,7 +339,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isJoined
                     ? Colors.grey[200]
-                    : const Color(0xFF84994F),
+                    : const Color(0xFFCCFF00),
                 foregroundColor: _isJoined ? Colors.black87 : Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -467,7 +467,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF84994F),
+                      color: Color(0xFFCCFF00),
                     ),
                   ),
                 ),
@@ -572,7 +572,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
           color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF84994F).withOpacity(0.3),
+            color: const Color(0xFFCCFF00).withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -584,7 +584,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF84994F),
+                    color: const Color(0xFFCCFF00),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
@@ -825,7 +825,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF84994F),
+                      color: const Color(0xFFCCFF00),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -897,7 +897,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF84994F),
+                  color: Color(0xFFCCFF00),
                 ),
               ),
             ),
@@ -932,7 +932,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 // Message member
               },
               icon: const Icon(Icons.chat_bubble_outline),
-              color: const Color(0xFF84994F),
+              color: const Color(0xFFCCFF00),
             ),
           ],
         ),
@@ -992,12 +992,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Postingan berhasil dibuat!'),
-                        backgroundColor: Color(0xFF84994F),
+                        backgroundColor: Color(0xFFCCFF00),
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF84994F),
+                    backgroundColor: const Color(0xFFCCFF00),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
