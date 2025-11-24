@@ -106,14 +106,14 @@ class NotionSocialApp extends StatelessWidget {
           useMaterial3: true,
           textTheme: GoogleFonts.plusJakartaSansTextTheme(),
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFCCFF00),
+            seedColor: const Color(0xFFF97316),
             brightness: Brightness.light,
           ),
-          primaryColor: const Color(0xFFCCFF00),
+          primaryColor: const Color(0xFFF97316),
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Color(0xFFCCFF00)),
+            iconTheme: const IconThemeData(color: Color(0xFFF97316)),
             titleTextStyle: GoogleFonts.plusJakartaSans(
               color: const Color(0xFF1A1A1A),
               fontSize: 20,
@@ -358,7 +358,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               FloatingActionButton(
                 heroTag: "main_fab",
                 onPressed: _toggleSpeedDial,
-                backgroundColor: const Color(0xFFCCFF00),
+                backgroundColor: const Color(0xFFF97316),
                 elevation: _isSpeedDialOpen ? 8 : 6,
                 child: AnimatedRotation(
                   duration: const Duration(milliseconds: 200),
@@ -389,7 +389,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         padding: const EdgeInsets.all(12),
         child: Icon(
           isActive ? filledIcon : outlineIcon,
-          color: isActive ? const Color(0xFFCCFF00) : Colors.grey[600],
+          color: isActive ? const Color(0xFFF97316) : Colors.grey[600],
           size: 28,
         ),
       ),
@@ -442,7 +442,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCCFF00),
+                  color: const Color(0xFFF97316),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
