@@ -70,11 +70,11 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFCCFF00),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFBBC863),
+        foregroundColor: const Color(0xFF000000),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF000000)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -82,14 +82,15 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
+            color: Color(0xFF000000),
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: const Color(0xFF000000),
           indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          labelColor: const Color(0xFF000000),
+          unselectedLabelColor: const Color(0xFF666666),
           labelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,
@@ -154,8 +155,8 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
                 ElevatedButton(
                   onPressed: _loadData,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCCFF00),
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFBBC863),
+                    foregroundColor: const Color(0xFF000000),
                   ),
                   child: const Text('Coba Lagi'),
                 ),
@@ -171,7 +172,7 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
         if (users.isEmpty && isLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           );
         }
@@ -236,11 +237,14 @@ class _FollowersFollowingScreenState extends State<FollowersFollowingScreen>
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to user profile
+          // Navigate to user profile with unique key
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: user.id),
+              builder: (context) => ProfileScreen(
+                key: ValueKey('profile_${user.id}'),
+                userId: user.id,
+              ),
             ),
           );
         },

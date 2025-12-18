@@ -72,3 +72,15 @@ class LikeCommentToggled extends PostsEvent {
   @override
   List<Object?> get props => [postId, commentId, isCurrentlyLiked];
 }
+
+class SavePostToggled extends PostsEvent {
+  final String postId;
+  final bool isCurrentlySaved;
+
+  const SavePostToggled(this.postId, this.isCurrentlySaved);
+
+  @override
+  List<Object?> get props => [postId, isCurrentlySaved];
+}
+
+class LoadSavedPosts extends PostsEvent {}

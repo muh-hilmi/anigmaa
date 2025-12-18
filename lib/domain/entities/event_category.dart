@@ -11,6 +11,6 @@ enum EventCategory {
   social
 }
 
-enum EventStatus { upcoming, live, ended, cancelled }
+enum EventStatus { upcoming, ongoing, ended, cancelled }
 
-enum EventPrivacy { public, private }
+enum EventPrivacy { public, private, friendsOnly }

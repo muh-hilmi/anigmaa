@@ -23,11 +23,16 @@ class QnABloc extends Bloc<QnAEvent, QnAState> {
     on<UpvoteQuestionToggled>(_onUpvoteToggled);
   }
 
-  Future<void> _onLoadEventQnA(LoadEventQnA event, Emitter<QnAState> emit) async {
+  Future<void> _onLoadEventQnA(
+    LoadEventQnA event,
+    Emitter<QnAState> emit,
+  ) async {
     emit(QnALoading());
 
     try {
-      final result = await getEventQnA(GetEventQnAParams(eventId: event.eventId));
+      final result = await getEventQnA(
+        GetEventQnAParams(eventId: event.eventId),
+      );
 
       result.fold(
         (failure) {
@@ -36,10 +41,7 @@ class QnABloc extends Bloc<QnAEvent, QnAState> {
         },
         (questions) {
           print('[QnABloc] Successfully loaded ${questions.length} questions');
-          emit(QnALoaded(
-            questions: questions,
-            eventId: event.eventId,
-          ));
+          emit(QnALoaded(questions: questions, eventId: event.eventId));
         },
       );
     } catch (e, stackTrace) {
@@ -49,9 +51,14 @@ class QnABloc extends Bloc<QnAEvent, QnAState> {
     }
   }
 
-  Future<void> _onRefreshEventQnA(RefreshEventQnA event, Emitter<QnAState> emit) async {
+  Future<void> _onRefreshEventQnA(
+    RefreshEventQnA event,
+    Emitter<QnAState> emit,
+  ) async {
     try {
-      final result = await getEventQnA(GetEventQnAParams(eventId: event.eventId));
+      final result = await getEventQnA(
+        GetEventQnAParams(eventId: event.eventId),
+      );
 
       result.fold(
         (failure) {
@@ -59,11 +66,10 @@ class QnABloc extends Bloc<QnAEvent, QnAState> {
           // Keep current state, just log the error
         },
         (questions) {
-          print('[QnABloc] Successfully refreshed ${questions.length} questions');
-          emit(QnALoaded(
-            questions: questions,
-            eventId: event.eventId,
-          ));
+          print(
+            '[QnABloc] Successfully refreshed ${questions.length} questions',
+          );
+          emit(QnALoaded(questions: questions, eventId: event.eventId));
         },
       );
     } catch (e) {
@@ -71,33 +77,56 @@ class QnABloc extends Bloc<QnAEvent, QnAState> {
     }
   }
 
-  Future<void> _onAskQuestion(AskQuestionRequested event, Emitter<QnAState> emit) async {
-    if (state is! QnALoaded) return;
+  Future<void> _onAskQuestion(
+    AskQuestionRequested event,
+    Emitter<QnAState> emit,
+  ) async {
+    print('[QnABloc] Asking question for event ${event.eventId}');
 
     try {
       final result = await askQuestion(
-        AskQuestionParams(
-          eventId: event.eventId,
-          question: event.question,
-        ),
+        AskQuestionParams(eventId: event.eventId, question: event.question),
       );
 
-      result.fold(
-        (failure) {
+      await result.fold(
+        (failure) async {
           print('[QnABloc] Failed to ask question: ${failure.toString()}');
+          emit(QnAError('Failed to ask question: ${failure.toString()}'));
         },
-        (newQuestion) {
-          print('[QnABloc] Question asked successfully');
-          // Refresh the Q&A list
-          add(RefreshEventQnA(event.eventId));
+        (newQuestion) async {
+          print('[QnABloc] Question asked successfully: ${newQuestion.id}');
+          print('[QnABloc] Now refreshing Q&A list...');
+
+          // Immediately reload Q&A list to show new question
+          final refreshResult = await getEventQnA(
+            GetEventQnAParams(eventId: event.eventId),
+          );
+
+          refreshResult.fold(
+            (failure) {
+              print('[QnABloc] Failed to refresh after ask: $failure');
+              emit(QnAError('Failed to refresh Q&A list'));
+            },
+            (questions) {
+              print(
+                '[QnABloc] Successfully refreshed with ${questions.length} questions',
+              );
+              emit(QnALoaded(questions: questions, eventId: event.eventId));
+            },
+          );
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('[QnABloc] Exception asking question: $e');
+      print('[QnABloc] Stack trace: $stackTrace');
+      emit(QnAError('Exception: $e'));
     }
   }
 
-  Future<void> _onUpvoteToggled(UpvoteQuestionToggled event, Emitter<QnAState> emit) async {
+  Future<void> _onUpvoteToggled(
+    UpvoteQuestionToggled event,
+    Emitter<QnAState> emit,
+  ) async {
     if (state is! QnALoaded) return;
 
     final currentState = state as QnALoaded;

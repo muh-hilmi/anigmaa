@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/user.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/usecases/usecase.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../domain/usecases/get_current_user.dart';
 import '../../../domain/usecases/get_user_by_id.dart';
 import '../../../domain/usecases/search_users.dart';
@@ -14,6 +15,8 @@ import '../../../domain/repositories/post_repository.dart';
 import 'user_event.dart';
 import 'user_state.dart';
 
+/// Bloc for managing user state and interactions
+/// Handles profile management, social features, and user data operations
 class UserBloc extends Bloc<UserEvent, UserState> {
   final AuthService authService;
   final GetCurrentUser? getCurrentUser;
@@ -25,6 +28,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final GetUserFollowers? getUserFollowers;
   final GetUserFollowing? getUserFollowing;
   final PostRepository? postRepository;
+  final AppLogger _logger = AppLogger();
 
   UserBloc({
     required this.authService,
@@ -61,36 +65,51 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     try {
       // Try to use API if available
       if (getCurrentUser != null) {
-        print('[UserBloc] Calling getCurrentUser API...');
+        _logger.info('Calling getCurrentUser API...');
         final result = await getCurrentUser!(NoParams());
 
         result.fold(
           (failure) {
             // Fallback to mock data if API fails
-            print('[UserBloc] API failed with: ${failure.message}');
-            print('[UserBloc] Falling back to mock data');
+            _logger.error('API failed: ${failure.message}');
+            _logger.warning('API not available, falling back to mock data');
             _loadMockUserProfile(emit);
           },
           (user) {
-            print('[UserBloc] API success! User ID: ${user.id}, Name: ${user.name}, Email: ${user.email}');
+            _logger.info('API success! User ID: ${user.id}, Name: ${user.name}, Email: ${user.email}');
             emit(UserLoaded(
               user: user,
               eventsHosted: user.stats.eventsCreated,
               eventsAttended: user.stats.eventsAttended,
               connections: user.stats.followersCount,
-              postsCount: 0, // TODO: Get from actual posts data
-              totalInvitedAttendees: 0, // TODO: Calculate from events attendees
+              postsCount: 0, // REDNOTE: Get from actual posts data via PostRepository
+              totalInvitedAttendees: 0, // REDNOTE: Calculate from events attendees data
             ));
           },
         );
       } else {
         // No API available, use mock data
-        print('[UserBloc] getCurrentUser use case not available, using mock data');
+        _logger.warning('getCurrentUser use case not available, using mock data');
         _loadMockUserProfile(emit);
       }
     } catch (e) {
-      print('[UserBloc] Exception caught: $e');
-      emit(UserError('Failed to load user profile: $e'));
+      _logger.error('Exception caught', e);
+      emit(UserError('Gagal memuat profil. Coba lagi ya! 🔄'));
+    }
+  }
+
+  // Helper function to convert technical errors to user-friendly messages
+  String _getUserFriendlyError(String technicalError) {
+    if (technicalError.contains('network') || technicalError.contains('connection')) {
+      return 'Koneksi internet bermasalah. Cek koneksi kamu ya! 📡';
+    } else if (technicalError.contains('timeout')) {
+      return 'Server lagi lelet nih. Coba lagi yuk! ⏱️';
+    } else if (technicalError.contains('404') || technicalError.contains('not found')) {
+      return 'Data ga ketemu. Mungkin udah dihapus 🤔';
+    } else if (technicalError.contains('500') || technicalError.contains('server')) {
+      return 'Server lagi bermasalah. Tunggu sebentar ya! 🔧';
+    } else {
+      return 'Ada kendala nih. Coba lagi ya! 😅';
     }
   }
 
@@ -154,7 +173,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       if (event.gender != null) updateData['gender'] = event.gender;
       if (event.location != null) updateData['location'] = event.location;
 
-      print('[UserBloc] Updating user profile with data: $updateData');
+      _logger.info('Updating user profile');
 
       // Call API to update user
       if (updateCurrentUser != null) {
@@ -164,19 +183,19 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
         result.fold(
           (failure) {
-            print('[UserBloc] Update failed: ${failure.message}');
-            emit(UserError('Gagal update profil: ${failure.message}'));
+            _logger.error('Update failed: ${failure.message}');
+            emit(UserError(_getUserFriendlyError(failure.message)));
             // Restore previous state
             emit(currentState);
           },
           (updatedUser) {
-            print('[UserBloc] Update successful: ${updatedUser.name}, bio: ${updatedUser.bio}');
+            _logger.info('Update successful: ${updatedUser.name}');
             emit(currentState.copyWith(user: updatedUser));
           },
         );
       } else {
         // Fallback to local update if API not available
-        print('[UserBloc] API not available, doing local update');
+        _logger.warning('API not available, doing local update');
         final updatedUser = currentState.user.copyWith(
           name: event.name ?? currentState.user.name,
           bio: event.bio ?? currentState.user.bio,
@@ -190,8 +209,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         emit(currentState.copyWith(user: updatedUser));
       }
     } catch (e) {
-      print('[UserBloc] Update error: $e');
-      emit(UserError('Terjadi kesalahan: $e'));
+      _logger.error('Update error', e);
+      emit(UserError('Gagal update profil. Coba lagi ya! 🔄'));
       // Restore previous state
       emit(currentState);
     }
@@ -259,23 +278,23 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         );
 
         result.fold(
-          (failure) => emit(UserError('Failed to load user: ${failure.toString()}')),
+          (failure) => emit(UserError(_getUserFriendlyError(failure.toString()))),
           (user) {
             emit(UserLoaded(
               user: user,
               eventsHosted: user.stats.eventsCreated,
               eventsAttended: user.stats.eventsAttended,
               connections: user.stats.followersCount,
-              postsCount: 0, // TODO: Get from actual posts data
-              totalInvitedAttendees: 0, // TODO: Calculate from events attendees
+              postsCount: 0, // REDNOTE: Get from actual posts data via PostRepository
+              totalInvitedAttendees: 0, // REDNOTE: Calculate from events attendees data
             ));
           },
         );
       } else {
-        emit(const UserError('GetUserById use case not available'));
+        emit(const UserError('Fitur ini belum tersedia. Maaf ya! 🙏'));
       }
     } catch (e) {
-      emit(UserError('Failed to load user: $e'));
+      emit(UserError('Gagal memuat profil user. Coba lagi ya! 🔄'));
     }
   }
 
@@ -309,7 +328,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     if (followUser == null) {
-      emit(const UserError('Follow feature not available'));
+      emit(const UserError('Fitur follow belum tersedia. Tunggu update selanjutnya ya! 🚀'));
       return;
     }
 
@@ -322,7 +341,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       result.fold(
-        (failure) => emit(UserError(failure.toString())),
+        (failure) => emit(UserError(_getUserFriendlyError(failure.toString()))),
         (_) {
           // Optimistically update the UI
           if (currentState is UserLoaded) {
@@ -344,7 +363,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         },
       );
     } catch (e) {
-      emit(UserError('Failed to follow user: $e'));
+      emit(UserError('Gagal follow user. Coba lagi ya! 🔄'));
     }
   }
 
@@ -353,7 +372,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     if (unfollowUser == null) {
-      emit(const UserError('Unfollow feature not available'));
+      emit(const UserError('Fitur unfollow belum tersedia. Tunggu update selanjutnya ya! 🚀'));
       return;
     }
 
@@ -366,7 +385,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       result.fold(
-        (failure) => emit(UserError(failure.toString())),
+        (failure) => emit(UserError(_getUserFriendlyError(failure.toString()))),
         (_) {
           // Optimistically update the UI
           if (currentState is UserLoaded) {
@@ -388,7 +407,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         },
       );
     } catch (e) {
-      emit(UserError('Failed to unfollow user: $e'));
+      emit(UserError('Gagal unfollow user. Coba lagi ya! 🔄'));
     }
   }
 
@@ -397,7 +416,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     if (getUserFollowers == null) {
-      emit(const UserError('Followers feature not available'));
+      emit(const UserError('Fitur followers belum tersedia. Tunggu update selanjutnya ya! 🚀'));
       return;
     }
 
@@ -409,11 +428,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       result.fold(
-        (failure) => emit(UserError(failure.toString())),
+        (failure) => emit(UserError(_getUserFriendlyError(failure.toString()))),
         (followers) => emit(FollowersLoaded(followers)),
       );
     } catch (e) {
-      emit(UserError('Failed to load followers: $e'));
+      emit(UserError('Gagal memuat followers. Coba lagi ya! 🔄'));
     }
   }
 
@@ -422,7 +441,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     if (getUserFollowing == null) {
-      emit(const UserError('Following feature not available'));
+      emit(const UserError('Fitur following belum tersedia. Tunggu update selanjutnya ya! 🚀'));
       return;
     }
 
@@ -434,11 +453,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       result.fold(
-        (failure) => emit(UserError(failure.toString())),
+        (failure) => emit(UserError(_getUserFriendlyError(failure.toString()))),
         (following) => emit(FollowingLoaded(following)),
       );
     } catch (e) {
-      emit(UserError('Failed to load following: $e'));
+      emit(UserError('Gagal memuat following. Coba lagi ya! 🔄'));
     }
   }
 
@@ -452,7 +471,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     final currentState = state as UserLoaded;
 
     if (postRepository == null) {
-      print('[UserBloc] PostRepository not available');
+      _logger.warning('PostRepository not available');
       return;
     }
 

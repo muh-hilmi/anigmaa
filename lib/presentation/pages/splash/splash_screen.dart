@@ -98,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: const Color(0xFFFCFCFC),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -108,12 +108,12 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFFCCFF00),
+                color: const Color(0xFFBBC863),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: const Icon(
                 Icons.event,
-                color: Colors.white,
+                color: Color(0xff000000),
                 size: 60,
               ),
             ),
@@ -132,9 +132,9 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Cari acara seru di sekitar lo 🎉',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
+                color: const Color(0xff0000000),
                 letterSpacing: -0.3,
               ),
             ),
@@ -145,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 30,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFCCFF00)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFBBC863),),
               ),
             ),
             const SizedBox(height: 16),

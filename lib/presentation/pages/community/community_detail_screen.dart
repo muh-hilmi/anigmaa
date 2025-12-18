@@ -194,7 +194,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 controller: _tabController,
                 labelColor: Colors.black,
                 unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFFF97316),
+                indicatorColor: const Color(0xFFBBC863),
                 indicatorWeight: 3,
                 labelStyle: const TextStyle(
                   fontSize: 15,
@@ -223,7 +223,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       floatingActionButton: _isJoined
           ? FloatingActionButton.extended(
               onPressed: _showCreatePostDialog,
-              backgroundColor: const Color(0xFFF97316),
+              backgroundColor: const Color(0xFFBBC863),
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text(
                 'Post',
@@ -241,7 +241,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: const Color(0xFFF97316),
+      backgroundColor: const Color(0xFFBBC863),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
@@ -249,8 +249,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFFF97316),
-                const Color(0xFFF97316).withOpacity(0.8),
+                const Color(0xFFBBC863),
+                const Color(0xFFBBC863).withOpacity(0.8),
               ],
             ),
           ),
@@ -287,7 +287,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               if (widget.community.isVerified)
                 const Icon(
                   Icons.verified,
-                  color: Color(0xFFF97316),
+                  color: Color(0xFFBBC863),
                   size: 24,
                 ),
             ],
@@ -339,7 +339,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isJoined
                     ? Colors.grey[200]
-                    : const Color(0xFFF97316),
+                    : const Color(0xFFBBC863),
                 foregroundColor: _isJoined ? Colors.black87 : Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -461,13 +461,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 },
                 child: CircleAvatar(
                   radius: 20,
-                  backgroundColor: const Color(0xFFFAF8F5),
+                  backgroundColor: const Color(0xFFFCFCFC),
                   child: Text(
                     post.author.name[0].toUpperCase(),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFFF97316),
+                      color: Color(0xFFBBC863),
                     ),
                   ),
                 ),
@@ -572,7 +572,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
           color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFF97316).withOpacity(0.3),
+            color: const Color(0xFFBBC863).withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -584,7 +584,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF97316),
+                    color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
@@ -592,7 +592,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Color(0xFF000000),
                     ),
                   ),
                 ),
@@ -601,15 +601,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
+                    child: const Text(
                       '🔒 Member Only',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.orange.shade800,
+                        color: Color(0xFF666666),
                       ),
                     ),
                   )
@@ -617,15 +617,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
+                    child: const Text(
                       '🌍 Public',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green.shade800,
+                        color: Color(0xFF666666),
                       ),
                     ),
                   ),
@@ -747,15 +747,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
+                    child: const Text(
                       '🔒 Member',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.orange.shade800,
+                        color: Color(0xFF666666),
                       ),
                     ),
                   )
@@ -763,15 +763,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
+                    child: const Text(
                       '🌍 Public',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green.shade800,
+                        color: Color(0xFF666666),
                       ),
                     ),
                   ),
@@ -825,7 +825,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF97316),
+                      color: const Color(0xFFBBC863),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -891,13 +891,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: const Color(0xFFFAF8F5),
+              backgroundColor: const Color(0xFFFCFCFC),
               child: Text(
                 member.name[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFFF97316),
+                  color: Color(0xFFBBC863),
                 ),
               ),
             ),
@@ -932,7 +932,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 // Message member
               },
               icon: const Icon(Icons.chat_bubble_outline),
-              color: const Color(0xFFF97316),
+              color: const Color(0xFFBBC863),
             ),
           ],
         ),
@@ -992,12 +992,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Postingan berhasil dibuat!'),
-                        backgroundColor: Color(0xFFF97316),
+                        backgroundColor: Color(0xFFBBC863),
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF97316),
+                    backgroundColor: const Color(0xFFBBC863),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

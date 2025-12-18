@@ -21,9 +21,9 @@ abstract class PostRepository {
   Future<Either<Failure, void>> undoRepost(String postId);
 
   // Bookmarks
-  Future<Either<Failure, void>> bookmarkPost(String postId);
-  Future<Either<Failure, void>> unbookmarkPost(String postId);
-  Future<Either<Failure, PaginatedResponse<Post>>> getBookmarkedPosts({int limit = 20, int offset = 0});
+  Future<Either<Failure, Post>> bookmarkPost(String postId);
+  Future<Either<Failure, Post>> unbookmarkPost(String postId);
+  Future<Either<Failure, List<Post>>> getBookmarkedPosts({int limit = 20, int offset = 0});
 
   // Comments
   Future<Either<Failure, PaginatedResponse<Comment>>> getComments(String postId, {int limit = 20, int offset = 0});

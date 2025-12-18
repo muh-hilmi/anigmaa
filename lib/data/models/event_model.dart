@@ -57,6 +57,9 @@ class EventModel extends Event {
       );
     }
 
+    // Debug logging - check what format backend sends
+    print('[EventModel] host field type: ${json['host']?.runtimeType}, host_id: ${json['host_id']}, host_name: ${json['host_name']}, host_avatar_url: ${json['host_avatar_url']}');
+
     // Parse host - expect nested object (backend standard)
     // Fallback to flat fields for backward compatibility (should be removed once backend is standardized)
     EventHostModel host;
@@ -162,16 +165,11 @@ class EventModel extends Event {
   /// Since EventModel extends Event, this just returns itself
   Event toEntity() => this;
 
-  /// Parse event status from backend string, handling both "ended" and "completed"
+  /// Parse event status from backend string
   static EventStatus _parseEventStatus(String? status) {
     if (status == null) return EventStatus.upcoming;
 
     final statusLower = status.toLowerCase();
-    // Backend may send "completed" but frontend uses "ended"
-    if (statusLower == 'completed' || statusLower == 'ended') {
-      return EventStatus.ended;
-    }
-
     return EventStatus.values.firstWhere(
       (e) => e.toString().split('.').last.toLowerCase() == statusLower,
       orElse: () => EventStatus.upcoming,
@@ -192,10 +190,16 @@ class EventHostModel extends EventHost {
 
   factory EventHostModel.fromJson(Map<String, dynamic> json) {
     // Backend uses snake_case consistently
+    // Support both 'avatar' and 'avatar_url' field names
+    final avatarUrl = json['avatar_url'] ?? json['avatar'] ?? '';
+
+    // Debug logging
+    print('[EventHostModel] Parsing host: ${json['name']}, avatar_url: $avatarUrl');
+
     return EventHostModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      avatar: json['avatar'] as String,
+      avatar: avatarUrl as String,
       bio: json['bio'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
       rating: json['rating']?.toDouble() ?? 0.0,

@@ -27,6 +27,9 @@ import 'domain/usecases/get_comments.dart';
 import 'domain/usecases/create_comment.dart';
 import 'domain/usecases/like_comment.dart';
 import 'domain/usecases/unlike_comment.dart';
+import 'domain/usecases/bookmark_post.dart';
+import 'domain/usecases/unbookmark_post.dart';
+import 'domain/usecases/get_bookmarked_posts.dart';
 import 'domain/usecases/purchase_ticket.dart';
 import 'domain/usecases/get_user_tickets.dart';
 import 'domain/usecases/check_in_ticket.dart';
@@ -151,6 +154,9 @@ Future<void> init() async {
       createComment: sl(),
       likeComment: sl(),
       unlikeComment: sl(),
+      bookmarkPost: sl(),
+      unbookmarkPost: sl(),
+      getBookmarkedPosts: sl(),
     ),
   );
 
@@ -212,6 +218,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateComment(sl()));
   sl.registerLazySingleton(() => LikeComment(sl()));
   sl.registerLazySingleton(() => UnlikeComment(sl()));
+  sl.registerLazySingleton(() => BookmarkPost(sl()));
+  sl.registerLazySingleton(() => UnbookmarkPost(sl()));
+  sl.registerLazySingleton(() => GetBookmarkedPosts(sl()));
 
   // Use cases - Tickets
   sl.registerLazySingleton(() => PurchaseTicket(sl()));

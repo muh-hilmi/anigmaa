@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../domain/entities/event.dart';
+import '../../../domain/entities/event_category.dart';
+import '../../../domain/entities/event_host.dart';
+import '../../../domain/entities/event_location.dart';
+import '../../../domain/entities/ticket.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
-import '../../bloc/events/events_bloc.dart';
-import '../../bloc/events/events_state.dart';
-import '../../bloc/events/events_event.dart';
+import '../../../core/services/auth_service.dart';
+import '../../bloc/tickets/tickets_bloc.dart';
+import '../../bloc/tickets/tickets_event.dart';
+import '../../bloc/tickets/tickets_state.dart';
 import '../event_detail/event_detail_screen.dart';
+import '../../../injection_container.dart' as di;
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -26,8 +32,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
-    // Load events if not already loaded
-    context.read<EventsBloc>().add(LoadEvents());
+    // Load user tickets to get attended events
+    final authService = di.sl<AuthService>();
+    final userId = authService.userId;
+    if (userId != null) {
+      context.read<TicketsBloc>().add(LoadUserTickets(userId));
+    }
   }
 
   List<Event> _getEventsForDay(DateTime day) {
@@ -36,23 +46,56 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }).toList();
   }
 
+  /// Convert tickets to event objects for calendar display
+  List<Event> _ticketsToEvents(List<Ticket> tickets) {
+    return tickets
+        .where((ticket) => ticket.eventStartTime != null && ticket.eventTitle != null)
+        .map<Event>((ticket) {
+      return Event(
+        id: ticket.eventId,
+        title: ticket.eventTitle!,
+        description: '',
+        startTime: ticket.eventStartTime!,
+        endTime: ticket.eventStartTime!.add(const Duration(hours: 2)),
+        location: EventLocation(
+          name: ticket.eventLocation ?? 'Unknown Location',
+          address: ticket.eventLocation ?? '',
+          latitude: 0.0,
+          longitude: 0.0,
+        ),
+        category: EventCategory.social,
+        isFree: ticket.isFree,
+        price: ticket.pricePaid,
+        host: const EventHost(
+          id: '',
+          name: 'Event Host',
+          avatar: '',
+          bio: '',
+        ),
+        maxAttendees: 0,
+        createdAt: ticket.purchasedAt,
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: BlocConsumer<EventsBloc, EventsState>(
+      body: BlocConsumer<TicketsBloc, TicketsState>(
         listener: (context, state) {
-          if (state is EventsError) {
+          if (state is TicketsError) {
             AppLogger().error('Calendar screen error: ${state.message}');
           }
         },
         builder: (context, state) {
-          if (state is EventsLoading) {
+          if (state is TicketsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is EventsLoaded) {
-            _allEvents = state.events;
+          if (state is TicketsLoaded) {
+            // Convert tickets to events for calendar display
+            _allEvents = _ticketsToEvents(state.tickets);
 
             return CustomScrollView(
               slivers: [

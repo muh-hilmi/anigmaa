@@ -50,7 +50,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFFAF8F5),
+          backgroundColor: const Color(0xFFFCFCFC),
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
@@ -92,8 +92,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFFFAF8F5),
-                      const Color(0xFFCCFF00).withValues(alpha: 0.05),
+                      const Color(0xFFFCFCFC),
+                      const Color(0xFFBBC863).withValues(alpha: 0.05),
                     ],
                   ),
                 ),
@@ -121,7 +121,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFFCCFF00), Color(0xFFA8B968)],
+                                      colors: [Color(0xFFBBC863), Color(0xFFA8B968)],
                                     ),
                                   ),
                                   child: CircleAvatar(
@@ -166,7 +166,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
+                                          color: const Color(0xFFBBC863).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Row(
@@ -276,7 +276,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                   scale: _fabAnimation,
                   child: FloatingActionButton.extended(
                     onPressed: canPost ? _createPost : null,
-                    backgroundColor: const Color(0xFFCCFF00),
+                    backgroundColor: const Color(0xFFBBC863),
                     elevation: 8,
                     icon: const Icon(Icons.send_rounded, size: 20),
                     label: const Text(
@@ -456,7 +456,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
             _buildActionButton(
               icon: Icons.image_rounded,
               label: 'Foto',
-              color: const Color(0xFF6366F1),
+              color: const Color(0xFFBBC863),
               onTap: _pickImages,
               isActive: _selectedImages.isNotEmpty,
             ),
@@ -464,7 +464,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
             _buildActionButton(
               icon: Icons.event_rounded,
               label: 'Event',
-              color: const Color(0xFFCCFF00),
+              color: const Color(0xFFBBC863),
               onTap: _showEventSelector,
               isActive: _selectedEvent != null,
             ),
@@ -554,7 +554,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
     if (length > 500) return Colors.red;
     if (length > 400) return Colors.orange;
     if (length > 300) return Colors.amber;
-    return const Color(0xFFCCFF00);
+    return const Color(0xFFBBC863);
   }
 
   Future<void> _pickImages() async {
@@ -577,7 +577,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red[600] : const Color(0xFFCCFF00),
+        backgroundColor: isError ? Colors.red[600] : const Color(0xFFBBC863),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -595,13 +595,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFCCFF00).withValues(alpha: 0.1),
-            const Color(0xFFCCFF00).withValues(alpha: 0.05),
+            const Color(0xFFBBC863).withValues(alpha: 0.1),
+            const Color(0xFFBBC863).withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFCCFF00).withValues(alpha: 0.3),
+          color: const Color(0xFFBBC863).withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -610,12 +610,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFCCFF00).withValues(alpha: 0.2),
+              color: const Color(0xFFBBC863).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.event_rounded,
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
               size: 22,
             ),
           ),
@@ -681,7 +681,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: const BoxDecoration(
-          color: Color(0xFFFAF8F5),
+          color: Color(0xFFFCFCFC),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -705,12 +705,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
+                      color: const Color(0xFFBBC863).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.event_rounded,
-                      color: Color(0xFFCCFF00),
+                      color: Color(0xFFBBC863),
                       size: 24,
                     ),
                   ),
@@ -749,7 +749,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> with SingleTickerPr
                       if (state is EventsLoading) {
                         return const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFFCCFF00),
+                            color: Color(0xFFBBC863),
                           ),
                         );
                       }

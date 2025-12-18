@@ -266,12 +266,16 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   @override
   Future<void> bookmarkPost(String postId) async {
     try {
+      print('[PostRemoteDataSource] Bookmarking post: $postId');
       final response = await dioClient.post('/posts/$postId/bookmark');
+      print('[PostRemoteDataSource] Bookmark response status: ${response.statusCode}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerFailure('Failed to bookmark post');
       }
+      print('[PostRemoteDataSource] Post bookmarked successfully');
     } on DioException catch (e) {
+      print('[PostRemoteDataSource] Error bookmarking post: ${e.response?.statusCode} - ${e.message}');
       throw _handleDioException(e);
     }
   }

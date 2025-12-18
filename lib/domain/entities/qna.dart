@@ -29,6 +29,9 @@ class QnA extends Equatable {
   bool get isAnswered => answer != null;
 
   factory QnA.fromJson(Map<String, dynamic> json) {
+    print('[QnA.fromJson] Parsing Q&A: ${json['id']}');
+    print('[QnA.fromJson] Full JSON: $json');
+
     return QnA(
       id: json['id'] as String,
       eventId: json['eventId'] as String,
@@ -38,7 +41,7 @@ class QnA extends Equatable {
         id: json['askedBy']['id'] as String,
         email: json['askedBy']['email'] as String? ?? '',
         name: json['askedBy']['name'] as String,
-        bio: json['askedBy']['bio'] as String?,
+        bio: null, // Backend UserBasicInfo doesn't include bio
         avatar: json['askedBy']['avatar'] as String?,
         createdAt: DateTime.parse(json['askedBy']['createdAt'] as String),
         settings: const UserSettings(),
@@ -50,7 +53,7 @@ class QnA extends Equatable {
               id: json['answeredBy']['id'] as String,
               email: json['answeredBy']['email'] as String? ?? '',
               name: json['answeredBy']['name'] as String,
-              bio: json['answeredBy']['bio'] as String?,
+              bio: null, // Backend UserBasicInfo doesn't include bio
               avatar: json['answeredBy']['avatar'] as String?,
               createdAt: DateTime.parse(json['answeredBy']['createdAt'] as String),
               settings: const UserSettings(),

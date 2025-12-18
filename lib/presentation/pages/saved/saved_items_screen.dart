@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/posts/posts_bloc.dart';
+import '../../bloc/posts/posts_event.dart';
+import '../../bloc/posts/posts_state.dart';
+import '../../widgets/modern_post_card.dart';
 
 class SavedItemsScreen extends StatefulWidget {
   const SavedItemsScreen({super.key});
@@ -15,6 +20,8 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Load saved posts when screen opens
+    context.read<PostsBloc>().add(LoadSavedPosts());
   }
 
   @override
@@ -46,7 +53,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
           controller: _tabController,
           labelColor: const Color(0xFF1A1A1A),
           unselectedLabelColor: Colors.grey[400],
-          indicatorColor: const Color(0xFFCCFF00),
+          indicatorColor: const Color(0xFFBBC863),
           indicatorWeight: 2.5,
           labelStyle: const TextStyle(
             fontSize: 14,
@@ -101,12 +108,49 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
   }
 
   Widget _buildSavedPostsTab() {
-    // TODO: Load saved posts from API
-    // For now, show empty state
-    return _buildEmptyState(
-      icon: Icons.bookmark_outline,
-      title: 'Belum ada postingan tersimpan',
-      subtitle: 'Postingan yang kamu simpan bakal muncul di sini',
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state) {
+        if (state is PostsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is PostsError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(state.message),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<PostsBloc>().add(LoadSavedPosts());
+                  },
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          );
+        } else if (state is PostsLoaded) {
+          if (state.posts.isEmpty) {
+            return _buildEmptyState(
+              icon: Icons.bookmark_outline,
+              title: 'Belum ada postingan tersimpan',
+              subtitle: 'Postingan yang kamu simpan bakal muncul di sini',
+            );
+          }
+          return ListView.builder(
+            itemCount: state.posts.length,
+            itemBuilder: (context, index) {
+              return ModernPostCard(post: state.posts[index]);
+            },
+          );
+        }
+        return _buildEmptyState(
+          icon: Icons.bookmark_outline,
+          title: 'Belum ada postingan tersimpan',
+          subtitle: 'Postingan yang kamu simpan bakal muncul di sini',
+        );
+      },
     );
   }
 
@@ -124,13 +168,13 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFFCCFF00).withOpacity(0.1),
+                color: const Color(0xFFBBC863).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: const Color(0xFFCCFF00),
+                color: const Color(0xFFBBC863),
               ),
             ),
             const SizedBox(height: 24),
@@ -162,7 +206,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
               icon: const Icon(Icons.explore_rounded, size: 20),
               label: const Text('Jelajahi Event'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFCCFF00),
+                backgroundColor: const Color(0xFFBBC863),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -268,7 +312,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
               IconButton(
                 icon: const Icon(
                   Icons.bookmark,
-                  color: Color(0xFFCCFF00),
+                  color: Color(0xFFBBC863),
                 ),
                 onPressed: () {
                   // Remove from saved
@@ -332,7 +376,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen>
                   IconButton(
                     icon: const Icon(
                       Icons.bookmark,
-                      color: Color(0xFFCCFF00),
+                      color: Color(0xFFBBC863),
                     ),
                     onPressed: () {
                       // Remove from saved

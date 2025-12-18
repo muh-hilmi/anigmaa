@@ -46,42 +46,85 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Communities',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+        toolbarHeight: 88,
+        titleSpacing: 20,
+        automaticallyImplyLeading: false,
+        title: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 16, 0, 12),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBBC863),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.groups_rounded,
+                  color: Color(0xFF000000),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Communities',
+                style: TextStyle(
+                  color: Color(0xFF000000),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBBC863),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.add_rounded, color: Color(0xFF000000), size: 22),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CreateCommunityScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreateCommunityScreen(),
-                ),
-              );
-            },
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(57),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.black,
+            indicatorColor: Colors.black,
+            indicatorWeight: 5,
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.3,
+            ),
+            tabs: const [
+              Tab(text: 'Discover'),
+              Tab(text: 'Joined'),
+            ],
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.black,
-          unselectedLabelColor: Colors.grey[600],
-          indicatorColor: const Color(0xFFCCFF00),
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-          tabs: const [
-            Tab(text: 'Discover'),
-            Tab(text: 'Joined'),
-          ],
         ),
       ),
       body: TabBarView(
@@ -100,7 +143,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         if (state is CommunitiesLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           );
         }
@@ -137,7 +180,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                       context.read<CommunitiesBloc>().add(LoadCommunities());
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCCFF00),
+                      backgroundColor: const Color(0xFFBBC863),
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('Try Again'),
@@ -154,7 +197,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           }
 
           return RefreshIndicator(
-            color: const Color(0xFFCCFF00),
+            color: const Color(0xFFBBC863),
             onRefresh: () async {
               context.read<CommunitiesBloc>().add(LoadCommunities());
             },
@@ -182,7 +225,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
         if (state is CommunitiesLoading) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           );
         }
@@ -251,7 +294,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                 _tabController.animateTo(0);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFCCFF00),
+                backgroundColor: const Color(0xFFBBC863),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -500,7 +543,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                       context.read<CommunitiesBloc>().add(JoinCommunity(community.id));
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCCFF00),
+                      backgroundColor: const Color(0xFFBBC863),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       shape: RoundedRectangleBorder(
@@ -581,7 +624,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                             const Icon(
                               Icons.verified,
                               size: 16,
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                             ),
                           ],
                         ],
@@ -628,11 +671,11 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor:
-                        isJoined ? Colors.grey[700] : const Color(0xFFCCFF00),
+                        isJoined ? Colors.grey[700] : const Color(0xFFBBC863),
                     side: BorderSide(
                       color: isJoined
                           ? Colors.grey.shade300
-                          : const Color(0xFFCCFF00),
+                          : const Color(0xFFBBC863),
                     ),
                     backgroundColor: isJoined ? Colors.grey.shade50 : null,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -688,7 +731,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
             child: const Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
               ),
             ),
           ),
@@ -705,7 +748,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
+        color: const Color(0xFFBBC863).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -714,7 +757,7 @@ class _NewCommunityScreenState extends State<NewCommunityScreen>
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFFCCFF00),
+            color: Color(0xFFBBC863),
           ),
         ),
       ),

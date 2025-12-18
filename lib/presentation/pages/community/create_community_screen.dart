@@ -17,9 +17,9 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  CommunityCategory _selectedCategory = CommunityCategory.tech;
+  CommunityCategory _selectedCategory = CommunityCategory.social;
   String _selectedLocation = 'Jakarta';
-  String _selectedIcon = '💻';
+  String _selectedIcon = '🎉';
 
   final List<String> _locations = [
     'Jakarta',
@@ -62,7 +62,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Community "${community.name}" berhasil dibuat!'),
-          backgroundColor: const Color(0xFFCCFF00),
+          backgroundColor: const Color(0xFFBBC863),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -96,7 +96,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
             child: const Text(
               'Buat',
               style: TextStyle(
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -141,13 +141,12 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFFCCFF00).withOpacity(0.2)
+                            ? const Color(0xFFBBC863).withOpacity(0.2)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFFCCFF00)
-                              : Colors.transparent,
+                              ? const Color(0xFFBBC863) : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -317,7 +316,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               child: ElevatedButton(
                 onPressed: _createCommunity,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFCCFF00),
+                  backgroundColor: const Color(0xFFBBC863),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

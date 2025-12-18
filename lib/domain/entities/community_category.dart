@@ -1,74 +1,65 @@
+// Standardized community categories (aligned with event categories)
 enum CommunityCategory {
-  tech,
+  meetup,
   sports,
+  workshop,
+  networking,
   food,
   creative,
-  professional,
-  gaming,
-  health,
-  travel,
-  music,
-  education,
-  lifestyle,
-  other,
+  outdoor,
+  fitness,
+  learning,
+  social,
 }
 
 extension CommunityCategoryExtension on CommunityCategory {
   String get displayName {
     switch (this) {
-      case CommunityCategory.tech:
-        return 'Tech';
+      case CommunityCategory.meetup:
+        return 'Kumpul';
       case CommunityCategory.sports:
         return 'Olahraga';
+      case CommunityCategory.workshop:
+        return 'Workshop';
+      case CommunityCategory.networking:
+        return 'Networking';
       case CommunityCategory.food:
         return 'Kuliner';
       case CommunityCategory.creative:
         return 'Kreatif';
-      case CommunityCategory.professional:
-        return 'Profesional';
-      case CommunityCategory.gaming:
-        return 'Gaming';
-      case CommunityCategory.health:
-        return 'Kesehatan';
-      case CommunityCategory.travel:
-        return 'Travel';
-      case CommunityCategory.music:
-        return 'Musik';
-      case CommunityCategory.education:
-        return 'Edukasi';
-      case CommunityCategory.lifestyle:
-        return 'Lifestyle';
-      case CommunityCategory.other:
-        return 'Lainnya';
+      case CommunityCategory.outdoor:
+        return 'Outdoor';
+      case CommunityCategory.fitness:
+        return 'Fitness';
+      case CommunityCategory.learning:
+        return 'Pembelajaran';
+      case CommunityCategory.social:
+        return 'Sosial';
     }
   }
 
   String get emoji {
     switch (this) {
-      case CommunityCategory.tech:
-        return '💻';
+      case CommunityCategory.meetup:
+        return '🤝';
       case CommunityCategory.sports:
         return '⚽';
+      case CommunityCategory.workshop:
+        return '🛠️';
+      case CommunityCategory.networking:
+        return '💼';
       case CommunityCategory.food:
         return '🍔';
       case CommunityCategory.creative:
         return '🎨';
-      case CommunityCategory.professional:
-        return '💼';
-      case CommunityCategory.gaming:
-        return '🎮';
-      case CommunityCategory.health:
+      case CommunityCategory.outdoor:
+        return '🌳';
+      case CommunityCategory.fitness:
         return '🏃';
-      case CommunityCategory.travel:
-        return '✈️';
-      case CommunityCategory.music:
-        return '🎵';
-      case CommunityCategory.education:
+      case CommunityCategory.learning:
         return '📚';
-      case CommunityCategory.lifestyle:
-        return '🌟';
-      case CommunityCategory.other:
-        return '📌';
+      case CommunityCategory.social:
+        return '🎉';
     }
   }
 }

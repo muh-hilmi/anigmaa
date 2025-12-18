@@ -42,7 +42,7 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
     return BlocProvider(
       create: (_) => di.sl<TicketsBloc>(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAF8F5),
+        backgroundColor: const Color(0xFFFCFCFC),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
@@ -162,7 +162,7 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 12,
-                          color: Color(0xFFCCFF00),
+                          color: Color(0xFFBBC863),
                           fontFamily: 'monospace',
                         ),
                         decoration: InputDecoration(
@@ -192,12 +192,12 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: const BorderSide(
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                               width: 3,
                             ),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFFAF8F5),
+                          fillColor: const Color(0xFFFCFCFC),
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 24,
                             horizontal: 20,
@@ -223,7 +223,7 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
                                   ? () => _handleCheckIn(context)
                                   : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFCCFF00),
+                                backgroundColor: const Color(0xFFBBC863),
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: Colors.grey[300],
                                 disabledForegroundColor: Colors.grey[500],
@@ -294,7 +294,7 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
                               icon: Icons.people,
                               label: 'Total Tiket',
                               value: '0', // TODO: Get from event data
-                              color: const Color(0xFFCCFF00),
+                              color: const Color(0xFFBBC863),
                             ),
                           ),
                         ],
@@ -419,7 +419,7 @@ class _HostCheckInScreenState extends State<HostCheckInScreen> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(dialogContext),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCCFF00),
+                    backgroundColor: const Color(0xFFBBC863),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

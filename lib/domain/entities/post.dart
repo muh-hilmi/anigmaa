@@ -2,14 +2,40 @@ import 'package:equatable/equatable.dart';
 import 'user.dart';
 import 'event.dart';
 
+/// Enumeration of supported post types
+/// Defines the different formats a post can take
 enum PostType {
+  /// Plain text post
   text,
+
+  /// Text post with attached images
   textWithImages,
+
+  /// Text post with attached event
   textWithEvent,
+
+  /// Interactive poll post
   poll,
+
+  /// Reposted content from another user
   repost,
 }
 
+/// Enumeration of post visibility levels
+/// Controls who can see the post content
+enum PostVisibility {
+  /// Visible to everyone
+  public,
+
+  /// Visible only to followers
+  followers,
+
+  /// Visible only to the author
+  private,
+}
+
+/// Core domain entity for social media posts
+/// Represents any content created by users in the system
 class Post extends Equatable {
   final String id;
   final User author;
@@ -119,6 +145,49 @@ class Post extends Equatable {
     );
   }
 
+  // Helper methods for UI state management
+
+  /// Checks if the post has been edited after creation
+  bool get isEdited => editedAt != null && !editedAt!.isAtSameMomentAs(createdAt);
+
+  /// Checks if the post is a repost of another post
+  bool get isRepost => type == PostType.repost || originalPost != null;
+
+  /// Checks if the post has any media content (images or poll)
+  bool get hasMedia => imageUrls.isNotEmpty || poll != null;
+
+  /// Checks if the post is interactive (has poll or event)
+  bool get isInteractive => poll != null || attachedEvent != null;
+
+  /// Gets the display content for reposts
+  /// Returns the quote content if available, otherwise returns original post's content
+  String get displayContent {
+    if (isRepost && content.trim().isEmpty && originalPost != null) {
+      return originalPost!.content;
+    }
+    return content;
+  }
+
+  /// Formats the creation time for display
+  /// Returns relative time (e.g., "2 hours ago") or formatted date
+  String getFormattedTime() {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inMinutes < 1) {
+      return 'just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      // Return formatted date for older posts
+      return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+    }
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -146,6 +215,8 @@ class Post extends Equatable {
       ];
 }
 
+/// Represents an interactive poll within a post
+/// Contains a question, multiple options, and voting data
 class Poll extends Equatable {
   final String id;
   final String question;
@@ -165,7 +236,31 @@ class Poll extends Equatable {
     this.votedOptionId,
   });
 
+  /// Checks if the poll has ended
+  /// Returns true if current time is after the end time
   bool get isEnded => DateTime.now().isAfter(endsAt);
+
+  /// Checks if the poll is still active and accepting votes
+  bool get isActive => !isEnded;
+
+  /// Gets the winning option (most votes)
+  /// Returns null if there are no votes or a tie
+  PollOption? getLeadingOption() {
+    if (totalVotes == 0 || options.isEmpty) return null;
+
+    final sortedOptions = List<PollOption>.from(options)
+      ..sort((a, b) => b.votes.compareTo(a.votes));
+
+    final leadingOption = sortedOptions.first;
+    final secondOption = sortedOptions.length > 1 ? sortedOptions[1] : null;
+
+    // Return null if there's a tie
+    if (secondOption != null && leadingOption.votes == secondOption.votes) {
+      return null;
+    }
+
+    return leadingOption;
+  }
 
   @override
   List<Object?> get props => [
@@ -179,6 +274,8 @@ class Poll extends Equatable {
       ];
 }
 
+/// Represents an individual option within a poll
+/// Contains the option text and vote count
 class PollOption extends Equatable {
   final String id;
   final String text;
@@ -190,6 +287,8 @@ class PollOption extends Equatable {
     this.votes = 0,
   });
 
+  /// Calculates the percentage of votes for this option
+  /// Returns 0 if totalVotes is 0 to avoid division by zero
   double getPercentage(int totalVotes) {
     if (totalVotes == 0) return 0;
     return (votes / totalVotes) * 100;
@@ -197,10 +296,4 @@ class PollOption extends Equatable {
 
   @override
   List<Object?> get props => [id, text, votes];
-}
-
-enum PostVisibility {
-  public,
-  followers,
-  private,
 }

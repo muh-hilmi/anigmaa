@@ -42,12 +42,17 @@ class Comment extends Equatable {
     final User author;
     if (json['author'] != null && json['author'] is Map) {
       final authorData = json['author'] as Map<String, dynamic>;
+      final avatarUrl = authorData['avatar_url'] ?? authorData['avatar'];
+
+      // Debug logging
+      print('[Comment] Parsing author: ${authorData['name']}, avatar_url: $avatarUrl');
+
       author = User(
         id: authorData['id'] as String,
         email: authorData['email'] as String? ?? '',
         name: authorData['name'] as String,
         bio: authorData['bio'] as String?,
-        avatar: authorData['avatar_url'] as String?,
+        avatar: avatarUrl as String?,
         isVerified: authorData['is_verified'] as bool? ?? false,
         createdAt: authorData['created_at'] != null
             ? DateTime.parse(authorData['created_at'] as String)
@@ -58,12 +63,16 @@ class Comment extends Equatable {
       );
     } else {
       // Temporary fallback for legacy flat structure
+      final avatarUrl = json['author_avatar_url'] ?? json['author_avatar'];
+
+      print('[Comment] Fallback parsing author: ${json['author_name']}, avatar_url: $avatarUrl');
+
       author = User(
         id: json['author_id'] as String,
         email: '',
         name: json['author_name'] as String,
         bio: '',
-        avatar: json['author_avatar_url'] as String?,
+        avatar: avatarUrl as String?,
         isVerified: json['author_is_verified'] as bool? ?? false,
         createdAt: DateTime.now(),
         settings: const UserSettings(),

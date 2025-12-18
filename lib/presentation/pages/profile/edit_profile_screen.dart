@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,16 +8,12 @@ import 'dart:io';
 import '../../../domain/entities/user.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
-import '../../bloc/user/user_state.dart';
 
 /// Instagram-style Edit Profile Screen with flyerr theme
 class EditProfileScreen extends StatefulWidget {
   final User? user;
 
-  const EditProfileScreen({
-    super.key,
-    this.user,
-  });
+  const EditProfileScreen({super.key, this.user});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -46,19 +41,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     'Prefer not to say',
   ];
 
+  // Standardized interests (aligned with event categories)
   final List<String> _availableInterests = [
-    'Music',
+    'Meetup',
     'Sports',
-    'Technology',
+    'Workshop',
+    'Networking',
     'Food',
-    'Travel',
-    'Art',
-    'Gaming',
-    'Movies',
-    'Books',
-    'Photography',
+    'Creative',
+    'Outdoor',
     'Fitness',
-    'Cooking',
+    'Learning',
+    'Social',
   ];
 
   @override
@@ -90,9 +84,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: _buildAppBar(),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFCCFF00),
-              ),
+              child: CircularProgressIndicator(color: Color(0xFFBBC863)),
             )
           : Form(
               key: _formKey,
@@ -109,8 +101,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     value: widget.user?.name ?? '',
                     readOnly: true,
                     onTap: () {},
-                    trailing: const Icon(Icons.lock_outline,
-                        size: 20, color: Colors.grey),
+                    trailing: const Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
                   ),
                   _buildDivider(),
                   _buildTextField(
@@ -153,7 +148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                             ),
                           )
                         : null,
@@ -193,7 +188,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: const Text(
             'Done',
             style: TextStyle(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -212,35 +207,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.grey.shade200,
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey.shade200, width: 1),
             ),
             child: ClipOval(
               child: _selectedImageFile != null
-                  ? Image.file(
-                      _selectedImageFile!,
-                      fit: BoxFit.cover,
-                    )
+                  ? Image.file(_selectedImageFile!, fit: BoxFit.cover)
                   : (_selectedAvatarUrl != null &&
-                          _selectedAvatarUrl!.isNotEmpty)
-                      ? CachedNetworkImage(
-                          imageUrl: _selectedAvatarUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey.shade100,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFFCCFF00),
-                              ),
-                            ),
+                        _selectedAvatarUrl!.isNotEmpty)
+                  ? CachedNetworkImage(
+                      imageUrl: _selectedAvatarUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.shade100,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFFBBC863),
                           ),
-                          errorWidget: (context, url, error) =>
-                              _buildDefaultAvatar(),
-                        )
-                      : _buildDefaultAvatar(),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) =>
+                          _buildDefaultAvatar(),
+                    )
+                  : _buildDefaultAvatar(),
             ),
           ),
         ],
@@ -274,7 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: const Text(
           'Change photo',
           style: TextStyle(
-            color: Color(0xFFCCFF00),
+            color: Color(0xFFBBC863),
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -284,11 +273,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Colors.grey.shade200,
-    );
+    return Divider(height: 1, thickness: 1, color: Colors.grey.shade200);
   }
 
   Widget _buildTextField({
@@ -333,11 +318,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               trailing,
             ] else if (!readOnly) ...[
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade400,
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
             ],
           ],
         ),
@@ -383,12 +364,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFFCCFF00)
+                    ? const Color(0xFFBBC863)
                     : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFFCCFF00)
+                      ? const Color(0xFFBBC863)
                       : Colors.grey.shade300,
                   width: 1,
                 ),
@@ -444,7 +425,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -488,7 +469,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -524,7 +505,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               icon: const Icon(Icons.my_location, size: 18),
               label: const Text('Use current location'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFCCFF00),
+                foregroundColor: const Color(0xFFBBC863),
               ),
             ),
           ],
@@ -545,7 +526,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -567,7 +548,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               title: Text(gender),
               value: gender,
               groupValue: _selectedGender,
-              activeColor: const Color(0xFFCCFF00),
+              activeColor: const Color(0xFFBBC863),
               onChanged: (value) {
                 setState(() {
                   _selectedGender = value;
@@ -590,9 +571,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFCCFF00),
-            ),
+            colorScheme: const ColorScheme.light(primary: Color(0xFFBBC863)),
           ),
           child: child!,
         );
@@ -664,7 +643,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFFCCFF00)),
+                leading: const Icon(Icons.camera_alt, color: Color(0xFFBBC863)),
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
@@ -672,8 +651,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.photo_library, color: Color(0xFFCCFF00)),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFFBBC863),
+                ),
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
@@ -765,15 +746,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // TODO: Get the uploaded image URL
 
       if (mounted) {
-        context.read<UserBloc>().add(UpdateUserProfile(
-          bio: _bioController.text,
-          phone: _phoneController.text,
-          location: _locationController.text,
-          dateOfBirth: _selectedDateOfBirth,
-          gender: _selectedGender,
-          interests: _selectedInterests,
-          // avatar: uploadedImageUrl, // Update this after upload
-        ));
+        context.read<UserBloc>().add(
+          UpdateUserProfile(
+            bio: _bioController.text,
+            phone: _phoneController.text,
+            location: _locationController.text,
+            dateOfBirth: _selectedDateOfBirth,
+            gender: _selectedGender,
+            interests: _selectedInterests,
+            // avatar: uploadedImageUrl, // Update this after upload
+          ),
+        );
 
         // Wait a bit for the update to process
         await Future.delayed(const Duration(milliseconds: 500));
@@ -781,7 +764,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
-            backgroundColor: Color(0xFFCCFF00),
+            backgroundColor: Color(0xFFBBC863),
             duration: Duration(seconds: 2),
           ),
         );
@@ -819,7 +802,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }

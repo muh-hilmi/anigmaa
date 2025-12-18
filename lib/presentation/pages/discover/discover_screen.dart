@@ -15,6 +15,8 @@ import '../../bloc/posts/posts_state.dart';
 import '../../bloc/ranked_feed/ranked_feed_bloc.dart';
 import '../../bloc/ranked_feed/ranked_feed_event.dart';
 import '../../bloc/ranked_feed/ranked_feed_state.dart';
+import '../../bloc/user/user_bloc.dart';
+import '../../bloc/user/user_state.dart' show UserLoaded;
 import '../event_detail/event_detail_screen.dart';
 import '../create_event/create_event_conversation.dart';
 import '../../../injection_container.dart';
@@ -39,7 +41,12 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
   Map<String, List<String>> _rankedEventIds = {};
 
   // Current selected mode
-  String _selectedMode = 'for_you'; // 'trending', 'for_you', 'chill'
+  String _selectedMode = 'trending'; // 'trending', 'for_you', 'chill'
+
+  // Flag to prevent multiple ranking calls
+  bool _hasTriggeredRanking = false;
+  bool _hasAppliedRankedResults = false;
+  bool _hasAppliedInitialFilter = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -52,6 +59,25 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
     _scrollController.addListener(_onScroll);
     context.read<EventsBloc>().add(const LoadEventsByMode(mode: 'for_you'));
     context.read<PostsBloc>().add(LoadPosts());
+  }
+
+  // Helper function to convert technical errors to user-friendly messages
+  String _getUserFriendlyError(String technicalError) {
+    final lowerError = technicalError.toLowerCase();
+
+    if (lowerError.contains('network') || lowerError.contains('connection') || lowerError.contains('socket')) {
+      return 'Koneksi internet bermasalah.\nCek koneksi kamu ya! 📡';
+    } else if (lowerError.contains('timeout')) {
+      return 'Server lagi lelet nih.\nCoba lagi yuk! ⏱️';
+    } else if (lowerError.contains('404') || lowerError.contains('not found')) {
+      return 'Data ga ketemu.\nMungkin udah dihapus 🤔';
+    } else if (lowerError.contains('500') || lowerError.contains('server') || lowerError.contains('unexpected')) {
+      return 'Server lagi bermasalah.\nTunggu sebentar ya! 🔧';
+    } else if (lowerError.contains('unauthorized') || lowerError.contains('401')) {
+      return 'Sesi kamu habis.\nYuk login lagi! 🔐';
+    } else {
+      return 'Ada kendala nih.\nCoba lagi ya! 😅';
+    }
   }
 
   // Instagram-style scroll listener for prefetching
@@ -169,6 +195,29 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
     return sortedEvents;
   }
 
+  // Format price to k/jt format
+  String _formatPrice(double price) {
+    if (price >= 1000000) {
+      // Format in millions (jt)
+      double millions = price / 1000000;
+      if (millions % 1 == 0) {
+        return '${millions.toInt()}jt';
+      } else {
+        return '${millions.toStringAsFixed(1)}jt';
+      }
+    } else if (price >= 1000) {
+      // Format in thousands (k)
+      double thousands = price / 1000;
+      if (thousands % 1 == 0) {
+        return '${thousands.toInt()}k';
+      } else {
+        return '${thousands.toStringAsFixed(1)}k';
+      }
+    } else {
+      return price.toInt().toString();
+    }
+  }
+
   // Instagram-style image precaching for smooth scrolling
   void _precacheVisibleImages() {
     if (!mounted) return;
@@ -176,7 +225,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
     // Precache first 15 visible + upcoming images
     final displayEvents = _filteredEvents.where((event) {
       return event.status == EventStatus.upcoming ||
-             event.status == EventStatus.live;
+             event.status == EventStatus.ongoing;
     }).take(15).toList();
 
     for (final event in displayEvents) {
@@ -203,7 +252,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
 
     final displayEvents = _filteredEvents.where((event) {
       return event.status == EventStatus.upcoming ||
-             event.status == EventStatus.live;
+             event.status == EventStatus.ongoing;
     }).toList();
 
     // Precache next 10 images
@@ -232,6 +281,13 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
+
+    // Get current user location
+    final userState = context.watch<UserBloc>().state;
+    final currentLocation = userState is UserLoaded
+        ? (userState.user.location ?? 'Jakarta Area')
+        : 'Jakarta Area';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocBuilder<PostsBloc, PostsState>(
@@ -255,54 +311,53 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             builder: (context, eventsState) {
               // Handle error state first
               if (eventsState is EventsError) {
-                return _buildErrorState(eventsState.message);
+                return _buildErrorState(_getUserFriendlyError(eventsState.message));
               }
 
               // Show loading for initial, loading states, or when posts are loading
               if (eventsState is EventsLoading ||
                   postsState is PostsLoading ||
-                  eventsState is! EventsLoaded ||
-                  postsState is! PostsLoaded) {
-                return const Center(child: CircularProgressIndicator(
-                  color: Color(0xFFCCFF00),
-                ));
+                  eventsState is! EventsLoaded) {
+                return const Center(child: CircularProgressIndicator());
               }
 
-              if (eventsState is EventsLoaded && postsState is PostsLoaded) {
+              if (postsState is PostsLoaded) {
                 _allEvents = eventsState.events;
 
-                // Trigger ranking when data is ready
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _rankedFeedBloc.add(LoadRankedFeed(
-                    posts: postsState.posts,
-                    events: eventsState.events,
-                  ));
-                });
+                // Trigger ranking when data is ready (only once)
+                if (!_hasTriggeredRanking) {
+                  _hasTriggeredRanking = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _rankedFeedBloc.add(LoadRankedFeed(
+                      posts: postsState.posts,
+                      events: eventsState.events,
+                    ));
+                  });
+                }
 
                 // Listen to ranking results
                 return BlocBuilder<RankedFeedBloc, RankedFeedState>(
                   bloc: _rankedFeedBloc,
                   builder: (context, rankedState) {
-                    // Update ranked IDs when ranking succeeds
-                    if (rankedState is RankedFeedLoaded) {
+                    // Update ranked IDs when ranking succeeds (only once)
+                    if (rankedState is RankedFeedLoaded && !_hasAppliedRankedResults) {
+                      _hasAppliedRankedResults = true;
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() {
-                          _rankedEventIds = {
-                            'trending': rankedState.rankedFeed.trendingEvent,
-                            'for_you': rankedState.rankedFeed.forYouEvents,
-                            'chill': rankedState.rankedFeed.chillEvents,
-                            'today': rankedState.rankedFeed.hariIniEvents,
-                            'free': rankedState.rankedFeed.gratisEvents,
-                            'paid': rankedState.rankedFeed.bayarEvents,
-                          };
-                        });
-                        _applyModeFilter();
-                        // Precache images after ranking
-                        _precacheVisibleImages();
+                        final feed = rankedState.rankedFeed;
+                        _rankedEventIds = {
+                          'trending': feed.trendingEvent,
+                          'for_you': feed.forYouEvents,
+                          'chill': feed.chillEvents,
+                          'today': feed.hariIniEvents,
+                          'free': feed.gratisEvents,
+                          'paid': feed.bayarEvents,
+                        };
+                        setState(_applyModeFilter);
                       });
                     }
 
-                    if (_filteredEvents.isEmpty && _searchController.text.isEmpty && _rankedEventIds.isEmpty) {
+                    if (_filteredEvents.isEmpty && _searchController.text.isEmpty && _rankedEventIds.isEmpty && !_hasAppliedInitialFilter) {
+                      _hasAppliedInitialFilter = true;
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _applyModeFilter();
                         _precacheVisibleImages();
@@ -312,7 +367,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                     return _allEvents.isEmpty
                         ? _buildEmptyState()
                         : RefreshIndicator(
-                            color: const Color(0xFFCCFF00),
+                            color: const Color(0xFFBBC863),
                             onRefresh: () async {
                               context.read<EventsBloc>().add(LoadEventsByMode(mode: _selectedMode));
                               context.read<PostsBloc>().add(LoadPosts());
@@ -321,7 +376,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                             child: CustomScrollView(
                               controller: _scrollController,
                               slivers: [
-                                _buildAppBar(),
+                                _buildAppBar(currentLocation),
                                 SliverToBoxAdapter(child: _buildSearchBar()),
                                 SliverToBoxAdapter(child: _buildModeSwitcher()),
                                 SliverToBoxAdapter(child: _buildLiveEventsBar()),
@@ -351,68 +406,80 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             addNewEvent(result);
           }
         },
-        backgroundColor: const Color(0xFFCCFF00),
+        backgroundColor: const Color(0xFFBBC863),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   // App Bar
-  Widget _buildAppBar() {
+  Widget _buildAppBar(String location) {
     return SliverAppBar(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
       elevation: 0,
+      scrolledUnderElevation: 0,
       pinned: true,
-      title: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAF8F5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.explore_rounded,
-              color: Color(0xFFCCFF00),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Discover',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                ),
+      floating: false,
+      snap: false,
+      toolbarHeight: 88,
+      titleSpacing: 20,
+      leadingWidth: 0,
+      automaticallyImplyLeading: false,
+      title: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 16, 0, 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFBBC863),
+                borderRadius: BorderRadius.circular(12),
               ),
-              Text(
-                'Jaksel Area',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+              child: const Icon(
+                Icons.explore_rounded,
+                color: Color(0xFF000000),
+                size: 22,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Discover',
+                    style: TextStyle(
+                      color: Color(0xFF000000),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    location,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      actions: const [
-        SizedBox(width: 8),
-      ],
     );
   }
 
   // Search Bar
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       color: Colors.white,
       child: TextField(
         controller: _searchController,
@@ -425,7 +492,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           ),
           prefixIcon: const Icon(
             Icons.search_rounded,
-            color: Color(0xFFCCFF00),
+            color: Color(0xFFBBC863),
             size: 22,
           ),
           suffixIcon: _searchController.text.isNotEmpty
@@ -435,14 +502,14 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                 )
               : null,
           filled: true,
-          fillColor: const Color(0xFFFAF8F5),
+          fillColor: const Color(0xFFFCFCFC),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 14,
+            vertical: 2,
           ),
         ),
       ),
@@ -483,7 +550,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             mode: 'nearby',
             label: 'Terdekat',
             icon: Icons.near_me_rounded,
-            color: const Color(0xFFCCFF00),
+            color: const Color(0xFFBBC863),
           ),
           const SizedBox(width: 8),
           _buildModeChip(
@@ -504,7 +571,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             mode: 'paid',
             label: 'Berbayar',
             icon: Icons.attach_money_rounded,
-            color: const Color(0xFF6366F1),
+            color: const Color(0xFFBBC863),
           ),
         ],
       ),
@@ -524,7 +591,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFAF8F5),
+          color: isSelected ? color.withOpacity(0.15) : const Color(0xFFFCFCFC),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? color : Colors.grey[300]!,
@@ -536,14 +603,14 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           children: [
             Icon(
               icon,
-              color: isSelected ? color : Colors.grey[600],
+              color: isSelected ? color : Colors.black,
               size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : Colors.grey[700],
+                color: isSelected ? color : Colors.black,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               ),
@@ -559,7 +626,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
     // Filter to only show upcoming and live events (hide completed/cancelled events)
     final displayEvents = _filteredEvents.where((event) {
       return event.status == EventStatus.upcoming ||
-             event.status == EventStatus.live;
+             event.status == EventStatus.ongoing;
     }).toList();
 
     if (displayEvents.isEmpty) {
@@ -626,7 +693,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFCCFF00).withOpacity(0.2),
+            color: const Color(0xFFBBC863).withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -634,85 +701,33 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
-            Stack(
-              children: [
-                Container(
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
-                    color: const Color(0xFFFAF8F5),
-                    image: event.imageUrls.isNotEmpty
-                        ? DecorationImage(
-                            image: CachedNetworkImageProvider(
-                              event.imageUrls.first,
-                              maxWidth: 400,
-                              maxHeight: 300,
-                            ),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: event.imageUrls.isEmpty
-                      ? const Center(
-                          child: Icon(
-                            Icons.event_rounded,
-                            color: Color(0xFFCCFF00),
-                            size: 32,
-                          ),
-                        )
-                      : null,
+            Container(
+              height: 110,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
                 ),
-                // Category badge
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.getCategoryColor(event.category),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      EventCategoryUtils.getCategoryName(event.category),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
+                color: const Color(0xFFFCFCFC),
+                image: event.imageUrls.isNotEmpty
+                    ? DecorationImage(
+                        image: CachedNetworkImageProvider(
+                          event.imageUrls.first,
+                          maxWidth: 400,
+                          maxHeight: 300,
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: event.imageUrls.isEmpty
+                  ? const Center(
+                      child: Icon(
+                        Icons.event_rounded,
+                        color: Color(0xFFBBC863),
+                        size: 32,
                       ),
-                    ),
-                  ),
-                ),
-                // Price badge
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: event.isFree
-                          ? const Color(0xFFCCFF00)
-                          : const Color(0xFF6366F1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      event.isFree ? 'GRATIS' : 'Rp${event.price!.toInt()}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                    )
+                  : null,
             ),
             // Content
             Expanded(
@@ -721,6 +736,48 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.getCategoryColor(event.category),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            EventCategoryUtils.getCategoryName(event.category),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            event.isFree ? 'GRATIS' : _formatPrice(event.price ?? 0),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       event.title,
                       style: const TextStyle(
@@ -790,14 +847,14 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                         const Icon(
                           Icons.people_rounded,
                           size: 12,
-                          color: Color(0xFFCCFF00),
+                          color: Color(0xFFBBC863),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${event.currentAttendees}/${event.maxAttendees}',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Color(0xFFCCFF00),
+                            color: Color(0xFFBBC863),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -922,22 +979,22 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                           memCacheWidth: 100,
                           memCacheHeight: 100,
                           placeholder: (context, url) => Container(
-                            color: const Color(0xFFFAF8F5),
+                            color: const Color(0xFFFCFCFC),
                           ),
                           errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFFFAF8F5),
+                            color: const Color(0xFFFCFCFC),
                             child: const Icon(
                               Icons.event_rounded,
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                               size: 24,
                             ),
                           ),
                         )
                       : Container(
-                          color: const Color(0xFFFAF8F5),
+                          color: const Color(0xFFFCFCFC),
                           child: const Icon(
                             Icons.event_rounded,
-                            color: Color(0xFFCCFF00),
+                            color: Color(0xFFBBC863),
                             size: 24,
                           ),
                         ),
@@ -973,7 +1030,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF8F5),
+              color: const Color(0xFFFCFCFC),
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
@@ -1013,7 +1070,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCCFF00),
+              backgroundColor: const Color(0xFFBBC863),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -1088,7 +1145,7 @@ class DiscoverScreenState extends State<DiscoverScreen> with AutomaticKeepAliveC
                 context.read<EventsBloc>().add(LoadEvents());
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFCCFF00),
+                backgroundColor: const Color(0xFFBBC863),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/google_auth_service.dart';
+import '../../../core/services/location_service.dart';
 import '../../../injection_container.dart' as di;
+import '../../../main.dart' show navigatorKey;
 import 'privacy_settings_screen.dart';
 import 'notification_settings_screen.dart';
 
@@ -13,21 +16,11 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkMode = false;
   bool _pushNotifications = true;
-  bool _emailNotifications = true;
   bool _locationEnabled = true;
-  String _selectedLanguage = 'Indonesia 🇮🇩';
 
-  final List<String> _languages = [
-    'English',
-    'Indonesia 🇮🇩',
-    'Español',
-    'Français',
-    'Deutsch',
-    '中文',
-    '日本語',
-  ];
+  // REDNOTE: Language settings to be re-enabled in future release
+  // Consider using localization package for better language support
 
   @override
   Widget build(BuildContext context) {
@@ -51,27 +44,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSection(
               title: 'Preferensi Gue',
               children: [
-                // TODO: Dark Mode feature hidden temporarily
-                // _buildSwitchTile(
-                //   icon: Icons.dark_mode,
-                //   title: 'Dark Mode',
-                //   subtitle: 'Ganti ke tema gelap biar adem di mata',
-                //   value: _darkMode,
-                //   onChanged: (value) {
-                //     setState(() {
-                //       _darkMode = value;
-                //     });
-                //     _showMessage('Dark mode ${value ? 'udah nyala nih! ✨' : 'dimatiin'}');
-                //   },
-                // ),
-                // TODO: Language feature hidden temporarily
-                // _buildLanguageTile(),
+                // REDNOTE: Dark mode feature to be implemented in future release
+                // Consider using system theme controller with proper theme management
                 _buildSwitchTile(
                   icon: Icons.location_on,
                   title: 'Layanan Lokasi',
                   subtitle: 'Biar gue tau event seru di sekitar lo',
                   value: _locationEnabled,
-                  onChanged: (value) {
+                  onChanged: (value) async {
+                    if (value) {
+                      // Request location permission when enabling
+                      final permission = await LocationService.checkPermission();
+
+                      if (permission == LocationPermission.denied) {
+                        final newPermission = await LocationService.requestPermission();
+                        if (newPermission == LocationPermission.denied) {
+                          _showMessage('Izin lokasi diperlukan untuk fitur ini');
+                          return;
+                        }
+                      } else if (permission == LocationPermission.deniedForever) {
+                        _showLocationPermissionDialog();
+                        return;
+                      }
+
+                      // Get current location
+                      final position = await LocationService.getCurrentPosition();
+                      if (position != null) {
+                        _showMessage('Lokasi berhasil diaktifkan! 📍');
+                      } else {
+                        _showMessage('Gagal mendapatkan lokasi. Coba lagi ya!');
+                      }
+                    }
+
                     setState(() {
                       _locationEnabled = value;
                     });
@@ -91,20 +95,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() {
                       _pushNotifications = value;
                     });
+                    // TODO: Save notification preference to backend
+                    // REDNOTE: Need to implement user preference synchronization
                   },
                 ),
-                // TODO: Email Notifications feature hidden temporarily
-                // _buildSwitchTile(
-                //   icon: Icons.email,
-                //   title: 'Email Notifications',
-                //   subtitle: 'Terima notif lewat email',
-                //   value: _emailNotifications,
-                //   onChanged: (value) {
-                //     setState(() {
-                //       _emailNotifications = value;
-                //     });
-                //   },
-                // ),
+                // REDNOTE: Email notifications to be implemented in future release
+                // Add email service integration before enabling this feature
                 _buildNavigationTile(
                   icon: Icons.tune,
                   title: 'Atur Notifikasi',
@@ -342,69 +338,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageTile() {
-    return ListTile(
-      leading: const Icon(Icons.language, color: Colors.black87),
-      title: const Text(
-        'Bahasa',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Colors.black87,
-        ),
-      ),
-      subtitle: Text(
-        _selectedLanguage,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.grey[600],
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[400],
-      ),
-      onTap: _showLanguageDialog,
-    );
-  }
-
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Pilih Bahasa'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _languages.length,
-            itemBuilder: (context, index) {
-              final language = _languages[index];
-              return RadioListTile<String>(
-                title: Text(language),
-                value: language,
-                groupValue: _selectedLanguage,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedLanguage = value!;
-                  });
-                  Navigator.pop(context);
-                  _showMessage('Bahasa diganti ke $value ✓');
-                },
-                fillColor: WidgetStateProperty.all(Colors.black),
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-        ],
-      ),
-    );
-  }
+  // REDNOTE: Language selection feature temporarily disabled
+// Will be re-enabled with proper localization support
+// Widget _buildLanguageTile() { ... }
+// void _showLanguageDialog() { ... }
 
   void _navigateToSecurity() {
     _showMessage('Keamanan Akun segera hadir! 🔜');
@@ -526,6 +463,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _showMessage('Kebijakan Privasi segera hadir! 🔜');
   }
 
+  void _showLocationPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Izin Lokasi Diperlukan'),
+        content: const Text(
+          'Untuk menemukan event di sekitar lo, flyerr butuh akses ke lokasi. Silakan buka Pengaturan dan aktifkan izin lokasi.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Nanti Saja'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              LocationService.openAppSettings();
+            },
+            child: const Text('Buka Pengaturan'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _signOut() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -546,21 +508,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
 
-    if (confirm == true && mounted) {
-      // Logout from app (clear tokens and user data)
-      final authService = di.sl<AuthService>();
-      await authService.logout();
+    if (confirm == true) {
+      try {
+        // Logout from app (clear tokens and user data)
+        final authService = di.sl<AuthService>();
+        await authService.logout();
 
-      // Sign out from Google
-      final googleAuthService = di.sl<GoogleAuthService>();
-      await googleAuthService.signOut();
+        // Sign out from Google
+        final googleAuthService = di.sl<GoogleAuthService>();
+        await googleAuthService.signOut();
 
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/login',
-          (route) => false,
-        );
+        // Use global navigator key for reliable navigation
+        final globalContext = navigatorKey.currentContext;
+        if (globalContext != null && globalContext.mounted) {
+          Navigator.of(globalContext).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Logout gagal: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

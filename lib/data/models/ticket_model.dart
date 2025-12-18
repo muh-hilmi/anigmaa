@@ -13,6 +13,11 @@ class TicketModel {
   final DateTime? checkedInAt;
   final String status;
 
+  // Event details from TicketWithDetails
+  final String? eventTitle;
+  final DateTime? eventStartTime;
+  final String? eventLocation;
+
   const TicketModel({
     required this.id,
     required this.userId,
@@ -23,6 +28,9 @@ class TicketModel {
     this.isCheckedIn = false,
     this.checkedInAt,
     this.status = 'active',
+    this.eventTitle,
+    this.eventStartTime,
+    this.eventLocation,
   });
 
   /// Convert to domain entity
@@ -37,6 +45,9 @@ class TicketModel {
       isCheckedIn: isCheckedIn,
       checkedInAt: checkedInAt,
       status: _parseTicketStatus(status),
+      eventTitle: eventTitle,
+      eventStartTime: eventStartTime,
+      eventLocation: eventLocation,
     );
   }
 
@@ -52,6 +63,9 @@ class TicketModel {
       isCheckedIn: ticket.isCheckedIn,
       checkedInAt: ticket.checkedInAt,
       status: _ticketStatusToString(ticket.status),
+      eventTitle: ticket.eventTitle,
+      eventStartTime: ticket.eventStartTime,
+      eventLocation: ticket.eventLocation,
     );
   }
 
@@ -69,6 +83,12 @@ class TicketModel {
           ? DateTime.parse(json['checked_in_at'] as String)
           : null,
       status: json['status'] as String? ?? 'active',
+      // Parse event details if available (from TicketWithDetails)
+      eventTitle: json['event_title'] as String?,
+      eventStartTime: json['event_start_time'] != null
+          ? DateTime.parse(json['event_start_time'] as String)
+          : null,
+      eventLocation: json['event_location'] as String?,
     );
   }
 

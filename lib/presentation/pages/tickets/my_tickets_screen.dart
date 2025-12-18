@@ -41,7 +41,7 @@ class MyTicketsScreen extends StatelessWidget {
             if (state is TicketsLoading) {
               return const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFCCFF00)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFBBC863),),
                 ),
               );
             }
@@ -73,7 +73,7 @@ class MyTicketsScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCCFF00),
+                        backgroundColor: const Color(0xFFBBC863),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
@@ -165,7 +165,7 @@ class MyTicketsScreen extends StatelessWidget {
           border: Border.all(
             color: isCancelled
                 ? Colors.grey[300]!
-                : const Color(0xFFCCFF00).withValues(alpha: 0.3),
+                : const Color(0xFFBBC863).withValues(alpha: 0.3),
             width: 2,
           ),
           boxShadow: [
@@ -197,7 +197,7 @@ class MyTicketsScreen extends StatelessWidget {
                               ? Colors.grey[200]
                               : isCheckedIn
                                   ? Colors.green[50]
-                                  : const Color(0xFFFAF8F5),
+                                  : const Color(0xFFFCFCFC),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -214,7 +214,7 @@ class MyTicketsScreen extends StatelessWidget {
                                   ? Colors.grey[600]
                                   : isCheckedIn
                                       ? Colors.green[700]
-                                      : const Color(0xFFCCFF00),
+                                      : const Color(0xFFBBC863),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -230,7 +230,7 @@ class MyTicketsScreen extends StatelessWidget {
                                     ? Colors.grey[600]
                                     : isCheckedIn
                                         ? Colors.green[700]
-                                        : const Color(0xFFCCFF00),
+                                        : const Color(0xFFBBC863),
                                 letterSpacing: 0.3,
                               ),
                             ),
@@ -254,7 +254,7 @@ class MyTicketsScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFCCFF00),
+                            color: const Color(0xFFBBC863),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(

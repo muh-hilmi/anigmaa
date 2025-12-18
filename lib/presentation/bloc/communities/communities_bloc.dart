@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/usecases/usecase.dart';
 import '../../../domain/usecases/get_communities.dart';
 import '../../../domain/usecases/get_joined_communities.dart';
 import '../../../domain/usecases/join_community.dart' as usecases;

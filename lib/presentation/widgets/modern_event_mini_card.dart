@@ -20,10 +20,10 @@ class ModernEventMiniCard extends StatelessWidget {
 
     return Container(
         decoration: BoxDecoration(
-          color: isEnded ? const Color(0xFFFAF8F5) : const Color(0xFFE8EDDA), // Beige for ended, Green-tint for active
+          color: isEnded ? const Color(0xFFFCFCFC) : const Color(0xFFE8EDDA), // Beige for ended, Green-tint for active
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isEnded ? const Color(0xFFE8E4DD) : const Color(0xFFCCFF00), // Gray for ended, Green for active
+            color: isEnded ? const Color(0xFFE8E4DD) : const Color(0xFFBBC863), // Gray for ended, Green for active
             width: 1.5,
           ),
         ),
@@ -250,17 +250,17 @@ class ModernEventMiniCard extends StatelessWidget {
   //             decoration: BoxDecoration(
   //               shape: BoxShape.circle,
   //               border: Border.all(color: const Color(0xFFF5F5F7), width: 2),
-  //               color: const Color(0xFFCCFF00).withValues(alpha: 0.2),
+  //               color: const Color(0xFFBBC863).withValues(alpha: 0.2),
   //             ),
   //             child: CircleAvatar(
   //               radius: 10,
-  //               backgroundColor: const Color(0xFFCCFF00).withValues(alpha: 0.15),
+  //               backgroundColor: const Color(0xFFBBC863).withValues(alpha: 0.15),
   //               child: Text(
   //                 String.fromCharCode(65 + index), // A, B, C
   //                 style: const TextStyle(
   //                   fontSize: 10,
   //                   fontWeight: FontWeight.w600,
-  //                   color: Color(0xFFCCFF00),
+  //                   color: Color(0xFFBBC863),
   //                 ),
   //               ),
   //             ),
@@ -275,11 +275,11 @@ class ModernEventMiniCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: event.isFree ? const Color(0xFF000000) : const Color(0xFFCCFF00),
+        color: event.isFree ? const Color(0xFF000000) : const Color(0xFFBBC863),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        event.isFree ? 'Gratis' : 'Rp ${_formatPrice(event.price ?? 0)}',
+        event.isFree ? 'Gratis' : _formatPrice(event.price ?? 0),
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
@@ -326,10 +326,23 @@ class ModernEventMiniCard extends StatelessWidget {
 
   String _formatPrice(double price) {
     if (price >= 1000000) {
-      return '${(price / 1000000).toStringAsFixed(1)}M';
+      // Format in millions (jt)
+      double millions = price / 1000000;
+      if (millions % 1 == 0) {
+        return '${millions.toInt()}jt';
+      } else {
+        return '${millions.toStringAsFixed(1)}jt';
+      }
     } else if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(0)}K';
+      // Format in thousands (k)
+      double thousands = price / 1000;
+      if (thousands % 1 == 0) {
+        return '${thousands.toInt()}k';
+      } else {
+        return '${thousands.toStringAsFixed(1)}k';
+      }
+    } else {
+      return price.toInt().toString();
     }
-    return price.toStringAsFixed(0);
   }
 }

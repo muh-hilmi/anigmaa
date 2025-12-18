@@ -41,4 +41,26 @@ class CurrencyFormatter {
       return formatToRupiah(amount);
     }
   }
+
+  /// Format currency to compact format WITHOUT Rp prefix
+  /// Example: 500000 -> 500k, 2000000 -> 2jt
+  static String formatToCompactNoPrefix(double amount) {
+    if (amount >= 1000000) {
+      // Format in millions (jt)
+      final millions = amount / 1000000;
+      if (millions == millions.roundToDouble()) {
+        return '${millions.toInt()}jt';
+      }
+      return '${millions.toStringAsFixed(1)}jt';
+    } else if (amount >= 1000) {
+      // Format in thousands (k)
+      final thousands = amount / 1000;
+      if (thousands == thousands.roundToDouble()) {
+        return '${thousands.toInt()}k';
+      }
+      return '${thousands.toStringAsFixed(1)}k';
+    } else {
+      return amount.toInt().toString();
+    }
+  }
 }

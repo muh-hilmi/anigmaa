@@ -67,63 +67,68 @@ class CommunityModel extends Community {
 
   static CommunityCategory _parseCategoryFromString(String category) {
     switch (category.toLowerCase()) {
+      case 'meetup':
+        return CommunityCategory.meetup;
+      case 'sports':
+        return CommunityCategory.sports;
+      case 'workshop':
+        return CommunityCategory.workshop;
+      case 'networking':
+      case 'professional': // Legacy mapping
+        return CommunityCategory.networking;
       case 'coffee':
       case 'food':
         return CommunityCategory.food;
-      case 'sports':
-        return CommunityCategory.sports;
       case 'music':
-        return CommunityCategory.music;
-      case 'gaming':
-        return CommunityCategory.gaming;
-      case 'technology':
-      case 'tech':
-        return CommunityCategory.tech;
       case 'art':
       case 'creative':
         return CommunityCategory.creative;
-      case 'books':
-      case 'education':
-        return CommunityCategory.education;
+      case 'outdoor':
+      case 'travel': // Legacy mapping
+        return CommunityCategory.outdoor;
       case 'fitness':
-      case 'health':
-        return CommunityCategory.health;
-      case 'travel':
-        return CommunityCategory.travel;
+      case 'health': // Legacy mapping
+        return CommunityCategory.fitness;
+      case 'learning':
+      case 'education': // Legacy mapping
+      case 'books': // Legacy mapping
+      case 'study': // Legacy mapping
+      case 'tech': // Legacy mapping
+      case 'technology': // Legacy mapping
+        return CommunityCategory.learning;
+      case 'social':
+      case 'gaming': // Legacy mapping
+      case 'movies': // Legacy mapping
+      case 'lifestyle': // Legacy mapping
       case 'general':
       case 'other':
       default:
-        return CommunityCategory.other;
+        return CommunityCategory.social;
     }
   }
 
   static String _categoryToString(CommunityCategory category) {
     switch (category) {
-      case CommunityCategory.food:
-        return 'food';
+      case CommunityCategory.meetup:
+        return 'meetup';
       case CommunityCategory.sports:
         return 'sports';
-      case CommunityCategory.music:
-        return 'music';
-      case CommunityCategory.gaming:
-        return 'gaming';
-      case CommunityCategory.tech:
-        return 'technology';
+      case CommunityCategory.workshop:
+        return 'workshop';
+      case CommunityCategory.networking:
+        return 'networking';
+      case CommunityCategory.food:
+        return 'food';
       case CommunityCategory.creative:
-        return 'art';
-      case CommunityCategory.education:
-        return 'books';
-      case CommunityCategory.health:
+        return 'creative';
+      case CommunityCategory.outdoor:
+        return 'outdoor';
+      case CommunityCategory.fitness:
         return 'fitness';
-      case CommunityCategory.travel:
-        return 'travel';
-      case CommunityCategory.professional:
-        return 'professional';
-      case CommunityCategory.lifestyle:
-        return 'lifestyle';
-      case CommunityCategory.other:
-      default:
-        return 'general';
+      case CommunityCategory.learning:
+        return 'learning';
+      case CommunityCategory.social:
+        return 'social';
     }
   }
 

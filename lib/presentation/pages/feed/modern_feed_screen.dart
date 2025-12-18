@@ -29,6 +29,9 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
   late ScrollController _scrollController;
   late RankedFeedBloc _rankedFeedBloc;
 
+  // Flag to prevent infinite loop
+  bool _hasLoadedRanking = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,25 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
     // Load posts and events
     context.read<PostsBloc>().add(LoadPosts());
     context.read<EventsBloc>().add(LoadEvents());
+  }
+
+  // Helper function to convert technical errors to user-friendly messages
+  String _getUserFriendlyError(String technicalError) {
+    final lowerError = technicalError.toLowerCase();
+
+    if (lowerError.contains('network') || lowerError.contains('connection') || lowerError.contains('socket')) {
+      return 'Koneksi internet bermasalah.\nCek koneksi kamu ya! 📡';
+    } else if (lowerError.contains('timeout')) {
+      return 'Server lagi lelet nih.\nCoba lagi yuk! ⏱️';
+    } else if (lowerError.contains('404') || lowerError.contains('not found')) {
+      return 'Data ga ketemu.\nMungkin udah dihapus 🤔';
+    } else if (lowerError.contains('500') || lowerError.contains('server') || lowerError.contains('unexpected')) {
+      return 'Server lagi bermasalah.\nTunggu sebentar ya! 🔧';
+    } else if (lowerError.contains('unauthorized') || lowerError.contains('401')) {
+      return 'Sesi kamu habis.\nYuk login lagi! 🔐';
+    } else {
+      return 'Ada kendala nih.\nCoba lagi ya! 😅';
+    }
   }
 
   // Instagram-style scroll listener for prefetching
@@ -65,11 +87,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
       if (post.imageUrls.isNotEmpty) {
         for (final imageUrl in post.imageUrls) {
           precacheImage(
-            CachedNetworkImageProvider(
-              imageUrl,
-              maxWidth: 800,
-              maxHeight: 600,
-            ),
+            CachedNetworkImageProvider(imageUrl, maxWidth: 800, maxHeight: 600),
             context,
           );
         }
@@ -93,7 +111,9 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
 
     // Filter out current user's posts
     final feedPosts = currentUserId != null
-        ? postsState.posts.where((post) => post.author.id != currentUserId).toList()
+        ? postsState.posts
+              .where((post) => post.author.id != currentUserId)
+              .toList()
         : postsState.posts;
 
     if (feedPosts.isEmpty) return;
@@ -112,11 +132,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
       if (post.imageUrls.isNotEmpty) {
         for (final imageUrl in post.imageUrls) {
           precacheImage(
-            CachedNetworkImageProvider(
-              imageUrl,
-              maxWidth: 800,
-              maxHeight: 600,
-            ),
+            CachedNetworkImageProvider(imageUrl, maxWidth: 800, maxHeight: 600),
             context,
           );
         }
@@ -171,25 +187,32 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
               if (postsState is PostsLoading || eventsState is EventsLoading) {
                 return const Center(
                   child: CircularProgressIndicator(
-                    color: Color(0xFF8B5CF6),
+                    color: Color(0xFFBBC863),
                     strokeWidth: 3,
                   ),
                 );
               }
 
               if (postsState is PostsError) {
-                return _buildErrorState('Failed to load posts: ${postsState.message}');
+                return _buildErrorState(
+                  _getUserFriendlyError(postsState.message),
+                );
               }
 
               if (eventsState is EventsError) {
-                return _buildErrorState('Failed to load events: ${eventsState.message}');
+                return _buildErrorState(
+                  _getUserFriendlyError(eventsState.message),
+                );
               }
 
               if (postsState is PostsLoaded && eventsState is EventsLoaded) {
-                // Trigger ranking when data is ready
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _loadRankedFeed(postsState.posts, eventsState.events);
-                });
+                // Trigger ranking when data is ready (only once to prevent infinite loop)
+                if (!_hasLoadedRanking) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _hasLoadedRanking = true;
+                    _loadRankedFeed(postsState.posts, eventsState.events);
+                  });
+                }
 
                 // Build UI with ranking results
                 return BlocBuilder<RankedFeedBloc, RankedFeedState>(
@@ -214,7 +237,9 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
 
                     // Filter out current user's posts
                     final feedPosts = currentUserId != null
-                        ? displayPosts.where((post) => post.author.id != currentUserId).toList()
+                        ? displayPosts
+                              .where((post) => post.author.id != currentUserId)
+                              .toList()
                         : displayPosts;
 
                     // Precache visible images when posts are loaded
@@ -232,7 +257,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
                         context.read<EventsBloc>().add(LoadEvents());
                         await Future.delayed(const Duration(seconds: 1));
                       },
-                      color: const Color(0xFF8B5CF6),
+                      color: const Color(0xFFBBC863),
                       child: ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -259,18 +284,11 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Color(0xFFFF6B6B),
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Color(0xFFBBC863)),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF2D3142),
-            ),
+            style: const TextStyle(fontSize: 16, color: Color(0xFF2D3142)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -280,8 +298,8 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
               context.read<EventsBloc>().add(LoadEvents());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCCFF00),
-              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFFBBC863),
+              foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -289,10 +307,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
             ),
             child: const Text(
               'Coba Lagi',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -309,13 +324,13 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
+              color: const Color(0xFFBBC863).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.feed_outlined,
               size: 60,
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           ),
           const SizedBox(height: 24),
@@ -331,8 +346,8 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
           const Text(
             'Yuk gas connect sama orang-orang keren\ndan ikutan event seru!',
             style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF9E9E9E),
+              fontSize: 18,
+              color: Color(0xFF000000),
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -352,7 +367,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCCFF00),
+              backgroundColor: const Color(0xFFBBC863),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -363,10 +378,7 @@ class _ModernFeedScreenState extends State<ModernFeedScreen> {
             icon: const Icon(Icons.add_circle_outline, size: 22),
             label: const Text(
               'Bikin Post',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),
         ],

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../domain/entities/community.dart';
-import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/community_category.dart';
 import '../../bloc/communities/communities_bloc.dart';
 import '../../bloc/communities/communities_state.dart';
@@ -122,7 +121,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                 if (state is CommunitiesLoading) {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFFCCFF00),
+                      color: Color(0xFFBBC863),
                     ),
                   );
                 }
@@ -193,7 +192,7 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
                   }
 
                   return RefreshIndicator(
-                    color: const Color(0xFFCCFF00),
+                    color: const Color(0xFFBBC863),
                     onRefresh: () async {
                       context.read<CommunitiesBloc>().add(LoadCommunities());
                     },
@@ -291,14 +290,14 @@ class _DiscoverCommunitiesScreenState extends State<DiscoverCommunitiesScreen> {
           });
         },
         backgroundColor: Colors.white,
-        selectedColor: const Color(0xFFCCFF00).withValues(alpha: 0.15),
+        selectedColor: const Color(0xFFBBC863).withValues(alpha: 0.15),
         labelStyle: TextStyle(
-          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey[700],
+          color: isSelected ? const Color(0xFFBBC863) :Color(0xFF000000),
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           fontSize: 14,
         ),
         side: BorderSide(
-          color: isSelected ? const Color(0xFFCCFF00) : Colors.grey.shade300,
+          color: isSelected ? const Color(0xFFBBC863) : Colors.grey.shade300,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
@@ -362,7 +361,7 @@ class _CommunityCard extends StatelessWidget {
                             const Icon(
                               Icons.verified,
                               size: 16,
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                             ),
                           ],
                         ],
@@ -449,7 +448,7 @@ class _CommunityCard extends StatelessWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0xFFCCFF00).withValues(alpha: 0.1),
+        color: const Color(0xFFBBC863).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -458,7 +457,7 @@ class _CommunityCard extends StatelessWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFFCCFF00),
+            color: Color(0xFFBBC863),
           ),
         ),
       ),
@@ -466,22 +465,23 @@ class _CommunityCard extends StatelessWidget {
   }
 
   Widget _buildJoinButton(BuildContext context) {
-    return OutlinedButton(
+    return FilledButton(
       onPressed: onJoin,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFFCCFF00),
-        side: const BorderSide(color: Color(0xFFCCFF00)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minimumSize: const Size(70, 32),
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFFBBC863),
+        foregroundColor: const Color(0xFF000000),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        minimumSize: const Size(80, 36),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       child: const Text(
         'Join',
         style: TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.1,
         ),
       ),
     );

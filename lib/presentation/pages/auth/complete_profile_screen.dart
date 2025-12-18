@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import '../../../core/services/auth_service.dart';
 import '../../../data/datasources/user_remote_datasource.dart';
 import '../../../injection_container.dart' as di;
 
@@ -23,12 +22,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   bool _isLoadingLocation = false;
   bool _isSubmitting = false;
 
-  final List<String> _genderOptions = [
-    'Laki-laki',
-    'Perempuan',
-    'Lainnya',
-    'Prefer not to say',
-  ];
+  final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
 
   @override
   void dispose() {
@@ -39,7 +33,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: const Color(0xFFFCFCFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -138,7 +132,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _selectedDate == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
+                color: _selectedDate == null
+                    ? Colors.grey[300]!
+                    : const Color(0xFFBBC863),
                 width: 1,
               ),
             ),
@@ -146,7 +142,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               children: [
                 Icon(
                   Icons.cake_outlined,
-                  color: _selectedDate == null ? Colors.grey[400] : const Color(0xFFCCFF00),
+                  color: _selectedDate == null
+                      ? Colors.grey[400]
+                      : const Color(0xFFBBC863),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -155,8 +153,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                   style: TextStyle(
                     fontSize: 16,
-                    color: _selectedDate == null ? Colors.grey[600] : Colors.black87,
-                    fontWeight: _selectedDate == null ? FontWeight.w400 : FontWeight.w600,
+                    color: _selectedDate == null
+                        ? Colors.grey[600]
+                        : Colors.black87,
+                    fontWeight: _selectedDate == null
+                        ? FontWeight.w400
+                        : FontWeight.w600,
                   ),
                 ),
               ],
@@ -186,7 +188,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _selectedGender == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
+              color: _selectedGender == null
+                  ? Colors.grey[300]!
+                  : const Color(0xFFBBC863),
               width: 1,
             ),
           ),
@@ -196,10 +200,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               value: _selectedGender,
               hint: const Text('Pilih gender'),
               items: _genderOptions.map((gender) {
-                return DropdownMenuItem(
-                  value: gender,
-                  child: Text(gender),
-                );
+                return DropdownMenuItem(value: gender, child: Text(gender));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -245,7 +246,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFCCFF00), width: 2),
+              borderSide: const BorderSide(color: Color(0xFFBBC863), width: 2),
             ),
           ),
         ),
@@ -294,7 +295,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _location == null ? Colors.grey[300]! : const Color(0xFFCCFF00),
+                color: _location == null
+                    ? Colors.grey[300]!
+                    : const Color(0xFFBBC863),
                 width: 1,
               ),
             ),
@@ -308,7 +311,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       )
                     : Icon(
                         Icons.location_on_outlined,
-                        color: _location == null ? Colors.grey[400] : const Color(0xFFCCFF00),
+                        color: _location == null
+                            ? Colors.grey[400]
+                            : const Color(0xFFBBC863),
                       ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -316,8 +321,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     _location ?? 'Izinkan akses lokasi',
                     style: TextStyle(
                       fontSize: 16,
-                      color: _location == null ? Colors.grey[600] : Colors.black87,
-                      fontWeight: _location == null ? FontWeight.w400 : FontWeight.w600,
+                      color: _location == null
+                          ? Colors.grey[600]
+                          : Colors.black87,
+                      fontWeight: _location == null
+                          ? FontWeight.w400
+                          : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -328,10 +337,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         const SizedBox(height: 8),
         Text(
           'Buat rekomendasiin event yang deket sama lo',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
       ],
     );
@@ -345,7 +351,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       child: ElevatedButton(
         onPressed: isValid && !_isSubmitting ? _handleSubmit : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFCCFF00),
+          backgroundColor: const Color(0xFFBBC863),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -364,10 +370,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               )
             : const Text(
                 'Lanjut',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
       ),
     );
@@ -398,9 +401,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFCCFF00),
-            ),
+            colorScheme: const ColorScheme.light(primary: Color(0xFFBBC863)),
           ),
           child: child!,
         );
@@ -450,7 +451,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         ].where((e) => e != null && e.isNotEmpty).join(', ');
 
         setState(() {
-          _location = locationText.isNotEmpty ? locationText : 'Location detected';
+          _location = locationText.isNotEmpty
+              ? locationText
+              : 'Location detected';
           _isLoadingLocation = false;
         });
       }

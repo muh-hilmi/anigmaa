@@ -7,42 +7,20 @@ import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/event_category_utils.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../widgets/location_picker.dart';
+import 'components/chat_message_model.dart';
+import 'components/message_bubble.dart';
+import 'components/typing_indicator.dart';
+import 'components/event_preview_card.dart';
+import 'components/category_selector.dart';
+import 'components/price_selector.dart';
+import 'components/image_options_selector.dart';
 
 class CreateEventConversation extends StatefulWidget {
   const CreateEventConversation({super.key});
 
   @override
-  State<CreateEventConversation> createState() => _CreateEventConversationState();
-}
-
-enum ConversationStep {
-  greeting,
-  askStartDate,
-  askStartTime,
-  askEndTime,
-  askLocation,
-  askName,
-  askDescription,
-  askCategory,
-  askPrice,
-  askCapacity,
-  askPrivacy,
-  askImage,
-  preview,
-}
-
-class ChatMessage {
-  final String text;
-  final bool isBot;
-  final DateTime timestamp;
-  final Widget? customWidget;
-
-  ChatMessage({
-    required this.text,
-    required this.isBot,
-    DateTime? timestamp,
-    this.customWidget,
-  }) : timestamp = timestamp ?? DateTime.now();
+  State<CreateEventConversation> createState() =>
+      _CreateEventConversationState();
 }
 
 class _CreateEventConversationState extends State<CreateEventConversation>
@@ -100,11 +78,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       setState(() {
-        _messages.add(ChatMessage(
-          text: text,
-          isBot: true,
-          customWidget: customWidget,
-        ));
+        _messages.add(
+          ChatMessage(text: text, isBot: true, customWidget: customWidget),
+        );
         _isTyping = false;
       });
       _scrollToBottom();
@@ -216,7 +192,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
 
         case ConversationStep.askName:
           _currentStep = ConversationStep.askDescription;
-          _addBotMessage('Nice! "$_eventTitle" 🔥\n\nCeritain dong, eventnya tentang apa?');
+          _addBotMessage(
+            'Nice! "$_eventTitle" 🔥\n\nCeritain dong, eventnya tentang apa?',
+          );
           _waitForTextInput(multiline: true);
           break;
 
@@ -228,32 +206,46 @@ class _CreateEventConversationState extends State<CreateEventConversation>
 
         case ConversationStep.askCategory:
           _currentStep = ConversationStep.askPrice;
-          String categoryName = EventCategoryUtils.getCategoryDisplayName(_category);
-          _addBotMessage('$categoryName ya! ✨\n\nEvent ini gratis atau berbayar?');
+          String categoryName = EventCategoryUtils.getCategoryDisplayName(
+            _category,
+          );
+          _addBotMessage(
+            '$categoryName ya! ✨\n\nEvent ini gratis atau berbayar?',
+          );
           _showPriceSelector();
           break;
 
         case ConversationStep.askPrice:
           _currentStep = ConversationStep.askCapacity;
           if (_isFree) {
-            _addBotMessage('Gratis! Asik banget 🎁\n\nBisa muat berapa orang nih?');
+            _addBotMessage(
+              'Gratis! Asik banget 🎁\n\nBisa muat berapa orang nih?',
+            );
           } else {
             String priceStr = CurrencyFormatter.formatToRupiah(_price);
-            _addBotMessage('Harga $priceStr per orang 💰\n\nBisa muat berapa orang nih?');
+            _addBotMessage(
+              'Harga $priceStr per orang 💰\n\nBisa muat berapa orang nih?',
+            );
           }
           _waitForNumberInput();
           break;
 
         case ConversationStep.askCapacity:
           _currentStep = ConversationStep.askPrivacy;
-          _addBotMessage('Oke kapasitas $_capacity orang! 👥\n\nMau publik atau private?');
+          _addBotMessage(
+            'Oke kapasitas $_capacity orang! 👥\n\nMau publik atau private?',
+          );
           _showQuickReplies(['Publik 🌍', 'Private 🔒']);
           break;
 
         case ConversationStep.askPrivacy:
           _currentStep = ConversationStep.askImage;
-          String privacyStr = _privacy == EventPrivacy.public ? 'Publik' : 'Private';
-          _addBotMessage('$privacyStr event ya! 🎯\n\nTerakhir, mau tambahin foto cover?');
+          String privacyStr = _privacy == EventPrivacy.public
+              ? 'Publik'
+              : 'Private';
+          _addBotMessage(
+            '$privacyStr event ya! 🎯\n\nTerakhir, mau tambahin foto cover?',
+          );
           _showImageOptions();
           break;
 
@@ -307,9 +299,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFCCFF00),
-            ),
+            colorScheme: const ColorScheme.light(primary: Color(0xFFBBC863)),
           ),
           child: child!,
         );
@@ -326,34 +316,35 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       _moveToNextStep();
     } else {
       // User canceled, show retry option
-      _addBotMessage('Oke, kalau udah siap pilih tanggalnya, klik tombol ini ya! 📅');
+      _addBotMessage(
+        'Oke, kalau udah siap pilih tanggalnya, klik tombol ini ya! 📅',
+      );
       _showQuickReplies(['Pilih Tanggal 📅']);
     }
   }
 
   void _showTimePicker({required bool isStart}) async {
-    // Calculate initial end time (start time + 2 hours, but capped at 23:59)
+    // Calculate initial end time (start time + 2 hours)
     TimeOfDay initialEndTime = const TimeOfDay(hour: 21, minute: 0);
     if (_startTime != null) {
-      int endHour = _startTime!.hour + 2;
-      // Cap at 23 to avoid TimeOfDay overflow
-      if (endHour > 23) {
-        endHour = 23;
-      }
+      int endHour = (_startTime!.hour + 2) % 24;
       initialEndTime = TimeOfDay(hour: endHour, minute: _startTime!.minute);
     }
 
     final time = await showTimePicker(
       context: context,
-      initialTime: isStart ? const TimeOfDay(hour: 19, minute: 0) : initialEndTime,
+      initialTime: isStart
+          ? const TimeOfDay(hour: 19, minute: 0)
+          : initialEndTime,
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFCCFF00),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(primary: Color(0xFFBBC863)),
             ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
@@ -364,13 +355,10 @@ class _CreateEventConversationState extends State<CreateEventConversation>
         final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
         final endMinutes = time.hour * 60 + time.minute;
 
-        if (endMinutes <= startMinutes) {
-          // End time is same or before start time - show error
-          if (endMinutes == startMinutes) {
-            _addBotMessage('Oops! ⏰ Jam mulai dan selesai tidak boleh sama. Event minimal harus ada durasinya dong!');
-          } else {
-            _addBotMessage('Oops! ⏰ Jam selesai tidak boleh lebih awal dari jam mulai. Coba pilih lagi ya!');
-          }
+        if (endMinutes == startMinutes) {
+          _addBotMessage(
+            'Oops! ⏰ Jam mulai dan selesai tidak boleh sama. Event minimal harus ada durasinya dong!',
+          );
           _showQuickReplies(['Pilih Jam Selesai 🕐']);
           return;
         }
@@ -384,7 +372,11 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       } else {
         _endTime = time;
       }
-      _addUserMessage(time.format(context));
+
+      final now = DateTime.now();
+      final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+      final timeStr = DateFormat('HH:mm').format(dt);
+      _addUserMessage(timeStr);
       _moveToNextStep();
     } else {
       // User canceled, show retry option
@@ -392,7 +384,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           ? 'Oke, kalau udah siap pilih jam mulainya, klik tombol ini ya! 🕐'
           : 'Oke, kalau udah siap pilih jam selesainya, klik tombol ini ya! 🕐';
       _addBotMessage(message);
-      _showQuickReplies(isStart ? ['Pilih Jam Mulai 🕐'] : ['Pilih Jam Selesai 🕐']);
+      _showQuickReplies(
+        isStart ? ['Pilih Jam Mulai 🕐'] : ['Pilih Jam Selesai 🕐'],
+      );
     }
   }
 
@@ -417,7 +411,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       _moveToNextStep();
     } else {
       // User canceled, show retry option
-      _addBotMessage('Oke, kalau udah siap pilih lokasinya, klik tombol ini ya! 📍');
+      _addBotMessage(
+        'Oke, kalau udah siap pilih lokasinya, klik tombol ini ya! 📍',
+      );
       _showQuickReplies(['Pilih Lokasi 📍']);
     }
   }
@@ -434,442 +430,191 @@ class _CreateEventConversationState extends State<CreateEventConversation>
     setState(() => _waitingForInput = true);
   }
 
-  void _showPreview() {
-    // Show preview card in chat
-    final previewWidget = Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCCFF00), width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Event title
-          Text(
-            _eventTitle,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFCCFF00),
-            ),
-          ),
-          const SizedBox(height: 8),
+  void _showPriceInput() async {
+    final priceController = TextEditingController();
 
-          // Category badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFCCFF00).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              EventCategoryUtils.getCategoryDisplayName(_category),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFCCFF00),
-              ),
-            ),
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Harga Tiket'),
+        content: TextField(
+          controller: priceController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Harga (Rp)',
+            hintText: 'Contoh: 50000',
+            prefixText: 'Rp ',
           ),
-          const SizedBox(height: 12),
-
-          // Description
-          Text(
-            _eventDescription,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[700],
-              height: 1.4,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final price = double.tryParse(priceController.text);
+              if (price != null && price > 0) {
+                Navigator.pop(context, price);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFBBC863),
             ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          const Divider(height: 24),
-
-          // Event details
-          _buildPreviewRow(Icons.calendar_today,
-            '${DateFormat('dd MMM yyyy').format(_startDate!)} • ${_startTime!.format(context)} - ${_endTime!.format(context)}'),
-          const SizedBox(height: 8),
-          _buildPreviewRow(Icons.location_on, _location?.name ?? 'Lokasi'),
-          const SizedBox(height: 8),
-          _buildPreviewRow(Icons.people, '$_capacity orang'),
-          const SizedBox(height: 8),
-          _buildPreviewRow(
-            _isFree ? Icons.card_giftcard : Icons.attach_money,
-            _isFree ? 'Gratis' : CurrencyFormatter.formatToRupiah(_price),
-          ),
-          const SizedBox(height: 8),
-          _buildPreviewRow(
-            _privacy == EventPrivacy.public ? Icons.public : Icons.lock,
-            _privacy == EventPrivacy.public ? 'Publik' : 'Private',
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
+    );
+
+    if (result != null) {
+      _price = result;
+      String priceStr = CurrencyFormatter.formatToRupiah(_price);
+      _addUserMessage(priceStr);
+      _moveToNextStep();
+    }
+  }
+
+  void _showPreview() {
+    // Show preview card in chat
+    final previewWidget = EventPreviewCard(
+      title: _eventTitle,
+      description: _eventDescription,
+      startDate: _startDate!,
+      startTime: _startTime!,
+      endTime: _endTime!,
+      locationName: _location?.name ?? 'Lokasi',
+      category: _category,
+      isFree: _isFree,
+      price: _price,
+      capacity: _capacity,
+      privacy: _privacy,
+      coverImage: _coverImage,
     );
 
     _addBotMessage('', customWidget: previewWidget);
     setState(() => _waitingForInput = true);
   }
 
-  Widget _buildPreviewRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey[600]),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[700],
+  Future<bool> _showExitConfirmationDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Batalkan Event?'),
+            content: const Text(
+              'Progress kamu bakal ilang nih kalau keluar sekarang. Yakin?',
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryChips() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: EventCategory.values.map((category) {
-        return GestureDetector(
-          onTap: () {
-            _category = category;
-            String categoryName = EventCategoryUtils.getCategoryDisplayName(category);
-            _addUserMessage(categoryName);
-            _moveToNextStep();
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFCCFF00),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              EventCategoryUtils.getCategoryDisplayName(category),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Nggak Jadi'),
               ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildPriceOptions() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildPriceOption('Gratis 🎁', true),
-        const SizedBox(height: 8),
-        _buildPriceOption('Berbayar 💰', false),
-      ],
-    );
-  }
-
-  Widget _buildPriceOption(String label, bool isFree) {
-    return GestureDetector(
-      onTap: () {
-        _isFree = isFree;
-        if (isFree) {
-          _price = 0;
-          _addUserMessage(label);
-          _moveToNextStep();
-        } else {
-          // Show price input
-          _showPriceInput();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFCCFF00),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Ya, Keluar'),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPriceInput() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final priceController = TextEditingController();
-        return AlertDialog(
-          title: const Text('Harga Tiket'),
-          content: TextField(
-            controller: priceController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: 'Masukkan harga',
-              prefixText: 'Rp ',
-            ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _price = double.tryParse(priceController.text) ?? 0;
-                Navigator.pop(context);
-                _addUserMessage(CurrencyFormatter.formatToRupiah(_price));
-                _moveToNextStep();
-              },
-              child: const Text('Oke'),
-            ),
-          ],
-        );
-      },
-    );
+        ) ??
+        false;
   }
 
-  Widget _buildImageOptions() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildImageOption('Ambil Foto 📸', ImageSource.camera),
-        const SizedBox(height: 8),
-        _buildImageOption('Pilih dari Galeri 🖼️', ImageSource.gallery),
-        const SizedBox(height: 8),
-        _buildImageOption('Skip aja →', null),
-      ],
-    );
-  }
-
-  Widget _buildImageOption(String label, ImageSource? source) {
-    return GestureDetector(
-      onTap: () async {
-        if (source == null) {
-          _addUserMessage('Skip foto');
-          _moveToNextStep();
-        } else {
-          final picker = ImagePicker();
-          final image = await picker.pickImage(source: source);
-          if (image != null) {
-            _coverImage = File(image.path);
-            _addUserMessage('Foto terupload! ✅');
-            _moveToNextStep();
-          }
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: source == null ? Colors.grey[300] : const Color(0xFFCCFF00),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: source == null ? Colors.black87 : Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: source == null ? Colors.black87 : Colors.white,
-              size: 16,
-            ),
-          ],
-        ),
-      ),
-    );
+  void _handleBackNavigation() async {
+    final shouldPop = await _showExitConfirmationDialog();
+    if (shouldPop && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldPop = await _showExitConfirmationDialog();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFFCCFF00),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Buat Event Baru',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFFBBC863)),
+            onPressed: _handleBackNavigation,
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Buat Event Baru',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
-                Text(
-                  'Isi detail event kamu',
-                  style: TextStyle(
-                    color: Color(0xFFCCFF00),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+              ),
+              Text(
+                'Isi detail event kamu',
+                style: TextStyle(
+                  color: Color(0xFFBBC863),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          toolbarHeight: 64,
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length + (_isTyping ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _messages.length && _isTyping) {
+                        return const TypingIndicator();
+                      }
+                      return MessageBubble(message: _messages[index]);
+                    },
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return _buildTypingIndicator();
-                }
-                return _buildMessageBubble(_messages[index]);
-              },
-            ),
-          ),
-          if (_waitingForInput) _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(ChatMessage message) {
-    return Align(
-      alignment: message.isBot ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        child: Column(
-          crossAxisAlignment:
-              message.isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: message.isBot ? Colors.white : const Color(0xFFCCFF00),
-                borderRadius: BorderRadius.circular(20).copyWith(
-                  bottomLeft: message.isBot ? const Radius.circular(4) : null,
-                  bottomRight: message.isBot ? null : const Radius.circular(4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
+            if (_waitingForInput && _activeQuickReplies.isNotEmpty)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: Center(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _activeQuickReplies
+                        .map((reply) => _buildQuickReply(reply))
+                        .toList(),
                   ),
-                ],
-              ),
-              child: message.customWidget ??
-                  Text(
-                    message.text,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: message.isBot ? Colors.black87 : Colors.white,
-                      height: 1.4,
-                    ),
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                DateFormat('HH:mm').format(message.timestamp),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[500],
                 ),
               ),
-            ),
+            if (_waitingForInput && _activeQuickReplies.isEmpty)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: Center(child: _buildInputArea()),
+              ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTypingIndicator() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20).copyWith(
-            bottomLeft: const Radius.circular(4),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDot(0),
-            const SizedBox(width: 4),
-            _buildDot(1),
-            const SizedBox(width: 4),
-            _buildDot(2),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDot(int index) {
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 600),
-      builder: (context, double value, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: Colors.grey[400]!.withValues(alpha: 0.3 + (value * 0.7)),
-            shape: BoxShape.circle,
-          ),
-        );
-      },
     );
   }
 
@@ -881,7 +626,9 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       inputWidget = Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: _activeQuickReplies.map((reply) => _buildQuickReply(reply)).toList(),
+        children: _activeQuickReplies
+            .map((reply) => _buildQuickReply(reply))
+            .toList(),
       );
     } else {
       switch (_currentStep) {
@@ -896,11 +643,31 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askCategory:
-          inputWidget = _buildCategoryChips();
+          inputWidget = CategorySelector(
+            onCategorySelected: (category) {
+              _category = category;
+              String categoryName = EventCategoryUtils.getCategoryDisplayName(
+                category,
+              );
+              _addUserMessage(categoryName);
+              _moveToNextStep();
+            },
+          );
           break;
 
         case ConversationStep.askPrice:
-          inputWidget = _buildPriceOptions();
+          inputWidget = PriceSelector(
+            onOptionSelected: (isFree) {
+              _isFree = isFree;
+              if (isFree) {
+                _price = 0;
+                _addUserMessage('Gratis 🎁');
+                _moveToNextStep();
+              } else {
+                _showPriceInput();
+              }
+            },
+          );
           break;
 
         case ConversationStep.askPrivacy:
@@ -914,7 +681,22 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           break;
 
         case ConversationStep.askImage:
-          inputWidget = _buildImageOptions();
+          inputWidget = ImageOptionsSelector(
+            onOptionSelected: (source) async {
+              if (source == null) {
+                _addUserMessage('Skip foto');
+                _moveToNextStep();
+              } else {
+                final picker = ImagePicker();
+                final image = await picker.pickImage(source: source);
+                if (image != null) {
+                  _coverImage = File(image.path);
+                  _addUserMessage('Foto terupload! ✅');
+                  _moveToNextStep();
+                }
+              }
+            },
+          );
           break;
 
         case ConversationStep.preview:
@@ -938,10 +720,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: inputWidget,
-      ),
+      child: SafeArea(top: false, child: inputWidget),
     );
   }
 
@@ -958,7 +737,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFCCFF00),
+          color: const Color(0xFFBBC863),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -986,12 +765,15 @@ class _CreateEventConversationState extends State<CreateEventConversation>
             decoration: InputDecoration(
               hintText: _getInputHint(),
               filled: true,
-              fillColor: const Color(0xFFFAF8F5),
+              fillColor: const Color(0xFFFCFCFC),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
             ),
             onSubmitted: (_) => _handleTextInput(_inputController.text),
           ),
@@ -1002,7 +784,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.send, color: Colors.white, size: 20),
@@ -1030,10 +812,10 @@ class _CreateEventConversationState extends State<CreateEventConversation>
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: _handleBackNavigation,
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: Color(0xFFCCFF00)),
+              side: const BorderSide(color: Color(0xFFBBC863)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1043,7 +825,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFCCFF00),
+                color: Color(0xFFBBC863),
               ),
             ),
           ),
@@ -1054,7 +836,7 @@ class _CreateEventConversationState extends State<CreateEventConversation>
           child: ElevatedButton(
             onPressed: _submitEvent,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCCFF00),
+              backgroundColor: const Color(0xFFBBC863),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

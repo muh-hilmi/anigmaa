@@ -15,6 +15,11 @@ class Ticket extends Equatable {
   final DateTime? checkedInAt;
   final TicketStatus status;
 
+  // Event details from TicketWithDetails
+  final String? eventTitle;
+  final DateTime? eventStartTime;
+  final String? eventLocation;
+
   const Ticket({
     required this.id,
     required this.userId,
@@ -25,6 +30,9 @@ class Ticket extends Equatable {
     this.isCheckedIn = false,
     this.checkedInAt,
     this.status = TicketStatus.active,
+    this.eventTitle,
+    this.eventStartTime,
+    this.eventLocation,
   });
 
   /// Check if this is a free ticket
@@ -44,6 +52,9 @@ class Ticket extends Equatable {
         isCheckedIn,
         checkedInAt,
         status,
+        eventTitle,
+        eventStartTime,
+        eventLocation,
       ];
 
   Ticket copyWith({
@@ -56,6 +67,9 @@ class Ticket extends Equatable {
     bool? isCheckedIn,
     DateTime? checkedInAt,
     TicketStatus? status,
+    String? eventTitle,
+    DateTime? eventStartTime,
+    String? eventLocation,
   }) {
     return Ticket(
       id: id ?? this.id,
@@ -67,6 +81,9 @@ class Ticket extends Equatable {
       isCheckedIn: isCheckedIn ?? this.isCheckedIn,
       checkedInAt: checkedInAt ?? this.checkedInAt,
       status: status ?? this.status,
+      eventTitle: eventTitle ?? this.eventTitle,
+      eventStartTime: eventStartTime ?? this.eventStartTime,
+      eventLocation: eventLocation ?? this.eventLocation,
     );
   }
 

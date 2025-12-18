@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../domain/entities/ranked_feed.dart';
-import '../../../domain/entities/user.dart';
 import '../../../domain/usecases/get_current_user.dart';
 import '../../../domain/usecases/get_ranked_feed.dart';
 import '../../../domain/utils/ranking_profile_builder.dart';

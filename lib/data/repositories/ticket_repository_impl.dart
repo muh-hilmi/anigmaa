@@ -39,8 +39,12 @@ class TicketRepositoryImpl implements TicketRepository {
       // Generate unique ticket ID and attendance code
       final ticketId = uuid.v4();
       final existingTickets = await localDataSource.getAllTickets();
-      final existingCodes = existingTickets.map((t) => t.attendanceCode).toSet();
-      final attendanceCode = AttendanceCodeGenerator.generateUnique(existingCodes);
+      final existingCodes = existingTickets
+          .map((t) => t.attendanceCode)
+          .toSet();
+      final attendanceCode = AttendanceCodeGenerator.generateUnique(
+        existingCodes,
+      );
 
       // Process payment
       final PaymentResult paymentResult;
@@ -111,7 +115,8 @@ class TicketRepositoryImpl implements TicketRepository {
       final tickets = await localDataSource.getUserTickets(userId);
       return Right(tickets.map((t) => t.toEntity()).toList());
     } catch (e) {
-      return Left(CacheFailure('Failed to load data from cache'));
+      // Return empty list instead of error if cache is empty
+      return const Right([]);
     }
   }
 
@@ -121,7 +126,8 @@ class TicketRepositoryImpl implements TicketRepository {
       final tickets = await localDataSource.getEventTickets(eventId);
       return Right(tickets.map((t) => t.toEntity()).toList());
     } catch (e) {
-      return Left(CacheFailure('Failed to load data from cache'));
+      // Return empty list instead of error if cache is empty
+      return const Right([]);
     }
   }
 
@@ -228,7 +234,8 @@ class TicketRepositoryImpl implements TicketRepository {
       final transactions = await localDataSource.getUserTransactions(userId);
       return Right(transactions.map((t) => t.toEntity()).toList());
     } catch (e) {
-      return Left(CacheFailure('Failed to load data from cache'));
+      // Return empty list instead of error if cache is empty
+      return const Right([]);
     }
   }
 
@@ -237,8 +244,9 @@ class TicketRepositoryImpl implements TicketRepository {
     String transactionId,
   ) async {
     try {
-      final transaction =
-          await localDataSource.getTransactionById(transactionId);
+      final transaction = await localDataSource.getTransactionById(
+        transactionId,
+      );
       if (transaction == null) {
         return Left(ServerFailure('Transaction not found'));
       }

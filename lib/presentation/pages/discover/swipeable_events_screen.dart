@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../domain/entities/event.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -20,6 +21,7 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
   late PageController _pageController;
   int _currentPage = 0;
   String _currentEventTitle = '';
+  List<Event> _cachedEvents = [];
 
   @override
   void initState() {
@@ -30,6 +32,33 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
     final eventsBloc = context.read<EventsBloc>();
     if (eventsBloc.state is! EventsLoaded) {
       eventsBloc.add(LoadEvents());
+    }
+  }
+
+  // Precache upcoming images for smooth swiping
+  void _precacheUpcomingImages(List<Event> events, int currentIndex) {
+    if (!mounted) return;
+
+    // Precache next 5 images
+    final startIndex = currentIndex + 1;
+    final endIndex = (currentIndex + 6).clamp(0, events.length);
+
+    for (var i = startIndex; i < endIndex; i++) {
+      final event = events[i];
+      if (event.imageUrls.isNotEmpty) {
+        try {
+          precacheImage(
+            CachedNetworkImageProvider(
+              event.imageUrls.first,
+              maxWidth: 800,
+              maxHeight: 1200,
+            ),
+            context,
+          );
+        } catch (e) {
+          // Silently fail - image will load on demand
+        }
+      }
     }
   }
 
@@ -69,6 +98,14 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
               _currentEventTitle = events[_currentPage].title;
             }
 
+            // Precache initial images when events first load
+            if (_cachedEvents.isEmpty || _cachedEvents.length != events.length) {
+              _cachedEvents = events;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _precacheUpcomingImages(events, _currentPage);
+              });
+            }
+
             return Column(
               children: [
                 Expanded(
@@ -82,6 +119,8 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
                         _currentPage = index;
                         _currentEventTitle = events[index].title;
                       });
+                      // Precache upcoming images when page changes
+                      _precacheUpcomingImages(events, index);
                     },
                     itemBuilder: (context, index) {
                       return _buildEventCard(events[index], index, events.length);
@@ -94,7 +133,7 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
 
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           );
         },
@@ -121,13 +160,13 @@ class _SwipeableEventsScreenState extends State<SwipeableEventsScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFCCFF00).withValues(alpha: 0.15),
+              color: const Color(0xFFBBC863).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.check_circle,
               size: 60,
-              color: Color(0xFFCCFF00),
+              color: Color(0xFFBBC863),
             ),
           ),
           const SizedBox(height: 24),
@@ -336,33 +375,34 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       // Background image
                       if (widget.event.imageUrls.isNotEmpty)
                         Positioned.fill(
-                          child: Image.network(
-                            widget.event.imageUrls.first,
+                          child: CachedNetworkImage(
+                            imageUrl: widget.event.imageUrls.first,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
+                            maxWidthDiskCache: 800,
+                            maxHeightDiskCache: 1200,
+                            memCacheWidth: 800,
+                            memCacheHeight: 1200,
+                            fadeInDuration: const Duration(milliseconds: 200),
+                            fadeOutDuration: const Duration(milliseconds: 200),
+                            errorWidget: (context, url, error) {
                               // Fallback if image fails to load
                               return Container(
-                                color: const Color(0xFFFAF8F5),
+                                color: const Color(0xFFFCFCFC),
                                 child: Center(
                                   child: Icon(
                                     Icons.event_rounded,
                                     size: 140,
-                                    color: const Color(0xFFCCFF00).withValues(alpha: 0.08),
+                                    color: const Color(0xFFBBC863).withValues(alpha: 0.08),
                                   ),
                                 ),
                               );
                             },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
+                            placeholder: (context, url) {
                               return Container(
-                                color: const Color(0xFFFAF8F5),
-                                child: Center(
+                                color: const Color(0xFFFCFCFC),
+                                child: const Center(
                                   child: CircularProgressIndicator(
-                                    color: const Color(0xFFCCFF00),
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
+                                    color: Color(0xFFBBC863),
                                   ),
                                 ),
                               );
@@ -372,12 +412,12 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       else
                         // Fallback background when no image
                         Container(
-                          color: const Color(0xFFFAF8F5),
+                          color: const Color(0xFFFCFCFC),
                           child: Center(
                             child: Icon(
                               Icons.event_rounded,
                               size: 140,
-                              color: const Color(0xFFCCFF00).withValues(alpha: 0.08),
+                              color: const Color(0xFFBBC863).withValues(alpha: 0.08),
                             ),
                           ),
                         ),
@@ -393,9 +433,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: widget.event.isFree
-                                  ? const Color(0xFFCCFF00)
-                                  : const Color(0xFF6366F1),
+                                color: Colors.black,
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
@@ -417,7 +455,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                   Text(
                                     widget.event.isFree
                                       ? 'GRATIS'
-                                      : CurrencyFormatter.formatToCompact(widget.event.price ?? 0),
+                                      : CurrencyFormatter.formatToCompactNoPrefix(widget.event.price ?? 0),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
@@ -433,10 +471,10 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Color(0xFFBBC863),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: const Color(0xFFCCFF00).withValues(alpha: 0.3),
+                                  color: const Color(0xFFBBC863).withValues(alpha: 0.3),
                                   width: 1.5,
                                 ),
                               ),
@@ -445,7 +483,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFFCCFF00),
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
@@ -643,23 +681,22 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                                     Expanded(
                                       child: Row(
                                         children: [
-                                          Container(
-                                            width: 32,
-                                            height: 32,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.white.withValues(alpha: 0.3),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                widget.event.host.name.substring(0, 1).toUpperCase(),
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundColor: Colors.white.withValues(alpha: 0.3),
+                                            backgroundImage: widget.event.host.avatar != null && widget.event.host.avatar!.isNotEmpty
+                                                ? CachedNetworkImageProvider(widget.event.host.avatar!)
+                                                : null,
+                                            child: widget.event.host.avatar == null || widget.event.host.avatar!.isEmpty
+                                                ? Text(
+                                                    widget.event.host.name.substring(0, 1).toUpperCase(),
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: Colors.white,
+                                                    ),
+                                                  )
+                                                : null,
                                           ),
                                           const SizedBox(width: 8),
                                           Expanded(
@@ -774,14 +811,14 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFFCCFF00),
+                              Color(0xFFBBC863),
                               Color(0xFF6B7D3F),
                             ],
                           ),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFCCFF00).withValues(alpha: 0.3),
+                              color: const Color(0xFFBBC863).withValues(alpha: 0.3),
                               blurRadius: 15,
                               spreadRadius: 1,
                               offset: const Offset(0, 4),
@@ -821,7 +858,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFFCCFF00),
+                      color: Color(0xFFBBC863),
                       letterSpacing: -0.2,
                     ),
                     textAlign: TextAlign.center,
@@ -840,7 +877,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Biaya: ${CurrencyFormatter.formatToRupiah(widget.event.price!)}',
+                      'Biaya: ${CurrencyFormatter.formatToCompactNoPrefix(widget.event.price!)}',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -856,14 +893,14 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFAF8F5),
+                    color: const Color(0xFFFCFCFC),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today, size: 16, color: Color(0xFFCCFF00)),
+                          const Icon(Icons.calendar_today, size: 16, color: Color(0xFFBBC863),),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -876,7 +913,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 16, color: Color(0xFFCCFF00)),
+                          const Icon(Icons.location_on, size: 16, color: Color(0xFFBBC863),),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -904,7 +941,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          colors: [Color(0xFFBBC863), Color(0xFFBBC863),],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -924,7 +961,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                           borderRadius: BorderRadius.circular(12),
                           child: Center(
                             child: Text(
-                              'Bayar (${CurrencyFormatter.formatToCompact(widget.event.price!)})',
+                              'Bayar (${CurrencyFormatter.formatToCompactNoPrefix(widget.event.price!)})',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -944,7 +981,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                     height: 44,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFCCFF00), Color(0xFF6B7D3F)],
+                        colors: [Color(0xFFBBC863), Color(0xFF6B7D3F)],
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -985,7 +1022,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFCCFF00), width: 1.5),
+                      border: Border.all(color: const Color(0xFFBBC863), width: 1.5),
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -1001,7 +1038,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFFCCFF00),
+                              color: Color(0xFFBBC863),
                             ),
                           ),
                         ),
@@ -1109,7 +1146,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
                   'Jangan Batalkan',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFFCCFF00),
+                    color: Color(0xFFBBC863),
                   ),
                 ),
               ),
@@ -1153,10 +1190,10 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
+        color: const Color(0xFFFCFCFC),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFCCFF00).withValues(alpha: 0.2),
+          color: const Color(0xFFBBC863).withValues(alpha: 0.2),
           width: 1.5,
         ),
       ),
@@ -1170,7 +1207,7 @@ class _DraggableEventCardState extends State<_DraggableEventCard>
             children: [
               Icon(
                 icon,
-                color: const Color(0xFFCCFF00),
+                color: const Color(0xFFBBC863),
                 size: 24,
               ),
               const SizedBox(height: 4),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../domain/entities/comment.dart';
 
@@ -31,15 +32,17 @@ class CommentItem extends StatelessWidget {
           // Avatar
           CircleAvatar(
             radius: isReply ? 16 : 20,
-            backgroundImage: comment.author.avatar != null
-                ? NetworkImage(comment.author.avatar!)
+            backgroundColor: const Color(0xFFBBC863),
+            backgroundImage: comment.author.avatar != null && comment.author.avatar!.isNotEmpty
+                ? CachedNetworkImageProvider(comment.author.avatar!)
                 : null,
-            child: comment.author.avatar == null
+            child: comment.author.avatar == null || comment.author.avatar!.isEmpty
                 ? Text(
                     comment.author.name[0].toUpperCase(),
                     style: TextStyle(
                       fontSize: isReply ? 14 : 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   )
                 : null,

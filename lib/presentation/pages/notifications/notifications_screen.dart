@@ -55,7 +55,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: const Color(0xFFFCFCFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -93,7 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _buildNotificationItem(domain.Notification notification) {
     return Container(
-      color: notification.isRead ? Colors.white : const Color(0xFFFAF8F5),
+      color: notification.isRead ? Colors.white : const Color(0xFFFCFCFC),
       child: InkWell(
         onTap: () {
           // TODO: Mark notification as read via API
@@ -103,7 +103,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Navigasi ke ${notification.actionUrl ?? "detail"}'),
-              backgroundColor: const Color(0xFFCCFF00),
+              backgroundColor: const Color(0xFFBBC863),
             ),
           );
         },
@@ -174,7 +174,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   height: 8,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFFCCFF00),
+                    color: Color(0xFFBBC863),
                   ),
                 ),
             ],
@@ -235,15 +235,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case domain.NotificationType.comment:
         return Colors.blue;
       case domain.NotificationType.follow:
-        return const Color(0xFFCCFF00);
+        return const Color(0xFFBBC863);
       case domain.NotificationType.eventReminder:
         return Colors.orange;
       case domain.NotificationType.eventJoined:
-        return const Color(0xFFCCFF00);
+        return const Color(0xFFBBC863);
       case domain.NotificationType.eventInvite:
         return Colors.purple;
       case domain.NotificationType.repost:
-        return const Color(0xFFCCFF00);
+        return const Color(0xFFBBC863);
       case domain.NotificationType.mention:
         return Colors.deepPurple;
     }

@@ -11,7 +11,8 @@ import 'package:equatable/equatable.dart';
 ///     "total": 150,
 ///     "limit": 20,
 ///     "offset": 0,
-///     "hasNext": true
+///     "hasNext": true,
+///     "hasPrevious": false
 ///   }
 /// }
 /// ```
@@ -20,12 +21,14 @@ class PaginationMeta extends Equatable {
   final int limit;
   final int offset;
   final bool hasNext;
+  final bool hasPrevious;
 
   const PaginationMeta({
     required this.total,
     required this.limit,
     required this.offset,
     required this.hasNext,
+    required this.hasPrevious,
   });
 
   /// Calculate current page number (1-based)
@@ -34,8 +37,11 @@ class PaginationMeta extends Equatable {
   /// Calculate total pages
   int get totalPages => (total / limit).ceil();
 
-  /// Check if there are previous pages
-  bool get hasPrevious => offset > 0;
+  /// Check if this is the first page
+  bool get isFirstPage => !hasPrevious && offset == 0;
+
+  /// Check if this is the last page
+  bool get isLastPage => !hasNext;
 
   /// Get offset for next page
   int get nextOffset => offset + limit;
@@ -49,6 +55,7 @@ class PaginationMeta extends Equatable {
       limit: json['limit'] as int? ?? 20,
       offset: json['offset'] as int? ?? 0,
       hasNext: json['hasNext'] as bool? ?? json['has_next'] as bool? ?? false,
+      hasPrevious: json['hasPrevious'] as bool? ?? json['has_previous'] as bool? ?? false,
     );
   }
 
@@ -68,16 +75,18 @@ class PaginationMeta extends Equatable {
       limit: 20,
       offset: 0,
       hasNext: false,
+      hasPrevious: false,
     );
   }
 
   /// Create default pagination for first page
   factory PaginationMeta.firstPage({int limit = 20}) {
-    return PaginationMeta(
+    return const PaginationMeta(
       total: 0,
-      limit: limit,
+      limit: 20,
       offset: 0,
       hasNext: false,
+      hasPrevious: false,
     );
   }
 

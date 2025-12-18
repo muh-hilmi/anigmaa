@@ -1,51 +1,55 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/event_category.dart';
 
+/// Application color scheme following Clean Architecture principles
+/// Centralized color management for consistent theming
 class AppColors {
-  // Primary Colors - Orange Theme
-  static const Color primary = Color(0xFFF97316);
-  static const Color primaryLight = Color(0xFFFB923C);
-  static const Color primaryDark = Color(0xFFEA580C);
+  // Primary Colors - Neon Green Highlight
+  static const Color primary = Color(0xFFBBC863);
+  static const Color primaryLight = Color(0xFFCCD67E);
+  static const Color primaryDark = Color(0xFF9AAA4C);
 
-  // Secondary Colors - Deep Blue
-  static const Color secondary = Color(0xFF1E40AF);
-  static const Color secondaryLight = Color(0xFF3B82F6);
-  static const Color secondaryDark = Color(0xFF1E3A8A);
+  // Secondary Colors - Black
+  static const Color secondary = Color(0xFF000000);
+  static const Color secondaryLight = Color(0xFF1A1A1A);
+  static const Color secondaryDark = Color(0xFF000000);
 
-  // Background Colors - Warm Tones
-  static const Color background = Color(0xFFFAFAF9);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFFFF7ED);
+  // Background Colors - White/Light Theme
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFFFAFAFA);
+  static const Color surfaceVariant = Color(0xFFF5F5F5);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF666666);
-  static const Color textTertiary = Color(0xFF999999);
+  static const Color textPrimary = Color(0xFF000000);
+  static const Color textSecondary = Color(0xFF333333);
+  static const Color textTertiary = Color(0xFF666666);
 
-  // Status Colors
-  static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color info = Color(0xFFF97316);
+  // Status Colors - Neon Style
+  static const Color success = Color(0xFFBBC863);
+  static const Color error = Color(0xFFFF0055);
+  static const Color warning = Color(0xFFFFFF00);
+  static const Color info = Color(0xFF00FFFF);
 
   // Border Colors
-  static const Color border = Color(0xFFE5E5E5);
+  static const Color border = Color(0xFFE0E0E0);
   static const Color borderLight = Color(0xFFF0F0F0);
 
-  // Category Colors
+  // Category Colors - Unified Neon Green
+  // TODO: Consider using different colors for each category for better UX
   static const Map<EventCategory, Color> categoryColors = {
-    EventCategory.meetup: Color(0xFF6366F1),
-    EventCategory.sports: Color(0xFF10B981),
-    EventCategory.workshop: Color(0xFFF59E0B),
-    EventCategory.networking: Color(0xFF8B5CF6),
-    EventCategory.food: Color(0xFFEF4444),
-    EventCategory.creative: Color(0xFFEC4899),
-    EventCategory.outdoor: Color(0xFF06B6D4),
-    EventCategory.fitness: Color(0xFF84CC16),
-    EventCategory.learning: Color(0xFF3B82F6),
-    EventCategory.social: Color(0xFFF97316),
+    EventCategory.meetup: Color(0xFFBBC863),
+    EventCategory.sports: Color(0xFFBBC863),
+    EventCategory.workshop: Color(0xFFBBC863),
+    EventCategory.networking: Color(0xFFBBC863),
+    EventCategory.food: Color(0xFFBBC863),
+    EventCategory.creative: Color(0xFFBBC863),
+    EventCategory.outdoor: Color(0xFFBBC863),
+    EventCategory.fitness: Color(0xFFBBC863),
+    EventCategory.learning: Color(0xFFBBC863),
+    EventCategory.social: Color(0xFFBBC863),
   };
 
+  /// Get category color with fallback to primary
   static Color getCategoryColor(EventCategory category) {
     return categoryColors[category] ?? primary;
   }

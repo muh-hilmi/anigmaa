@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:uuid/uuid.dart';
 import '../../../domain/entities/post.dart';
@@ -22,30 +23,77 @@ class PostDetailScreen extends StatefulWidget {
   State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
-class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerProviderStateMixin {
+class _PostDetailScreenState extends State<PostDetailScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _commentController = TextEditingController();
   late AnimationController _likeAnimationController;
+  late AnimationController _sparkleAnimationController;
+  late AnimationController _pulseGlowController;
   late Animation<double> _likeScaleAnimation;
+  late Animation<double> _sparkleAnimation;
+  late Animation<double> _pulseGlowAnimation;
   bool _isLiked = false;
+  bool _showSparkles = false;
 
   @override
   void initState() {
     super.initState();
     _isLiked = widget.post.isLikedByCurrentUser;
 
-    // Setup animation
+    // Setup like animation - Star Pop
     _likeAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _likeScaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(
-      parent: _likeAnimationController,
-      curve: Curves.easeInOut,
-    ));
+    _likeScaleAnimation =
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 35),
+          TweenSequenceItem(tween: Tween(begin: 1.4, end: 0.9), weight: 30),
+          TweenSequenceItem(tween: Tween(begin: 0.9, end: 1.0), weight: 35),
+        ]).animate(
+          CurvedAnimation(
+            parent: _likeAnimationController,
+            curve: Curves.easeOut,
+          ),
+        );
+
+    // Setup sparkle animation
+    _sparkleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _sparkleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _sparkleAnimationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _sparkleAnimationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _showSparkles = false;
+        });
+        _sparkleAnimationController.reset();
+      }
+    });
+
+    // Setup pulse glow animation - continuous breathing effect when liked
+    _pulseGlowController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _pulseGlowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseGlowController, curve: Curves.easeInOut),
+    );
+
+    // Start pulse if already liked
+    if (_isLiked) {
+      _pulseGlowController.repeat(reverse: true);
+    }
   }
 
   @override
@@ -57,7 +105,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         final state = context.read<PostsBloc>().state;
         // Only load if comments don't exist yet for this post
         if (state is PostsLoaded) {
-          final hasComments = state.commentsByPostId.containsKey(widget.post.id);
+          final hasComments = state.commentsByPostId.containsKey(
+            widget.post.id,
+          );
           if (!hasComments) {
             context.read<PostsBloc>().add(LoadComments(widget.post.id));
           }
@@ -67,6 +117,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _likeAnimationController.dispose();
+    _sparkleAnimationController.dispose();
+    _pulseGlowController.dispose();
+    super.dispose();
   }
 
   @override
@@ -94,7 +153,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF000000), size: 20),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Color(0xFF000000),
+                size: 20,
+              ),
             ),
             onPressed: () => Navigator.pop(context),
           ),
@@ -149,7 +212,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       ),
                       // Divider
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         child: Container(
                           height: 1,
                           decoration: BoxDecoration(
@@ -165,7 +231,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       ),
                       // Comments Section Title
                       if (state is PostsLoaded &&
-                          (state.commentsByPostId[widget.post.id]?.isNotEmpty ?? false))
+                          (state.commentsByPostId[widget.post.id]?.isNotEmpty ??
+                              false))
                         Padding(
                           padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                           child: Row(
@@ -181,9 +248,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               ),
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFAF8F5),
+                                  color: const Color(0xFFFCFCFC),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -200,7 +270,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         ),
                       if (state is PostsLoaded) ...[
                         () {
-                          final comments = state.commentsByPostId[widget.post.id] ?? [];
+                          final comments =
+                              state.commentsByPostId[widget.post.id] ?? [];
 
                           if (comments.isEmpty) {
                             return Padding(
@@ -213,8 +284,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-                                          const Color(0xFFEC4899).withValues(alpha: 0.1),
+                                          const Color(
+                                            0xFFBBC863,
+                                          ).withValues(alpha: 0.1),
+                                          const Color(
+                                            0xFFBBC863,
+                                          ).withValues(alpha: 0.1),
                                         ],
                                       ),
                                       shape: BoxShape.circle,
@@ -264,7 +339,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                           padding: const EdgeInsets.all(32),
                           child: Center(
                             child: CircularProgressIndicator(
-                              color: const Color(0xFFCCFF00),
+                              color: const Color(0xFFBBC863),
                               strokeWidth: 3,
                             ),
                           ),
@@ -284,7 +359,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   Widget _buildCommentItem(Comment comment) {
     return BlocBuilder<PostsBloc, PostsState>(
       builder: (context, state) {
-        final isSending = state is PostsLoaded && state.sendingCommentIds.contains(comment.id);
+        final isSending =
+            state is PostsLoaded &&
+            state.sendingCommentIds.contains(comment.id);
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
@@ -309,25 +386,33 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProfileScreen(
-                            userId: comment.author.id,
-                          ),
+                          builder: (context) =>
+                              ProfileScreen(userId: comment.author.id),
                         ),
                       );
                     },
                     child: CircleAvatar(
                       radius: 14,
-                      backgroundColor: const Color(0xFFFAF8F5),
-                      child: Text(
-                        comment.author.name.isNotEmpty
-                            ? comment.author.name[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFFCCFF00),
-                        ),
-                      ),
+                      backgroundColor: const Color(0xFFBBC863),
+                      backgroundImage:
+                          comment.author.avatar != null &&
+                              comment.author.avatar!.isNotEmpty
+                          ? CachedNetworkImageProvider(comment.author.avatar!)
+                          : null,
+                      child:
+                          comment.author.avatar == null ||
+                              comment.author.avatar!.isEmpty
+                          ? Text(
+                              comment.author.name.isNotEmpty
+                                  ? comment.author.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -376,7 +461,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                           comment.content,
                           style: TextStyle(
                             fontSize: 13,
-                            color: isSending ? const Color(0xFF9CA3AF) : const Color(0xFF1a1a1a),
+                            color: isSending
+                                ? const Color(0xFF9CA3AF)
+                                : const Color(0xFF1a1a1a),
                             height: 1.4,
                             fontWeight: FontWeight.w400,
                             letterSpacing: -0.1,
@@ -387,34 +474,41 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: isSending ? null : () {
-                      context.read<PostsBloc>().add(
-                            LikeCommentToggled(
-                              widget.post.id,
-                              comment.id,
-                              comment.isLikedByCurrentUser,
-                            ),
-                          );
-                    },
+                    onTap: isSending
+                        ? null
+                        : () {
+                            context.read<PostsBloc>().add(
+                              LikeCommentToggled(
+                                widget.post.id,
+                                comment.id,
+                                comment.isLikedByCurrentUser,
+                              ),
+                            );
+                          },
                     child: Opacity(
                       opacity: isSending ? 0.5 : 1.0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: comment.isLikedByCurrentUser
-                            ? const Color(0xFFFFE8E8)
-                            : Colors.transparent,
+                              ? const Color(0xFFFFE8E8)
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              comment.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+                              comment.isLikedByCurrentUser
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               size: 14,
                               color: comment.isLikedByCurrentUser
-                                ? const Color(0xFFFF6B6B)
-                                : const Color(0xFF999999),
+                                  ? const Color(0xFFFF6B6B)
+                                  : const Color(0xFF999999),
                             ),
                             if (comment.likesCount > 0) ...[
                               const SizedBox(width: 3),
@@ -424,8 +518,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: comment.isLikedByCurrentUser
-                                    ? const Color(0xFFFF6B6B)
-                                    : const Color(0xFF999999),
+                                      ? const Color(0xFFFF6B6B)
+                                      : const Color(0xFF999999),
                                 ),
                               ),
                             ],
@@ -462,9 +556,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAF8F5),
+                  color: const Color(0xFFFCFCFC),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
@@ -496,7 +593,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCCFF00),
+                  color: const Color(0xFFBBC863),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
@@ -549,61 +646,116 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   Widget _buildDetailActionBar(BuildContext context, Post currentPost) {
     return Row(
       children: [
-        // Like/Save Button
+        // Like/Save Button - Star Pop Sparkle
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              final newLikedState = !currentPost.isLikedByCurrentUser;
-              setState(() {
-                _isLiked = newLikedState;
-              });
-              _likeAnimationController.forward(from: 0.0);
-              context.read<PostsBloc>().add(
-                LikePostToggled(currentPost.id, currentPost.isLikedByCurrentUser),
-              );
-            },
-            child: AnimatedBuilder(
-              animation: _likeScaleAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _likeScaleAnimation.value,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _isLiked
-                        ? const Color(0xFFE8EDDA)
-                        : const Color(0xFFFAF8F5),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '⭐',
-                          style: TextStyle(
-                            fontSize: 20 * (_isLiked ? 1.1 : 1.0),
-                          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  final newLikedState = !currentPost.isLikedByCurrentUser;
+                  setState(() {
+                    _isLiked = newLikedState;
+                    // Only show sparkles when LIKING (not unliking)
+                    _showSparkles = newLikedState;
+                  });
+                  _likeAnimationController.forward(from: 0.0);
+                  // Only trigger sparkle animation when liking
+                  if (newLikedState) {
+                    _sparkleAnimationController.forward(from: 0.0);
+                    _pulseGlowController.repeat(reverse: true);
+                  } else {
+                    _pulseGlowController.stop();
+                    _pulseGlowController.reset();
+                  }
+                  context.read<PostsBloc>().add(
+                    LikePostToggled(currentPost.id, newLikedState),
+                  );
+                },
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    _likeScaleAnimation,
+                    _pulseGlowAnimation,
+                  ]),
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _likeScaleAnimation.value,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Star with breathing glow
+                            Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Text(
+                                '⭐',
+                                style: TextStyle(
+                                  fontSize: 20 * (_isLiked ? 1.1 : 1.0),
+                                  color: _isLiked
+                                      ? const Color(0xFFFFD700)
+                                      : null,
+                                  shadows: _isLiked
+                                      ? [
+                                          Shadow(
+                                            color: Color.lerp(
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withOpacity(0.6),
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withOpacity(1.0),
+                                              _pulseGlowAnimation.value,
+                                            )!,
+                                            blurRadius:
+                                                15 +
+                                                (10 *
+                                                    _pulseGlowAnimation.value),
+                                          ),
+                                          Shadow(
+                                            color: Color.lerp(
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withOpacity(0.4),
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withOpacity(0.7),
+                                              _pulseGlowAnimation.value,
+                                            )!,
+                                            blurRadius:
+                                                25 +
+                                                (12 *
+                                                    _pulseGlowAnimation.value),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              currentPost.likesCount > 0
+                                  ? '${currentPost.likesCount} Gas!'
+                                  : 'Gas!',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: _isLiked
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                color: const Color(0xFF262626),
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          currentPost.likesCount > 0
-                            ? '${currentPost.likesCount} Simpan'
-                            : 'Simpan',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: _isLiked ? FontWeight.w700 : FontWeight.w600,
-                            color: _isLiked
-                              ? const Color(0xFFCCFF00)
-                              : const Color(0xFF262626),
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Sparkle particles
+              if (_showSparkles) ..._buildSparkleParticles(),
+            ],
           ),
         ),
         const SizedBox(width: 12),
@@ -613,10 +765,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             onTap: _sharePost,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFAF8F5),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              // decoration: BoxDecoration(
+              //   color: const Color(0xFFFCFCFC),
+              //   borderRadius: BorderRadius.circular(16),
+              // ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -638,6 +790,130 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         ),
       ],
     );
+  }
+
+  List<Widget> _buildSparkleParticles() {
+    return [
+      // Top sparkle
+      Positioned(
+        top: 5,
+        left: 50,
+        child: AnimatedBuilder(
+          animation: _sparkleAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -10 * _sparkleAnimation.value),
+              child: Opacity(
+                opacity: 1.0 - _sparkleAnimation.value,
+                child: Text(
+                  '✨',
+                  style: TextStyle(
+                    fontSize: 12 * (1.0 + _sparkleAnimation.value * 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      // Top right sparkle
+      Positioned(
+        top: 8,
+        right: 45,
+        child: AnimatedBuilder(
+          animation: _sparkleAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(
+                10 * _sparkleAnimation.value,
+                -8 * _sparkleAnimation.value,
+              ),
+              child: Opacity(
+                opacity: 1.0 - _sparkleAnimation.value,
+                child: Text(
+                  '✨',
+                  style: TextStyle(
+                    fontSize: 10 * (1.0 + _sparkleAnimation.value * 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      // Left sparkle
+      Positioned(
+        left: 20,
+        top: 25,
+        child: AnimatedBuilder(
+          animation: _sparkleAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(-12 * _sparkleAnimation.value, 0),
+              child: Opacity(
+                opacity: 1.0 - _sparkleAnimation.value,
+                child: Text(
+                  '✨',
+                  style: TextStyle(
+                    fontSize: 11 * (1.0 + _sparkleAnimation.value * 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      // Right sparkle
+      Positioned(
+        right: 20,
+        bottom: 20,
+        child: AnimatedBuilder(
+          animation: _sparkleAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(
+                12 * _sparkleAnimation.value,
+                5 * _sparkleAnimation.value,
+              ),
+              child: Opacity(
+                opacity: 1.0 - _sparkleAnimation.value,
+                child: Text(
+                  '✨',
+                  style: TextStyle(
+                    fontSize: 10 * (1.0 + _sparkleAnimation.value * 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      // Bottom left sparkle
+      Positioned(
+        left: 40,
+        bottom: 8,
+        child: AnimatedBuilder(
+          animation: _sparkleAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(
+                -8 * _sparkleAnimation.value,
+                10 * _sparkleAnimation.value,
+              ),
+              child: Opacity(
+                opacity: 1.0 - _sparkleAnimation.value,
+                child: Text(
+                  '✨',
+                  style: TextStyle(
+                    fontSize: 9 * (1.0 + _sparkleAnimation.value * 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ];
   }
 
   void _sharePost() {
@@ -765,7 +1041,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         children: [
                           CircleAvatar(
                             radius: 20,
-                            backgroundColor: const Color(0xFFFAF8F5),
+                            backgroundColor: const Color(0xFFFCFCFC),
                             child: Text(
                               widget.post.author.name.isNotEmpty
                                   ? widget.post.author.name[0].toUpperCase()
@@ -773,7 +1049,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFFCCFF00),
+                                color: Color(0xFFBBC863),
                               ),
                             ),
                           ),
@@ -836,19 +1112,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -868,9 +1137,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         ),
         backgroundColor: Colors.green[600],
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -956,17 +1223,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         content: Text('Lagi buka $platform...'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _commentController.dispose();
-    _likeAnimationController.dispose();
-    super.dispose();
   }
 }

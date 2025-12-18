@@ -13,9 +13,13 @@ import 'followers_following_screen.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/google_auth_service.dart';
 import '../../../injection_container.dart' as di;
+import '../../../main.dart' show navigatorKey;
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/user/user_event.dart';
+import '../../bloc/posts/posts_bloc.dart';
+import '../../bloc/posts/posts_event.dart';
+import '../../bloc/posts/posts_state.dart';
 import '../../widgets/modern_post_card.dart';
 
 /// Modern profile screen with unique card-based design
@@ -31,7 +35,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin, RouteAware {
   String? _currentUserId;
   bool _isOwnProfile = false;
   TabController? _tabController;
@@ -39,9 +43,10 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _unfollowConfirmation = false; // Untuk konfirmasi unfollow
   Timer? _confirmationTimer;
   late ScrollController _postsScrollController;
+  String? _lastLoadedUserId; // Track last loaded user
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => widget.userId == null; // Only keep alive for own profile (userId == null)
 
   @override
   void initState() {
@@ -49,14 +54,64 @@ class _ProfileScreenState extends State<ProfileScreen>
     _postsScrollController = ScrollController();
     _postsScrollController.addListener(_onPostsScroll);
     _initialize();
+
+    // Listen to tab changes to load saved posts when tab is selected
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tabController?.addListener(_onTabChanged);
+    });
+  }
+
+  void _onTabChanged() {
+    if (!mounted) return;
+
+    // If "Tersimpan" tab is selected (index 2 for own profile)
+    if (_isOwnProfile && _tabController?.index == 2) {
+      // Load saved posts
+      context.read<PostsBloc>().add(LoadSavedPosts());
+    } else if (_isOwnProfile && _tabController?.index != 2) {
+      // If leaving "Tersimpan" tab, reload feed posts for home screen
+      context.read<PostsBloc>().add(LoadPosts());
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute is PageRoute) {
+      // RouteObserver would go here, but we'll use simpler approach
+    }
+  }
+
+  @override
+  void didUpdateWidget(ProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-initialize if userId changed
+    if (oldWidget.userId != widget.userId) {
+      print(
+        '[ProfileScreen] userId changed from ${oldWidget.userId} to ${widget.userId}',
+      );
+      _initialize();
+    }
   }
 
   @override
   void dispose() {
     _postsScrollController.dispose();
+    _tabController?.removeListener(_onTabChanged);
     _tabController?.dispose();
     _confirmationTimer?.cancel();
+    _lastLoadedUserId = null;
     super.dispose();
+  }
+
+  // Called when route becomes visible again
+  void _onRouteResume() {
+    print('[ProfileScreen] Route resumed with userId: ${widget.userId}');
+    // Force reload to ensure correct user data
+    _lastLoadedUserId = null;
+    _initialize();
   }
 
   void _onPostsScroll() {
@@ -81,11 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (post.imageUrls != null && post.imageUrls.isNotEmpty) {
         for (final imageUrl in post.imageUrls) {
           precacheImage(
-            CachedNetworkImageProvider(
-              imageUrl,
-              maxWidth: 800,
-              maxHeight: 600,
-            ),
+            CachedNetworkImageProvider(imageUrl, maxWidth: 800, maxHeight: 600),
             context,
           );
         }
@@ -116,11 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (post.imageUrls != null && post.imageUrls.isNotEmpty) {
         for (final imageUrl in post.imageUrls) {
           precacheImage(
-            CachedNetworkImageProvider(
-              imageUrl,
-              maxWidth: 800,
-              maxHeight: 600,
-            ),
+            CachedNetworkImageProvider(imageUrl, maxWidth: 800, maxHeight: 600),
             context,
           );
         }
@@ -135,30 +182,69 @@ class _ProfileScreenState extends State<ProfileScreen>
     final targetUserId = widget.userId ?? _currentUserId;
 
     if (targetUserId != null && mounted) {
-      setState(() {
-        _isOwnProfile = targetUserId == _currentUserId;
-        _tabController?.dispose();
-        _tabController =
-            TabController(length: _isOwnProfile ? 3 : 2, vsync: this);
-      });
-      context.read<UserBloc>().add(LoadUserById(targetUserId));
-      // Load user posts
-      context.read<UserBloc>().add(LoadUserPostsEvent(targetUserId));
+      print(
+        '[ProfileScreen] Initializing with userId: $targetUserId (last: $_lastLoadedUserId)',
+      );
+
+      // Only reload if userId actually changed
+      if (_lastLoadedUserId != targetUserId) {
+        _lastLoadedUserId = targetUserId;
+
+        setState(() {
+          _isOwnProfile = targetUserId == _currentUserId;
+          _tabController?.dispose();
+          _tabController = TabController(
+            length: _isOwnProfile ? 3 : 2,
+            vsync: this,
+          );
+        });
+
+        context.read<UserBloc>().add(LoadUserById(targetUserId));
+        // Load user posts
+        context.read<UserBloc>().add(LoadUserPostsEvent(targetUserId));
+      } else {
+        print('[ProfileScreen] Skipping reload - same userId');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
+
+    // Check if we need to reload when coming back from another route
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final targetUserId = widget.userId ?? _currentUserId;
+        final currentState = context.read<UserBloc>().state;
+
+        // If state shows different user than what we should show, reload
+        if (currentState is UserLoaded &&
+            currentState.user.id != targetUserId &&
+            targetUserId != null) {
+          print('[ProfileScreen] Detected wrong user in state. Reloading...');
+          print(
+            '[ProfileScreen] Expected: $targetUserId, Got: ${currentState.user.id}',
+          );
+          _lastLoadedUserId = null;
+          _initialize();
+        }
+      }
+    });
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: Colors.white,
       body: BlocListener<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserLoaded) {
             print('[ProfileScreen] UserLoaded received');
             print('[ProfileScreen] User: ${state.user.name}');
-            print('[ProfileScreen] Followers: ${state.user.stats.followersCount}');
-            print('[ProfileScreen] Following: ${state.user.stats.followingCount}');
+            print(
+              '[ProfileScreen] Followers: ${state.user.stats.followersCount}',
+            );
+            print(
+              '[ProfileScreen] Following: ${state.user.stats.followingCount}',
+            );
             print('[ProfileScreen] Is Following: ${state.user.isFollowing}');
 
             // Reset processing flag and confirmation when state updates
@@ -170,7 +256,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               });
             }
           } else if (state is UserActionSuccess) {
-            print('[ProfileScreen] UserActionSuccess received: ${state.message}');
+            print(
+              '[ProfileScreen] UserActionSuccess received: ${state.message}',
+            );
             _confirmationTimer?.cancel();
             setState(() {
               _isProcessing = false;
@@ -194,464 +282,528 @@ class _ProfileScreenState extends State<ProfileScreen>
           }
         },
         child: BlocBuilder<UserBloc, UserState>(
+          buildWhen: (previous, current) {
+            // Only rebuild when state is relevant to profile screen
+            // Ignore FollowersLoading, FollowersLoaded, FollowingLoading, FollowingLoaded
+            return current is UserLoading ||
+                current is UserLoaded ||
+                current is UserError ||
+                current is UserActionSuccess;
+          },
           builder: (context, state) {
-          if (state is UserLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFCCFF00),
-              ),
-            );
-          }
-
-          if (state is UserError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Gagal memuat profil',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _initialize,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCCFF00),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Coba Lagi'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (state is UserLoaded) {
-            final user = state.user;
-            final isFollowing = user.isFollowing ?? false;
-
-            // Return loading if TabController is not initialized yet
-            if (_tabController == null) {
+            if (state is UserLoading) {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFCCFF00),
+                child: CircularProgressIndicator(color: Color(0xFFBBC863)),
+              );
+            }
+
+            if (state is UserError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Gagal memuat profil',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _initialize,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFBBC863),
+                        foregroundColor: const Color(0xFF000000),
+                      ),
+                      child: const Text('Coba Lagi'),
+                    ),
+                  ],
                 ),
               );
             }
 
-            return Stack(
-              children: [
-                NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  // Green Header with Overlay Profile Picture
-                  SliverToBoxAdapter(
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Green Header Background
-                        Container(
-                          height: 180,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color(0xFFCCFF00),
-                                Color(0xFFA8B86D),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: SafeArea(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  if (!_isOwnProfile)
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_back,
-                                          color: Colors.white),
-                                      onPressed: () => Navigator.pop(context),
-                                    )
-                                  else
-                                    const SizedBox(width: 48),
-                                  Text(
-                                    _isOwnProfile ? '' : user.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+            if (state is UserLoaded) {
+              final user = state.user;
+              final isFollowing = user.isFollowing ?? false;
+
+              // Return loading if TabController is not initialized yet
+              if (_tabController == null) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFBBC863)),
+                );
+              }
+
+              return Stack(
+                children: [
+                  NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) {
+                      return [
+                        // Green Header with Overlay Profile Picture
+                        SliverToBoxAdapter(
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Green Header Background
+                              Container(
+                                height: 180,
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFFBBC863),
+                                      Color(0xFFA8B86D),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                              ),
+                              // Profile Picture Overlay
+                              Positioned(
+                                bottom: -60,
+                                left: 0,
+                                right: 0,
+                                child: Center(
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child:
+                                          (user.avatar != null &&
+                                              user.avatar!.isNotEmpty)
+                                          ? CachedNetworkImage(
+                                              imageUrl: user.avatar!,
+                                              fit: BoxFit.cover,
+                                              fadeInDuration: Duration.zero,
+                                              fadeOutDuration: Duration.zero,
+                                              placeholder: (context, url) =>
+                                                  Container(
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          gradient:
+                                                              LinearGradient(
+                                                                colors: [
+                                                                  Color(
+                                                                    0xFFBBC863,
+                                                                  ),
+                                                                  Color(
+                                                                    0xFFA8B86D,
+                                                                  ),
+                                                                ],
+                                                                begin: Alignment
+                                                                    .topLeft,
+                                                                end: Alignment
+                                                                    .bottomRight,
+                                                              ),
+                                                        ),
+                                                  ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      _buildDefaultAvatar(
+                                                        user.name,
+                                                      ),
+                                              memCacheWidth: 240,
+                                              memCacheHeight: 240,
+                                              maxWidthDiskCache: 480,
+                                              maxHeightDiskCache: 480,
+                                            )
+                                          : _buildDefaultAvatar(user.name),
                                     ),
                                   ),
-                                  const SizedBox(width: 48),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                        // Profile Picture Overlay
-                        Positioned(
-                          bottom: -60,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 5,
+                        // Profile Info Section
+                        SliverToBoxAdapter(
+                          child: Container(
+                            margin: const EdgeInsets.only(
+                              top: 70,
+                              left: 16,
+                              right: 16,
+                            ),
+                            child: Column(
+                              children: [
+                                // Name + Verified
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        user.name,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    if (user.isVerified) ...[
+                                      const SizedBox(width: 6),
+                                      const Icon(
+                                        Icons.verified,
+                                        size: 20,
+                                        color: Color(0xFFBBC863),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
+                                // Location
+                                if (user.location != null &&
+                                    user.location!.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        user.location!,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                              child: ClipOval(
-                                child: (user.avatar != null &&
-                                        user.avatar!.isNotEmpty)
-                                    ? CachedNetworkImage(
-                                        imageUrl: user.avatar!,
-                                        fit: BoxFit.cover,
-                                        fadeInDuration: Duration.zero,
-                                        fadeOutDuration: Duration.zero,
-                                        placeholder: (context, url) => Container(
-                                          decoration: const BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFFCCFF00),
-                                                Color(0xFFA8B86D),
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                          ),
+                                const SizedBox(height: 20),
+                                // Action Button
+                                if (_isOwnProfile)
+                                  _buildFullWidthButton(
+                                    label: 'Edit Profile',
+                                    icon: Icons.edit_rounded,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const EditProfileScreen(),
                                         ),
-                                        errorWidget: (context, url, error) =>
-                                            _buildDefaultAvatar(user.name),
-                                        memCacheWidth: 240,
-                                        memCacheHeight: 240,
-                                        maxWidthDiskCache: 480,
-                                        maxHeightDiskCache: 480,
-                                      )
-                                    : _buildDefaultAvatar(user.name),
-                              ),
+                                      );
+                                    },
+                                    isPrimary: false,
+                                  )
+                                else
+                                  _buildFullWidthButton(
+                                    label: _unfollowConfirmation
+                                        ? 'Yakin nih?'
+                                        : (isFollowing
+                                              ? 'Following'
+                                              : 'Follow'),
+                                    icon: _unfollowConfirmation
+                                        ? Icons.warning_rounded
+                                        : (isFollowing
+                                              ? Icons.check_rounded
+                                              : Icons.person_add_rounded),
+                                    onTap: _isProcessing
+                                        ? null
+                                        : () {
+                                            // Prevent double-tap
+                                            if (_isProcessing) return;
+
+                                            print(
+                                              '[ProfileScreen] Button tapped, isFollowing: $isFollowing, confirmation: $_unfollowConfirmation',
+                                            );
+                                            print(
+                                              '[ProfileScreen] Current followers: ${user.stats.followersCount}',
+                                            );
+
+                                            // Trigger follow/unfollow action
+                                            if (isFollowing) {
+                                              // UNFOLLOW logic dengan konfirmasi 2x klik
+                                              if (!_unfollowConfirmation) {
+                                                // Click pertama: Tanya konfirmasi
+                                                print(
+                                                  '[ProfileScreen] First click - asking confirmation',
+                                                );
+                                                setState(
+                                                  () => _unfollowConfirmation =
+                                                      true,
+                                                );
+
+                                                // Reset konfirmasi setelah 3 detik
+                                                _confirmationTimer?.cancel();
+                                                _confirmationTimer = Timer(
+                                                  const Duration(seconds: 3),
+                                                  () {
+                                                    if (mounted) {
+                                                      setState(
+                                                        () =>
+                                                            _unfollowConfirmation =
+                                                                false,
+                                                      );
+                                                    }
+                                                  },
+                                                );
+                                              } else {
+                                                // Click kedua: Execute unfollow langsung
+                                                print(
+                                                  '[ProfileScreen] Second click - triggering UNFOLLOW for user: ${user.id}',
+                                                );
+                                                _confirmationTimer?.cancel();
+                                                setState(() {
+                                                  _unfollowConfirmation = false;
+                                                  _isProcessing = true;
+                                                });
+                                                context.read<UserBloc>().add(
+                                                  UnfollowUserEvent(user.id),
+                                                );
+                                              }
+                                            } else {
+                                              // FOLLOW logic (langsung tanpa konfirmasi)
+                                              print(
+                                                '[ProfileScreen] Triggering FOLLOW for user: ${user.id}',
+                                              );
+                                              setState(
+                                                () => _isProcessing = true,
+                                              );
+                                              context.read<UserBloc>().add(
+                                                FollowUserEvent(user.id),
+                                              );
+                                            }
+                                          },
+                                    isPrimary: _unfollowConfirmation
+                                        ? false
+                                        : !isFollowing,
+                                  ),
+                                const SizedBox(height: 20),
+                                // Stats Row - 4 items
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildStatItem(
+                                      value: state.postsCount.toString(),
+                                      label: 'Post',
+                                      onTap: () {
+                                        // Switch to Posts tab (index 0)
+                                        if (_tabController != null) {
+                                          _tabController!.animateTo(0);
+                                        }
+                                      },
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 40,
+                                      color: Colors.grey[300],
+                                    ),
+                                    _buildStatItem(
+                                      value: _formatNumber(
+                                        user.stats.eventsCreated,
+                                      ),
+                                      label: 'Event',
+                                      onTap: () {
+                                        // Switch to Events tab (index 1)
+                                        if (_tabController != null) {
+                                          _tabController!.animateTo(1);
+                                        }
+                                      },
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 40,
+                                      color: Colors.grey[300],
+                                    ),
+                                    _buildStatItem(
+                                      value: _formatNumber(
+                                        user.stats.followersCount,
+                                      ),
+                                      label: 'Followers',
+                                      onTap: () {
+                                        // Navigate to Followers screen
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FollowersFollowingScreen(
+                                                  userId: user.id,
+                                                  isFollowers: true,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 40,
+                                      color: Colors.grey[300],
+                                    ),
+                                    _buildStatItem(
+                                      value: _formatNumber(
+                                        user.stats.followingCount,
+                                      ),
+                                      label: 'Following',
+                                      onTap: () {
+                                        // Navigate to Following screen
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FollowersFollowingScreen(
+                                                  userId: user.id,
+                                                  isFollowers: false,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                // Bio/Profession - moved below stats
+                                if (user.bio != null &&
+                                    user.bio!.isNotEmpty) ...[
+                                  const SizedBox(height: 20),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Text(
+                                      user.bio!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                        height: 1.4,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                              ],
                             ),
                           ),
                         ),
+                        // Tab Bar
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _StickyTabBarDelegate(
+                            TabBar(
+                              controller: _tabController!,
+                              labelColor: Colors.black,
+                              unselectedLabelColor: Colors.grey,
+                              indicatorColor: Colors.black,
+                              indicatorWeight: 5,
+                              labelStyle: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              tabs: [
+                                const Tab(text: 'Postingan'),
+                                const Tab(text: 'Event'),
+                                if (_isOwnProfile) const Tab(text: 'Tersimpan'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ];
+                    },
+                    body: TabBarView(
+                      controller: _tabController!,
+                      children: [
+                        _buildPostsTab(state.userPosts),
+                        _buildEventsGrid(state.eventsHosted),
+                        if (_isOwnProfile) _buildSavedGrid(),
                       ],
                     ),
                   ),
-                  // Profile Info Section
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 70, left: 16, right: 16),
-                      child: Column(
-                        children: [
-                          // Name + Verified
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  user.name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              if (user.isVerified) ...[
-                                const SizedBox(width: 6),
-                                const Icon(
-                                  Icons.verified,
-                                  size: 20,
-                                  color: Color(0xFFCCFF00),
-                                ),
-                              ],
-                            ],
+                  // Fixed Back Button (for other users only) at top left
+                  if (!_isOwnProfile)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: SafeArea(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
                           ),
-                          // Location
-                          if (user.location != null && user.location!.isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 16,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  user.location!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
                             ),
-                          ],
-                          const SizedBox(height: 20),
-                          // Action Button
-                          if (_isOwnProfile)
-                            _buildFullWidthButton(
-                              label: 'Edit Profile',
-                              icon: Icons.edit_rounded,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const EditProfileScreen(),
-                                  ),
-                                );
-                              },
-                              isPrimary: false,
-                            )
-                          else
-                            _buildFullWidthButton(
-                              label: _unfollowConfirmation
-                                  ? 'Yakin nih?'
-                                  : (isFollowing ? 'Following' : 'Follow'),
-                              icon: _unfollowConfirmation
-                                  ? Icons.warning_rounded
-                                  : (isFollowing
-                                      ? Icons.check_rounded
-                                      : Icons.person_add_rounded),
-                              onTap: _isProcessing ? null : () {
-                                // Prevent double-tap
-                                if (_isProcessing) return;
-
-                                print('[ProfileScreen] Button tapped, isFollowing: $isFollowing, confirmation: $_unfollowConfirmation');
-                                print('[ProfileScreen] Current followers: ${user.stats.followersCount}');
-
-                                // Trigger follow/unfollow action
-                                if (isFollowing) {
-                                  // UNFOLLOW logic dengan konfirmasi 2x klik
-                                  if (!_unfollowConfirmation) {
-                                    // Click pertama: Tanya konfirmasi
-                                    print('[ProfileScreen] First click - asking confirmation');
-                                    setState(() => _unfollowConfirmation = true);
-
-                                    // Reset konfirmasi setelah 3 detik
-                                    _confirmationTimer?.cancel();
-                                    _confirmationTimer = Timer(const Duration(seconds: 3), () {
-                                      if (mounted) {
-                                        setState(() => _unfollowConfirmation = false);
-                                      }
-                                    });
-                                  } else {
-                                    // Click kedua: Execute unfollow langsung
-                                    print('[ProfileScreen] Second click - triggering UNFOLLOW for user: ${user.id}');
-                                    _confirmationTimer?.cancel();
-                                    setState(() {
-                                      _unfollowConfirmation = false;
-                                      _isProcessing = true;
-                                    });
-                                    context
-                                        .read<UserBloc>()
-                                        .add(UnfollowUserEvent(user.id));
-                                  }
-                                } else {
-                                  // FOLLOW logic (langsung tanpa konfirmasi)
-                                  print('[ProfileScreen] Triggering FOLLOW for user: ${user.id}');
-                                  setState(() => _isProcessing = true);
-                                  context
-                                      .read<UserBloc>()
-                                      .add(FollowUserEvent(user.id));
-                                }
-                              },
-                              isPrimary: _unfollowConfirmation ? false : !isFollowing,
-                            ),
-                          const SizedBox(height: 20),
-                          // Stats Row - 4 items
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildStatItem(
-                                value: state.postsCount.toString(),
-                                label: 'Post',
-                                onTap: () {
-                                  // Switch to Posts tab (index 0)
-                                  if (_tabController != null) {
-                                    _tabController!.animateTo(0);
-                                  }
-                                },
-                              ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey[300],
-                              ),
-                              _buildStatItem(
-                                value: _formatNumber(user.stats.eventsCreated),
-                                label: 'Event',
-                                onTap: () {
-                                  // Switch to Events tab (index 1)
-                                  if (_tabController != null) {
-                                    _tabController!.animateTo(1);
-                                  }
-                                },
-                              ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey[300],
-                              ),
-                              _buildStatItem(
-                                value: _formatNumber(user.stats.followersCount),
-                                label: 'Followers',
-                                onTap: () {
-                                  // Navigate to Followers screen
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FollowersFollowingScreen(
-                                        userId: user.id,
-                                        isFollowers: true,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey[300],
-                              ),
-                              _buildStatItem(
-                                value: _formatNumber(user.stats.followingCount),
-                                label: 'Following',
-                                onTap: () {
-                                  // Navigate to Following screen
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FollowersFollowingScreen(
-                                        userId: user.id,
-                                        isFollowers: false,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          // Bio/Profession - moved below stats
-                          if (user.bio != null && user.bio!.isNotEmpty) ...[
-                            const SizedBox(height: 20),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                user.bio!,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                  height: 1.4,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Tab Bar
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickyTabBarDelegate(
-                      TabBar(
-                        controller: _tabController!,
-                        labelColor: const Color(0xFFCCFF00),
-                        unselectedLabelColor: Colors.grey,
-                        indicatorColor: const Color(0xFFCCFF00),
-                        indicatorWeight: 3,
-                        labelStyle: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
                         ),
-                        tabs: [
-                          const Tab(text: 'Posts'),
-                          const Tab(text: 'Events'),
-                          if (_isOwnProfile) const Tab(text: 'Saved'),
-                        ],
+                      ),
+                    ),
+                  // Fixed Menu Button at top right
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: SafeArea(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _isOwnProfile
+                              ? Colors.white
+                              : Colors.black.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                          boxShadow: _isOwnProfile
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _isOwnProfile ? Icons.menu : Icons.more_vert,
+                            color: _isOwnProfile
+                                ? const Color(0xFFBBC863)
+                                : Colors.white,
+                          ),
+                          onPressed: () {
+                            if (_isOwnProfile) {
+                              _showMenuBottomSheet(context);
+                            } else {
+                              _showUserMenuBottomSheet(context);
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ];
-              },
-              body: TabBarView(
-                controller: _tabController!,
-                children: [
-                  _buildPostsTab(state.userPosts),
-                  _buildEventsGrid(state.eventsHosted),
-                  if (_isOwnProfile) _buildSavedGrid(),
                 ],
-              ),
-            ),
-            // Fixed Menu Button at top right
-            Positioned(
-              top: 8,
-              right: 8,
-              child: SafeArea(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      _isOwnProfile ? Icons.menu : Icons.more_vert,
-                      color: const Color(0xFFCCFF00),
-                    ),
-                    onPressed: () {
-                      if (_isOwnProfile) {
-                        _showMenuBottomSheet(context);
-                      } else {
-                        _showUserMenuBottomSheet(context);
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      }
+              );
+            }
 
-      return const SizedBox.shrink();
+            return const SizedBox.shrink();
           },
         ),
       ),
@@ -662,10 +814,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFFCCFF00),
-            Color(0xFFA8B86D),
-          ],
+          colors: [Color(0xFFBBC863), Color(0xFFA8B86D)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -682,7 +831,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
     );
   }
-
 
   String _formatNumber(int number) {
     if (number >= 1000000) {
@@ -705,50 +853,47 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Opacity(
         opacity: onTap == null ? 0.6 : 1.0,
         child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: isPrimary
-              ? const LinearGradient(
-                  colors: [
-                    Color(0xFFCCFF00),
-                    Color(0xFFA8B86D),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: isPrimary ? null : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: !isPrimary ? Border.all(color: Colors.grey[300]!) : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isPrimary ? Colors.white : Colors.grey[800],
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isPrimary ? Colors.white : Colors.black,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: isPrimary
+                ? const LinearGradient(
+                    colors: [Color(0xFFBBC863), Color(0xFFA8B86D)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isPrimary ? null : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: !isPrimary ? Border.all(color: Colors.grey[300]!) : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-          ],
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isPrimary ? Colors.white : Colors.grey[800],
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: isPrimary ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -788,7 +933,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-
   Widget _buildPostsTab(List<dynamic> posts) {
     // Precache visible posts when tab is loaded
     if (posts.isNotEmpty) {
@@ -818,7 +962,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Icon(
                 Icons.article_outlined,
                 size: 64,
-                color: Colors.grey[300],
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 20),
@@ -827,14 +971,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 8),
             if (_isOwnProfile)
               Text(
                 'Buat postingan pertamamu!',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 14, color: Colors.black),
               ),
           ],
         ),
@@ -870,11 +1014,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ],
               ),
-              child: Icon(
-                Icons.event_outlined,
-                size: 64,
-                color: Colors.grey[300],
-              ),
+              child: Icon(Icons.event_outlined, size: 64, color: Colors.black),
             ),
             const SizedBox(height: 20),
             Text(
@@ -882,14 +1022,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 8),
             if (_isOwnProfile)
               Text(
                 'Buat event pertamamu!',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 14, color: Colors.black),
               ),
           ],
         ),
@@ -928,51 +1068,142 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildSavedGrid() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state) {
+        if (state is PostsLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFBBC863)),
+          );
+        } else if (state is PostsError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Gagal memuat postingan tersimpan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<PostsBloc>().add(LoadSavedPosts());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFBBC863),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Coba Lagi'),
                 ),
               ],
             ),
-            child: Icon(
-              Icons.bookmark_border,
-              size: 64,
-              color: Colors.grey[300],
-            ),
+          );
+        } else if (state is PostsLoaded) {
+          if (state.posts.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.bookmark_border, size: 64, color: Colors.black),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Belum ada item tersimpan',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Simpan event & post favoritmu di sini',
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Display saved posts
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 8),
+            itemCount: state.posts.length,
+            itemBuilder: (context, index) {
+              return ModernPostCard(post: state.posts[index]);
+            },
+          );
+        }
+
+        // Default: show empty state
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.bookmark_border, size: 64, color: Colors.black),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Belum ada item tersimpan',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Simpan event & post favoritmu di sini',
+                style: TextStyle(fontSize: 14, color: Colors.black),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Belum ada item tersimpan',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Simpan event & post favoritmu di sini',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   void _showMenuBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1049,9 +1280,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const QRCodeScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const QRCodeScreen()),
                 );
               },
             ),
@@ -1149,11 +1378,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     Color? textColor,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: iconColor ?? Colors.grey[800],
-        size: 24,
-      ),
+      leading: Icon(icon, color: iconColor ?? Colors.grey[800], size: 24),
       title: Text(
         title,
         style: TextStyle(
@@ -1172,26 +1397,18 @@ class _ProfileScreenState extends State<ProfileScreen>
       builder: (dialogContext) => AlertDialog(
         title: const Text('Logout'),
         content: const Text('Yakin mau logout?'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Batal',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
+            child: Text('Batal', style: TextStyle(color: Colors.grey[600])),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
               await _handleLogout(context);
             },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -1206,17 +1423,19 @@ class _ProfileScreenState extends State<ProfileScreen>
       await googleAuthService.signOut();
       await authService.logout();
 
-      if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
-          (route) => false,
-        );
+      // Use global navigator key for reliable navigation
+      final globalContext = navigatorKey.currentContext;
+      if (globalContext != null && globalContext.mounted) {
+        Navigator.of(
+          globalContext,
+        ).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      final globalContext = navigatorKey.currentContext ?? context;
+      if (globalContext.mounted) {
+        ScaffoldMessenger.of(globalContext).showSnackBar(
           SnackBar(
-            content: Text('Gagal logout: $e'),
+            content: Text('Logout gagal. Coba lagi ya! 😅'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1239,11 +1458,11 @@ class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: const Color(0xFFFAF8F5),
-      child: tabBar,
-    );
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(color: Colors.white, child: tabBar);
   }
 
   @override
